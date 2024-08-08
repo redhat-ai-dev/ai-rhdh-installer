@@ -2,7 +2,7 @@
 annotations:
   charts.openshift.io/name: Vanilla Red Hat Developer Hub Setup
   charts.openshift.io/provider: Red Hat
-  charts.openshift.io/supportURL: https://github.com/redhat-ai-dev/rhdh-installer/issues
+  charts.openshift.io/supportURL: https://github.com/redhat-ai-dev/ai-rhdh-installer/issues
 apiVersion: v2
 description: A Helm chart for deploying default versions of Red Hat Developer Hub, GitOps Operators, Pipeline Operators, and ArgoCD
 kubeVersion: ">= 1.25.0-0"
@@ -11,6 +11,6 @@ maintainers:
     url: https://github.com/redhat-ai-dev
 name: vanilla-rhdh-setup
 sources:
-  - https://github.com/redhat-ai-dev/rhdh-installer
+  - https://github.com/redhat-ai-dev/ai-rhdh-installer
 type: application
 version: 0.1.0
