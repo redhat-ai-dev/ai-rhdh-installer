@@ -1,6 +1,6 @@
 ---
 annotations:
-  charts.openshift.io/name: Vanilla Red Hat Developer Hub Setup
+  charts.openshift.io/name: Red Hat Developer Hub Setup
   charts.openshift.io/provider: Red Hat
   charts.openshift.io/supportURL: https://github.com/redhat-ai-dev/ai-rhdh-installer/issues
 apiVersion: v2
@@ -9,7 +9,7 @@ kubeVersion: ">= 1.25.0-0"
 maintainers:
   - name: Red Hat AI Dev Team
     url: https://github.com/redhat-ai-dev
-name: vanilla-rhdh-setup
+name: ai-rhdh-setup
 sources:
   - https://github.com/redhat-ai-dev/ai-rhdh-installer
 type: application
