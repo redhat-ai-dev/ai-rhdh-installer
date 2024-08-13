@@ -2,18 +2,14 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 ---
-debug:
-  ci: false # Sets up the products for CI testing.
-  container: false # Creates a long running container to easily open a terminal for troubleshooting.
-  script: false # Prints commands before executing them.
 openshift-gitops:
   enabled: true
   channel: gitops-1.12
   workload-namespaces:
     - default
-  git-token: |- # Token to create/push repositories.
-    ${GITOPS__GIT_TOKEN}
   argoCD:
+    # Namespace can be changed in an upgrade for configuration of RHDH
+    namespace: default
     # ArgoCD's application-controller resource limits.
     controller:
       resources:
@@ -26,49 +22,3 @@ openshift-gitops:
 openshift-pipelines:
   enabled: true
   channel: pipelines-1.14
-
-# Private values
-# You may want to override those variables in another file (e.g. values-private.yaml)
-developer-hub:
-  catalog:
-    url: |-
-      ${DEVELOPER_HUB__CATALOG__URL}
-git:
-  github:
-    app:
-      id: |-
-        ${GITHUB__APP__ID}
-      client:
-        id: |-
-          ${GITHUB__APP__CLIENT__ID}
-        secret: |-
-          ${GITHUB__APP__CLIENT__SECRET}
-      webhook:
-        secret: |-
-          ${GITHUB__APP__WEBHOOK__SECRET}
-      privateKey: |-
-        ${GITHUB__APP__PRIVATE_KEY}
-  gitlab:
-    app:
-      id: |-
-        ${GITLAB__APP__CLIENT__ID}
-      secret: |-
-        ${GITLAB__APP__CLIENT__SECRET}
-    token: |-
-      ${GITLAB__TOKEN}
-pipelines:
-  pipelines-as-code:
-    github:
-      application-id: |-
-        ${GITHUB__APP__ID}
-      private-key: |-
-        ${GITHUB__APP__PRIVATE_KEY}
-      webhook-secret: |-
-        ${GITHUB__APP__WEBHOOK__SECRET}
-quay:
-  # Authentication information to push images.
-  dockerconfigjson: |-
-    ${QUAY__DOCKERCONFIGJSON}
-  # Authentication information to access images.
-  token: |-
-    ${QUAY__API_TOKEN}
