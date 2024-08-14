@@ -1,0 +1,24 @@
+# Default values for ai-rhdh-installer.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+---
+openshift-gitops:
+  enabled: true
+  channel: gitops-1.12
+  workload-namespaces:
+    - default
+  argoCD:
+    # Namespace can be changed in an upgrade for configuration of RHDH
+    namespace: default
+    # ArgoCD's application-controller resource limits.
+    controller:
+      resources:
+        limits:
+          cpu: "2"
+          memory: 6Gi
+        requests:
+          cpu: "1"
+          memory: 3Gi
+openshift-pipelines:
+  enabled: true
+  channel: pipelines-1.14
