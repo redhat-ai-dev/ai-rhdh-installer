@@ -1,0 +1,29 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{.Release.Name}}-unconfigure-operators"
+  labels:
+    app.kubernetes.io/managed-by: {{.Release.Service | quote}}
+    app.kubernetes.io/instance: {{.Release.Name | quote}}
+    app.kubernetes.io/version: {{.Chart.AppVersion}}
+    helm.sh/chart: "{{.Chart.Name}}-{{.Chart.Version}}"
+  annotations:
+    # This is what defines this resource as a hook. Without this line, the
+    # job is considered part of the release.
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  template:
+    metadata:
+      name: "{{.Release.Name}}-unconfigure-operators"
+      labels:
+        app.kubernetes.io/managed-by: {{.Release.Service | quote}}
+        app.kubernetes.io/instance: {{.Release.Name | quote}}
+        helm.sh/chart: "{{.Chart.Name}}-{{.Chart.Version}}"
+    spec:
+      containers:
+        {{include "rhdh.gitops.unconfigure" . | indent 8 }}
+        {{include "rhdh.developer-hub.unconfigure" . | indent 8 }}
+      restartPolicy: Never
+      serviceAccountName: helm-manager
