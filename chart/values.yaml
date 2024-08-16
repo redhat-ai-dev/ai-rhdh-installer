@@ -23,4 +23,3 @@ openshift-pipelines:
 developer-hub:
   enabled: true
   channel: fast-1.2
-  name: developer-hub
