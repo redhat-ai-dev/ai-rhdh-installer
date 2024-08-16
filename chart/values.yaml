@@ -8,8 +8,6 @@ openshift-gitops:
   workload-namespaces:
     - default
   argoCD:
-    # Namespace can be changed in an upgrade for configuration of RHDH
-    namespace: default
     # ArgoCD's application-controller resource limits.
     controller:
       resources:
