@@ -12,6 +12,15 @@ This helm chart installs and configures the following operators:
 ## Requirements
 
 - Helm CLI (more information [here](https://helm.sh/docs/intro/install/))
+- A GitHub App and its associated information (c.f. [Create a Pipelines-as-Code GitHub App](https://pipelinesascode.com/docs/install/github_apps/)).
+  - `General`
+    - Use placeholder values for `Homepage URL`, `Callback URL` and `Webhook URL`.
+    - Generate a `Webhook secret`.
+  - `Permissions & events`
+    - Follow the instructions from the Pipelines-as-Code documentation.
+    - `Repository permissions`
+      - `Administration`: `Read and write`
+- The GitHub App must be installed at the organization/user level.
 
 ## CLI
 
