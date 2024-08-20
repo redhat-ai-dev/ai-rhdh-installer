@@ -1,4 +1,4 @@
-# Red Hat Developer Hub Installer
+# Red Hat Developer Hub Installer for AI Software Templates
 
 This helm chart installs and configures the following operators:
 
