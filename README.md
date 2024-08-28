@@ -31,7 +31,7 @@ Run `helm upgrade --install <release-name> <path-to-chart> --namespace <namespac
 
 #### Example
 
-`helm upgrade --install ai-rhdh ./chart --namespace rhdh --create-namespace`
+`helm upgrade --install ai-rhdh ./chart --namespace ai-rhdh --create-namespace`
 
 ### Uninstall
 
