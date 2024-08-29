@@ -4,8 +4,9 @@ This helm chart installs and configures the following operators:
 
 |       Product       |      Installation       |                                                                                                      Configuration                                                                                                       |
 | :-----------------: | :---------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-|  OpenShift GitOps   | Operator `Subscription` |                                    Controlled by the values YAML file. If a subscription already exists, the installation will not modify it. A new instance ArgoCD will be created.                                     |
+|  OpenShift GitOps   | Operator `Subscription` |                                    Controlled by the values YAML file. If a subscription already exists, the installation will not modify it. A new instance of ArgoCD will be created.                                     |
 | OpenShift Pipelines | Operator `Subscription` | Controlled by the values YAML file. If a subscription already exists, the installation will not modify it. In all cases, the TektonConfig will be modified to enable Tekton Chains and the signing secret will be setup. |
+| Red Hat Developer Hub | Operator `Subscription` | Controlled by the values YAML file. If a subscription already exists, the installation will not modify it. A new instance of RHDH will be created. |
 
 **Note**: If a subscription for an operator already exists, the installation will not tamper with it.
 
@@ -26,18 +27,16 @@ This helm chart installs and configures the following operators:
 
 ### Install
 
-Run `helm upgrade --install <release-name> <path-to-chart>` to deploy default installations of the necessary operators.
+Run `helm upgrade --install <release-name> <path-to-chart> --namespace <namespace> --create-namespace` to deploy default installations of the necessary operators.
 
 #### Example
 
-`helm upgrade --install setup-default-operators ./chart`
+`helm upgrade --install ai-rhdh ./chart --namespace ai-rhdh --create-namespace`
 
 ### Uninstall
 
-Since for the default installation the `ServiceAccount` is being deployed to the `default` namespace with admin permissions you are unable to remove it during a `helm uninstall`. You first need to remove the ServiceAccount manually before running `helm uninstall`
+`helm uninstall <release-name> --namespace <namespace>`
 
-Reference: https://access.redhat.com/solutions/7055600
+### Default Namespace
 
-`oc delete sa helm-manager --as backplane-cluster-admin`
-
-After the ServiceAccount is removed, run `helm uninstall <release-name>`
+This installer is incompatible with `default` namespace installations, install and uninstall commands must include `--namespace <target-namespace>` or the context namespace must be changed, e.g. `oc project <target-namespace>`.

@@ -8,8 +8,6 @@ openshift-gitops:
   workload-namespaces:
     - default
   argoCD:
-    # Namespace can be changed in an upgrade for configuration of RHDH
-    namespace: default
     # ArgoCD's application-controller resource limits.
     controller:
       resources:
@@ -22,3 +20,6 @@ openshift-gitops:
 openshift-pipelines:
   enabled: true
   channel: pipelines-1.14
+developer-hub:
+  enabled: true
+  channel: fast-1.2

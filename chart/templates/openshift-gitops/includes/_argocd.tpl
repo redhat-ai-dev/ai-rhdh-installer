@@ -4,7 +4,7 @@ apiVersion: argoproj.io/v1beta1
 kind: ArgoCD
 metadata:
   name: ai-rhdh-argocd
-  namespace: {{ index .Values "openshift-gitops" "argoCD" "namespace" }}
+  namespace: {{ .Release.Namespace }}
 spec:
   server:
     route:
