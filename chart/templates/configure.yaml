@@ -24,6 +24,7 @@ spec:
     spec:
       containers:
         {{include "rhdh.gitops.configure" . | indent 8}}
+        {{include "rhdh.pipelines.configure" . | indent 8}}
         {{include "rhdh.developer-hub.configure" . | indent 8 }}
       restartPolicy: Never
       serviceAccountName: helm-manager
