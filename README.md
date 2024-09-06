@@ -103,7 +103,22 @@ Finally we need to add the resources included as `volumeMounts` to the `volumes`
 ![ArgoCD Volumes Addition](./assets/argocd-volumes-example.png)
 
 ### Pre-Existing Instance: Script Configuration
-Placeholder
+If you have your own ArgoCD instance created you can configure it to work with RHDH with the use of our config script. You will need the following information on hand:
+
+1. Namespace of RHDH & ArgoCD instance
+2. Deployment name of RHDH
+3. ConfigMap name for your RHDH plugins
+   1. Typically `dynamic-plugins` for `Helm` installs and `backstage-dynamic-plugins-<name of developer hub instance>` for `Operator` installs
+4. ArgoCD user with token permissions
+5. Password for ArgoCD user
+6. ArgoCD hostname
+   1. Typically `.spec.host` of the `route` for ArgoCD
+7. Token associatd with the ArgoCD user
+
+Once you have that information readily available you can follow:
+
+1. Run `export ARGOCD_INSTANCE_PROVIDED=true`
+2. Run `bash ./scripts/configure-gitops.sh` and follow the prompts in the command line
 
 ### Pre-Existing Instance: Manual Configuration
 
@@ -128,4 +143,6 @@ You will also need to create a Secret in your chosen namespace with the followin
 4. `ARGOCD_API_TOKEN`
 
 #### Step 3: Updating RHDH Deployment
-In order for the ConfigMaps and Secrets you created to be attached to RHDH we need to edit the Deployment associated with RHDH. You can find this deployment under the `Deployments` section on OpenShift.
+Once you have applied the ConfigMaps and Secrets to your cluster and the necessary namespace you can now follow the same steps in [step 3 for the ai-rhdh-installer](#ai-rhdh-installer-manual-configuration). Every step will be identical if your RHDH instance was created using the `Red Hat Developer Hub Operator`, however, if you installed RHDH using the `Helm Chart` you may find that `.spec.template.spec.containers.envFrom` does not exist in the Deployment yaml. If this is the case you can simply add that field and the necessary secret information.
+
+Additionally, if RHDH was installed with `Helm` the naming for the RHDH Deployment and ConfigMap (for the dynamic plugins) may differ than the example but the content will look similar so you can reference that to find the proper files.
