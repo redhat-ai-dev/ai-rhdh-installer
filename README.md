@@ -41,7 +41,7 @@ Run `helm upgrade --install <release-name> <path-to-chart> --namespace <namespac
 
 This installer is incompatible with `default` namespace installations, install and uninstall commands must include `--namespace <target-namespace>` or the context namespace must be changed, e.g. `oc project <target-namespace>`.
 
-## Configuration
+## GitOps/ArgoCD Configuration
 
 As part of this section you will find information about the following configuration methods:
 
@@ -54,7 +54,8 @@ As part of this section you will find information about the following configurat
 <!---
 TODO: Once RHDH configuration is complete we should link a reference to it here.
 -->
-In order to allow the configuration to be completed you must first have a working RHDH instance (for example you are able to login and view developer hub).
+- In order to allow the configuration to be completed you must first have a working RHDH instance (for example you are able to login and view developer hub).
+- [yq](https://github.com/mikefarah/yq/) version 4.0+.
 
 ### AI-RHDH-Installer: Script Configuration
 If you installed using the `ai-rhdh-installer` all that is required for hooking up the ArgoCD instance to your RHDH instance is to run `bash ./scripts/configure-gitops.sh`. Please note if you changed the installation namespace used by the installer you will first need to run `export NAMESPACE=<namespace used>` as the default value is `ai-rhdh`.

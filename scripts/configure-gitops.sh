@@ -36,8 +36,6 @@ if [[ $ARGOCD_INSTANCE_PROVIDED == "false" ]]; then
     .spec.template.spec.containers[0].args += ["--config", "/opt/app-root/src/argocd-config.yaml"] |
     .spec.template.spec.initContainers[0].volumeMounts += [{"name": "argocd-plugins", "readOnly": true, "mountPath": "/opt/app-root/src/argocd-plugins.yaml", "subPath": "argocd-plugins.yaml"}]' | 
     kubectl apply -f -
-
-    exit 0
 fi
 
 # ArgoCD Instance Brought By User
@@ -52,8 +50,6 @@ if [[ $ARGOCD_INSTANCE_PROVIDED == "true" ]]; then
     read -p "Enter password for $ARGO_USERNAME: " ARGO_PASSWORD
     read -p "Enter your ArgoCD hostname: " ARGO_HOSTNAME
     read -p "Enter your ArgoCD token: " ARGO_TOKEN
-    
-    echo "You provided namespace: $NAMESPACE, user: $ARGO_USERNAME, password: $ARGO_PASSWORD, hostname: $ARGO_HOSTNAME and token: $ARGO_TOKEN"
 
     read -p "Enter a name for your ArgoCD instance: " ARGOCD_INSTANCE_NAME
     echo "Creating ArgoCD secret file"
@@ -104,6 +100,4 @@ if [[ $ARGOCD_INSTANCE_PROVIDED == "true" ]]; then
     .spec.template.spec.initContainers[0].volumeMounts += [{"name": "argocd-plugins", "readOnly": true, "mountPath": "/opt/app-root/src/argocd-plugins.yaml", "subPath": "argocd-plugins.yaml"}] |
     .spec.template.spec.containers[0].envFrom += [{"secretRef": {"name": env(secretenv)}}]' | 
     kubectl apply -f -
-
-    exit 0
 fi
