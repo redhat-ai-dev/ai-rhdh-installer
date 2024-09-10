@@ -40,3 +40,7 @@ Run `helm upgrade --install <release-name> <path-to-chart> --namespace <namespac
 ### Default Namespace
 
 This installer is incompatible with `default` namespace installations, install and uninstall commands must include `--namespace <target-namespace>` or the context namespace must be changed, e.g. `oc project <target-namespace>`.
+
+## GitOps/ArgoCD Configuration
+
+Detailed documentation for configuring GitOps/ArgoCD can be found in [`GITOPS-CONFIG.md`](./docs/GITOPS-CONFIG.md)
