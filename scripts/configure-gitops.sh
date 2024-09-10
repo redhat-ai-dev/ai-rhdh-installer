@@ -43,7 +43,7 @@ fi
 if [[ $ARGOCD_INSTANCE_PROVIDED == "true" ]]; then
     # Gather ArgoCD instance information
     echo "You have chosen to provide your own ArgoCD instance"
-    read -p "Enter the namespace of your RHDH instance: " NAMESPACE
+    read -p "Enter the namespace of your RHDH and ArgoCD instance: " NAMESPACE
     read -p "Enter the deployment name of your RHDH instance: " RHDH_DEPLOYMENT
     read -p "Enter the name of the ConfigMap for your RHDH plugins: " RHDH_PLUGINS
     read -p "Enter your ArgoCD username: " ARGO_USERNAME
