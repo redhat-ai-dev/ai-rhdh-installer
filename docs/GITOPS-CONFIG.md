@@ -2,10 +2,10 @@
 
 As part of this section you will find information about the following configuration methods:
 
-1. Configuring GitOps/ArgoCD with the configuration script after using our `ai-rhdh-installer`
-2. Configuring GitOps/ArgoCD manually after using our `ai-rhdh-installer`
-3. Configuring GitOps/ArgoCD with the configuration script for a pre-existing ArgoCD and Red Hat Developer Hub instance
-4. Configuring GitOps/ArgoCD manually for a pre-existing ArgoCD and Red Hat Developer Hub instance
+1. [Configuring GitOps/ArgoCD with the configuration script after using our `ai-rhdh-installer`](#ai-rhdh-installer-script-configuration)
+2. [Configuring GitOps/ArgoCD manually after using our `ai-rhdh-installer`](#ai-rhdh-installer-manual-configuration)
+3. [Configuring GitOps/ArgoCD with the configuration script for a pre-existing ArgoCD and Red Hat Developer Hub instance](#pre-existing-instance-script-configuration)
+4. [Configuring GitOps/ArgoCD manually for a pre-existing ArgoCD and Red Hat Developer Hub instance](#pre-existing-instance-manual-configuration)
 
 ### Prerequisites
 <!---
@@ -15,14 +15,14 @@ TODO: Once RHDH configuration is complete we should link a reference to it here.
 - [yq](https://github.com/mikefarah/yq/) version 4.0+.
 
 ### AI-RHDH-Installer: Script Configuration
-If you installed using the `ai-rhdh-installer` all that is required for hooking up the ArgoCD instance to your RHDH instance is to run `bash ./scripts/configure-gitops.sh`. Please note if you changed the installation namespace used by the installer you will first need to run `export NAMESPACE=<namespace used>` as the default value is `ai-rhdh`.
+If you installed using the [`ai-rhdh-installer`](../README.md#install) all that is required for hooking up the ArgoCD instance to your RHDH instance is to run `bash ./scripts/configure-gitops.sh`. Please note if you changed the installation namespace used by the installer you will first need to run `export NAMESPACE=<namespace used>` as the default value is `ai-rhdh`.
 
 ### AI-RHDH-Installer: Manual Configuration
 
 #### Step 1: ConfigMaps and Secrets
 In your chosen namespace you should apply the following ConfigMaps:
-1.  [`argocd-config.yaml` ](./resources/argocd-config.yaml)
-2.  [`argocd-plugins.yaml`](./resources/argocd-plugins.yaml)
+1.  [`argocd-config.yaml` ](../resources/argocd-config.yaml)
+2.  [`argocd-plugins.yaml`](../resources/argocd-plugins.yaml)
 
 As part of the `ai-rhdh-installer` a secret was created in your desired namespace with the name `rhdh-argocd-secret`, keep note of this Secret as well as the two ConfigMaps applied above.
 
@@ -31,34 +31,34 @@ As part of the `ai-rhdh-installer` a secret was created in your desired namespac
 
 To include the ArgoCD plugins we need to edit the dynamic plugins ConfigMap that was created by the RHDH Operator:
 
-![Dynamic Plugins Example](./assets/dynamic-plugins-example.png)
+![Dynamic Plugins Example](../assets/dynamic-plugins-example.png)
 
 Edit the associated `yaml` file to include `argocd-plugins.yaml` under the `includes` section:
 
-![Dynamic Plugins Example 2](./assets/dynamic-plugins-example-2.png)
+![Dynamic Plugins Example 2](../assets/dynamic-plugins-example-2.png)
 
 #### Step 3: Updating RHDH Deployment
 Now that all of the required ConfigMaps and Secrets are apart of the namespace, as well as adding the plugins we must edit the RHDH Deployment to properly reference these items.
 
 Since we are referencing `argocd-plugins.yaml` in our dynamic-plugins ConfigMap we first must add `argocd-plugins.yaml` as a `volumeMount` to the `initContainers` field in the RHDH Deployment under `.spec.template.spec.initContainers.volumeMounts`
 
-![ArgoCD Plugins Addition](./assets/argocd-plugins-example.png)
+![ArgoCD Plugins Addition](../assets/argocd-plugins-example.png)
 
 Next we will need to add the `argocd-config.yaml` as a `VolumeMount` to the `containers` field in the RHDH Deployment under `.spec.template.spec.containers.volumeMounts`
 
-![ArgoCD Config Addition](./assets/argocd-config-example.png)
+![ArgoCD Config Addition](../assets/argocd-config-example.png)
 
 Next add the created `rhdh-argocd-secret` to the `envFrom` field in the RHDH Deployment under `.spec.template.spec.containers.envFrom`
 
-![ArgoCD Secret Addition](./assets/argocd-secrets-example.png)
+![ArgoCD Secret Addition](../assets/argocd-secrets-example.png)
 
 Now we must update the config args used by RHDH to include our ArgoCD ConfigMap. This is added to the `args` field in the RHDH Deployment under `.spec.template.spec.containers.args`
 
-![ArgoCD Config Update](./assets/argocd-config-addition.png)
+![ArgoCD Config Update](../assets/argocd-config-addition.png)
 
 Finally we need to add the resources included as `volumeMounts` to the `volumes` field in the RHDH Deployment under `.spec.template.spec.volumes`
 
-![ArgoCD Volumes Addition](./assets/argocd-volumes-example.png)
+![ArgoCD Volumes Addition](../assets/argocd-volumes-example.png)
 
 ### Pre-Existing Instance: Script Configuration
 If you have your own ArgoCD instance created you can configure it to work with RHDH with the use of our config script. You will need the following information on hand:
@@ -91,8 +91,8 @@ You will need the following information on hand to properly configure an existin
 
 #### Step 2: ConfigMaps and Secrets
 In your chosen namespace you should apply the following ConfigMaps:
-1.  [`argocd-config.yaml` ](./resources/argocd-config.yaml)
-2.  [`argocd-plugins.yaml`](./resources/argocd-plugins.yaml)
+1.  [`argocd-config.yaml` ](../resources/argocd-config.yaml)
+2.  [`argocd-plugins.yaml`](../resources/argocd-plugins.yaml)
 
 You will also need to create a Secret in your chosen namespace with the following key:value pairs and information gathered in [step 1](#step-1-required-information):
 1. `ARGOCD_USER`
