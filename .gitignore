@@ -1,1 +1,4 @@
 .DS_Store
+
+# Ignore private key files
+*.pem
