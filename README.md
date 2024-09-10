@@ -44,3 +44,7 @@ This installer is incompatible with `default` namespace installations, install a
 ## GitOps/ArgoCD Configuration
 
 Detailed documentation for configuring GitOps/ArgoCD can be found in [`GITOPS-CONFIG.md`](./docs/GITOPS-CONFIG.md)
+
+## Pipelines/Tekton Configuration
+
+Detailed documentation for configuring Pipelines/Tekton can be found in [`GITOPS-CONFIG.md`](./docs/PIPELINES-CONFIG.md)
