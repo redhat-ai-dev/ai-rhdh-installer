@@ -73,6 +73,16 @@ If you have your own ArgoCD instance created you can configure it to work with R
    1. Typically `.spec.host` of the `route` for ArgoCD
 7. Token associatd with the ArgoCD user
 
+You are able to store these values in environment variables or paste them during the interactive prompts at runtime. Set the following the use environment variables:
+- `$EXISTING_NAMESPACE`
+- `$EXISTING_DEPLOYMENT`
+- `$RHDH_PLUGINS`
+- `$ARGO_USERNAME`
+- `$ARGO_PASSWORD`
+- `$ARGO_HOSTNAME`
+- `$ARGO_TOKEN`
+- `$ARGO_INSTANCE_NAME`
+
 Once you have that information readily available you can follow:
 
 1. Run `export ARGOCD_INSTANCE_PROVIDED=true`
