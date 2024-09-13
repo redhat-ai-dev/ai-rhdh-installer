@@ -11,7 +11,7 @@
       set -o pipefail
 
       echo -n "* Fetching sigstore/cosign: "
-      curl -L https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64 -o /usr/bin/cosign && chmod +x /usr/bin/cosign
+      curl -sL https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64 -o /usr/bin/cosign && chmod +x /usr/bin/cosign
       echo "OK"
 
       #
