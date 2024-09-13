@@ -99,7 +99,7 @@ until kubectl get tektonconfig config >/dev/null 2>&1; do
     echo -n "."
     sleep 3
 done
-TEKTON_CONFIG=$(jq ".spec.chain.\"transparency.url\" = \"http://rekor-server.${NAMESPACE}.svc\"" $BASE_DIR/resources/tekton-config.json -Mc)
+TEKTON_CONFIG=$(yq ".spec.chain.\"transparency.url\" = \"http://rekor-server.${NAMESPACE}.svc\"" $BASE_DIR/resources/tekton-config.json -M -I=0 -o='json')
 kubectl patch tektonconfig config --type 'merge' --patch "${TEKTON_CONFIG}" >/dev/null
 if [ $? -ne 0 ]; then
     echo "FAIL"
