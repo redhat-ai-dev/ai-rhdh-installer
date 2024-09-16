@@ -8,11 +8,13 @@ CRD="tektonconfigs"
 # Variables
 BASE_DIR="$(realpath $(dirname ${BASH_SOURCE[0]}))/.."
 RHDH_DEPLOYMENT="${DEFAULT_RHDH_DEPLOYMENT}"
+RHDH_PLUGINS_CONFIGMAP="${PLUGIN_CONFIGMAP}"
 NAMESPACE=${NAMESPACE:-"ai-rhdh"}
 PIPELINES_NAMESPACE=${PIPELINES_NAMESPACE:-"openshift-pipelines"}
 PIPELINES_SECRET_NAME=${PIPELINES_SECRET_NAME:-'rhdh-pipelines-secret'}
 EXISTING_NAMESPACE=${EXISTING_NAMESPACE:-''}
 EXISTING_DEPLOYMENT=${EXISTING_DEPLOYMENT:-''}
+RHDH_PLUGINS=${RHDH_PLUGINS:-''}
 RHDH_INSTANCE_PROVIDED=${RHDH_INSTANCE_PROVIDED:-false}
 
 # Secret variables
@@ -28,6 +30,7 @@ if [[ $RHDH_INSTANCE_PROVIDED != "true" ]] && [[ $RHDH_INSTANCE_PROVIDED != "fal
 elif [[ $RHDH_INSTANCE_PROVIDED == "true" ]]; then
     NAMESPACE="${EXISTING_NAMESPACE}"
     RHDH_DEPLOYMENT="${EXISTING_DEPLOYMENT}"
+    RHDH_PLUGINS_CONFIGMAP="${RHDH_PLUGINS}"
 fi
 
 # Reading secrets
@@ -147,7 +150,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Grab configmap and parse out the defined yaml file inside of its data to a temp file
-kubectl get configmap $PLUGIN_CONFIGMAP -n $NAMESPACE -o yaml | yq '.data["dynamic-plugins.yaml"]' > temp-dynamic-plugins.yaml
+kubectl get configmap $RHDH_PLUGINS_CONFIGMAP -n $NAMESPACE -o yaml | yq '.data["dynamic-plugins.yaml"]' > temp-dynamic-plugins.yaml
 if [ $? -ne 0 ]; then
     echo "FAIL"
     exit 1
@@ -161,7 +164,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Patch the configmap that is deployed to update the defined yaml inside of it
-kubectl patch configmap $PLUGIN_CONFIGMAP -n $NAMESPACE \
+kubectl patch configmap $RHDH_PLUGINS_CONFIGMAP -n $NAMESPACE \
 --type='merge' \
 -p="{\"data\":{\"dynamic-plugins.yaml\":\"$(echo "$(cat temp-dynamic-plugins.yaml)" | sed 's/"/\\"/g' | sed 's/$/\\n/g' | tr -d '\n')\"}}"
 if [ $? -ne 0 ]; then
