@@ -1,5 +1,5 @@
 ---
-{{ if (index .Values "openshift-pipelines") }}
+{{ if and (index .Values "openshift-pipelines") (index .Values "openshift-pipelines" "enabled") }}
 {{ if (lookup "operators.coreos.com/v1alpha1" "Subscription" "openshift-operators" "openshift-pipelines-operator")}}
 {{else}}
 apiVersion: operators.coreos.com/v1alpha1
