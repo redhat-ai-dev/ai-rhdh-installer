@@ -180,7 +180,8 @@ echo "OK"
 echo -n "* Configuring TLS: "
 if [[ "${RHDH_INSTANCE_PROVIDED}" == "true" ]] && [ -z "${RHDH_BACKSTAGE_CR}" ]; then
     kubectl get deploy $RHDH_DEPLOYMENT -n $NAMESPACE -o yaml | \
-        yq '.spec.template.spec.containers[0].env += {"name": "NODE_TLS_REJECT_UNAUTHORIZED", "value": "0"}' | \
+        yq '.spec.template.spec.containers[0].env += {"name": "NODE_TLS_REJECT_UNAUTHORIZED", "value": "0"} | 
+        .spec.template.spec.containers[0].env |= unique_by(.name)' | \
         kubectl apply -f -
 else
     until kubectl get backstage ${RHDH_BACKSTAGE_CR} >/dev/null 2>&1; do
