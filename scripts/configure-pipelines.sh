@@ -113,7 +113,7 @@ echo "OK"
 # Configuring Pipelines-as-Code
 # Configuring secrets tied to pipelines to interface with the target GitHub organization.
 echo -n "* Configuring Pipelines-as-Code: "
-if [ "$(kubectl -n "${NAMESPACE}" get secret "${PIPELINES_SECRET_NAME}" -o name --ignore-not-found | wc -l)" = "0" ]; then
+if [ "$(kubectl -n "${NAMESPACE}" get secret "${PIPELINES_SECRET_NAME}" -o name --ignore-not-found | wc -l | tr -d '[:space:]')" = "0" ]; then
     WEBHOOK_SECRET=$(sed "s/'/\\'/g" <<< ${GITHUB__APP__WEBHOOK__SECRET} | sed 's/"/\"/g')
     kubectl -n "${NAMESPACE}" create secret generic "${PIPELINES_SECRET_NAME}" \
         --from-literal="webhook-github-secret=${WEBHOOK_SECRET}" \
@@ -126,7 +126,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-if [ "$(kubectl get secret -n "${PIPELINES_NAMESPACE}" "pipelines-as-code-secret" -o name --ignore-not-found | wc -l)" = "0" ]; then
+if [ "$(kubectl get secret -n "${PIPELINES_NAMESPACE}" "pipelines-as-code-secret" -o name --ignore-not-found | wc -l | tr -d '[:space:]')" = "0" ]; then
     kubectl -n "${PIPELINES_NAMESPACE}" create secret generic pipelines-as-code-secret \
         --from-literal github-application-id="${GITHUB__APP__ID}" \
         --from-literal github-private-key="${GITHUB__APP__PRIVATE_KEY}" \
