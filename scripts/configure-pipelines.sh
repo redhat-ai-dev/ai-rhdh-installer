@@ -155,7 +155,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Edit the temp file to include the tekton plugins
-yq -i ".plugins += $(yq '.plugins' $BASE_DIR/dynamic-plugins/tekton-plugins.yaml -M -o json)" temp-dynamic-plugins.yaml
+yq -i ".plugins += $(yq '.plugins' $BASE_DIR/dynamic-plugins/tekton-plugins.yaml -M -o json) | .plugins |= unique_by(.package)" temp-dynamic-plugins.yaml
 if [ $? -ne 0 ]; then
     echo "FAIL"
     exit 1
@@ -204,7 +204,8 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 kubectl get deploy $RHDH_DEPLOYMENT -n $NAMESPACE -o yaml | \
-    yq ".spec.template.spec.initContainers[0].env += [{\"name\": \"K8S_SA_TOKEN\", \"valueFrom\": {\"secretKeyRef\": {\"name\": \"${K8S_SA_SECRET_NAME}\", \"key\": \"token\"}}}]" | \
+    yq ".spec.template.spec.containers[0].env += {\"name\": \"K8S_SA_TOKEN\", \"valueFrom\": {\"secretKeyRef\": {\"name\": \"${K8S_SA_SECRET_NAME}\", \"key\": \"token\"}}} | 
+    .spec.template.spec.containers[0].env |= unique_by(.name)" | \
     kubectl apply -f -
 if [ $? -ne 0 ]; then
     echo "FAIL"
