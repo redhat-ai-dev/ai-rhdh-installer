@@ -140,15 +140,9 @@ if [ "$(kubectl get secret -n "${PIPELINES_NAMESPACE}" "pipelines-as-code-secret
 fi
 echo "OK"
 
-# Applying Tekton plugins
-# Creates ConfigMap for list of Tekton plugins
-echo -n "* Applying Tekton plugins: "
-kubectl -n ${NAMESPACE} apply -f $BASE_DIR/resources/tekton-plugins.yaml
-if [ $? -ne 0 ]; then
-    echo "FAIL"
-    exit 1
-fi
-
+# Include Tekton plugins
+# Patches dynamic plugins ConfigMap with list of Tekton plugins
+echo -n "* Patching in Tekton plugins: "
 # Grab configmap and parse out the defined yaml file inside of its data to a temp file
 kubectl get configmap $RHDH_PLUGINS_CONFIGMAP -n $NAMESPACE -o yaml | yq '.data["dynamic-plugins.yaml"]' > temp-dynamic-plugins.yaml
 if [ $? -ne 0 ]; then
@@ -157,7 +151,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Edit the temp file to include the tekton plugins
-yq -i '.includes += ["tekton-plugins.yaml"] | .includes |= unique' temp-dynamic-plugins.yaml
+yq -i ".plugins += $(yq '.plugins' $BASE_DIR/dynamic-plugins/tekton-plugins.yaml -M -o json)" temp-dynamic-plugins.yaml
 if [ $? -ne 0 ]; then
     echo "FAIL"
     exit 1
@@ -185,9 +179,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 kubectl get deploy $RHDH_DEPLOYMENT -n $NAMESPACE -o yaml | \
-    yq ".spec.template.spec.volumes += [{\"name\": \"tekton-plugins\", \"configMap\": {\"name\": \"tekton-plugins\", \"defaultMode\": 420, \"optional\": false}}] |
-    .spec.template.spec.initContainers[0].env += [{\"name\": \"K8S_SA_TOKEN\", \"valueFrom\": {\"secretKeyRef\": {\"name\": \"${K8S_SA_SECRET_NAME}\", \"key\": \"token\"}}}] |
-    .spec.template.spec.initContainers[0].volumeMounts += [{\"name\": \"tekton-plugins\", \"readOnly\": true, \"mountPath\": \"/opt/app-root/src/tekton-plugins.yaml\", \"subPath\": \"tekton-plugins.yaml\"}]" | \
+    yq ".spec.template.spec.initContainers[0].env += [{\"name\": \"K8S_SA_TOKEN\", \"valueFrom\": {\"secretKeyRef\": {\"name\": \"${K8S_SA_SECRET_NAME}\", \"key\": \"token\"}}}]" | \
     kubectl apply -f -
 if [ $? -ne 0 ]; then
     echo "FAIL"
