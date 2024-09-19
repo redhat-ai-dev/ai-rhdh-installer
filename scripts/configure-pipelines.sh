@@ -21,6 +21,9 @@ RHDH_INSTANCE_PROVIDED=${RHDH_INSTANCE_PROVIDED:-false}
 GITHUB__APP__ID=${GITHUB__APP__ID:-''}
 GITHUB__APP__WEBHOOK__SECRET=${GITHUB__APP__WEBHOOK__SECRET:-''}
 GITHUB__APP__PRIVATE_KEY=${GITHUB__APP__PRIVATE_KEY:-''}
+GITOPS__GIT_TOKEN=${GITOPS__GIT_TOKEN:-''}
+GITLAB__TOKEN=${GITLAB__TOKEN:-''}
+QUAY__DOCKERCONFIGJSON=${QUAY__DOCKERCONFIGJSON:-''}
 
 # Use existing variables if RHDH instance is provided
 if [[ $RHDH_INSTANCE_PROVIDED != "true" ]] && [[ $RHDH_INSTANCE_PROVIDED != "false" ]]; then
@@ -61,6 +64,24 @@ until [ ! -z "${GITHUB__APP__PRIVATE_KEY}" ]; do
         echo "No GitHub App Private Key entered, try again."
     fi
 done
+
+# Reads Git PAT
+# Optional: If left blank during user prompt, the namespace secret will not be created
+if [ -z "${GITOPS__GIT_TOKEN}" ]; then
+    read -p "Enter your Git Token (Optional): " GITOPS__GIT_TOKEN
+fi
+
+# Reads GitLab PAT
+# Optional: If left blank during user prompt, the namespace secret will not be created
+if [ -z "${GITLAB__TOKEN}" ]; then
+    read -p "Enter your GitLab Token (Optional): " GITLAB__TOKEN
+fi
+
+# Reads Quay DockerConfig JSON
+# Optional: If left blank during user prompt, the namespace secret will not be created
+if [ -z "${QUAY__DOCKERCONFIGJSON}" ]; then
+    read -p "Enter your Quay DockerConfig JSON (Optional|Use CTRL-D when finished): " -d $'\04' QUAY__DOCKERCONFIGJSON
+fi
 echo "OK"
 
 # Waiting for CRD
@@ -138,6 +159,101 @@ if [ "$(kubectl get secret -n "${PIPELINES_NAMESPACE}" "pipelines-as-code-secret
         exit 1
     fi
 fi
+echo "OK"
+
+# Configure Namespaces
+# Configuring namespaces with needed resources
+echo -n "* Configuring Namespaces: "
+while ! kubectl get secrets -n openshift-pipelines signing-secrets >/dev/null 2>&1; do
+    echo -n "_"
+    sleep 2
+done
+echo -n "."
+COSIGN_SIGNING_PUBLIC_KEY=""
+while [ -z "${COSIGN_SIGNING_PUBLIC_KEY:-}" ]; do
+    echo -n "_"
+    sleep 2
+    COSIGN_SIGNING_PUBLIC_KEY=$(kubectl get secrets -n openshift-pipelines signing-secrets -o jsonpath='{.data.cosign\.pub}' 2>/dev/null)
+done
+for NAMESPACE_SUFFIX in "development" "prod" "stage"; do
+    APP_NAMESPACE="${NAMESPACE}-app-${NAMESPACE_SUFFIX}"
+
+    cat <<EOF | kubectl apply -f - >/dev/null
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    argocd.argoproj.io/managed-by: $NAMESPACE
+  name: $APP_NAMESPACE
+EOF
+
+    SECRET_NAME="cosign-pub"
+    if [ -n "$COSIGN_SIGNING_PUBLIC_KEY" ]; then
+        cat <<EOF | kubectl apply -f - >/dev/null
+apiVersion: v1
+data:
+    cosign.pub: $COSIGN_SIGNING_PUBLIC_KEY
+kind: Secret
+metadata:
+    labels:
+        app.kubernetes.io/instance: default
+        app.kubernetes.io/part-of: tekton-chains
+        operator.tekton.dev/operand-name: tektoncd-chains
+    name: $SECRET_NAME
+    namespace: $APP_NAMESPACE
+type: Opaque
+EOF
+        echo -n "."
+    fi
+    SECRET_NAME="gitlab-auth-secret"
+    if [ -n "$GITLAB__TOKEN" ]; then
+        kubectl -n $APP_NAMESPACE create secret generic "$SECRET_NAME" \
+            --from-literal=password=$GITLAB__TOKEN \
+            --from-literal=username=oauth2 \
+            --type=kubernetes.io/basic-auth \
+            --dry-run=client -o yaml | kubectl -n $APP_NAMESPACE apply --filename - --overwrite=true >/dev/null
+        echo -n "."
+    fi
+    SECRET_NAME="gitops-auth-secret"
+    if [ -n "$GITOPS__GIT_TOKEN" ]; then
+        kubectl -n $APP_NAMESPACE create secret generic "$SECRET_NAME" \
+            --from-literal=password=$GITOPS__GIT_TOKEN \
+            --type=kubernetes.io/basic-auth \
+            --dry-run=client -o yaml | kubectl -n $APP_NAMESPACE apply --filename - --overwrite=true >/dev/null
+        echo -n "."
+    fi
+    SECRET_NAME="pipelines-secret"
+    if [ -n "$GITHUB__APP__WEBHOOK__SECRET" ]; then
+        kubectl -n $APP_NAMESPACE create secret generic "$SECRET_NAME" \
+            --from-literal=webhook.secret=$GITHUB__APP__WEBHOOK__SECRET \
+            --dry-run=client -o yaml | kubectl -n $APP_NAMESPACE apply --filename - --overwrite=true >/dev/null
+        echo -n "."
+    fi
+    SECRET_NAME="rhdh-image-registry-token"
+    if [ -n "$QUAY__DOCKERCONFIGJSON" ]; then
+        DATA=$(mktemp)
+        echo -n "$QUAY__DOCKERCONFIGJSON" >"$DATA"
+        kubectl -n $APP_NAMESPACE create secret docker-registry "$SECRET_NAME" \
+            --from-file=.dockerconfigjson="$DATA" --dry-run=client -o yaml | \
+            kubectl -n $APP_NAMESPACE apply --filename - --overwrite=true >/dev/null
+        rm "$DATA"
+        echo -n "."
+        while ! kubectl -n $APP_NAMESPACE get serviceaccount pipeline >/dev/null &>2; do
+            sleep 2
+            echo -n "_"
+        done
+        for SA in default pipeline; do
+            kubectl -n $APP_NAMESPACE patch serviceaccounts "$SA" --patch "
+        secrets:
+        - name: $SECRET_NAME
+        imagePullSecrets:
+        - name: $SECRET_NAME
+        " >/dev/null
+            echo -n "."
+        done
+        echo -n "."
+    fi
+done
 echo "OK"
 
 # Include Tekton plugins
