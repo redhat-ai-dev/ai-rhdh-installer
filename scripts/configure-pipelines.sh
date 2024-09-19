@@ -1,14 +1,12 @@
 #!/bin/bash
 
 # Constants
-DEFAULT_BACKSTAGE_CR="ai-rh-developer-hub" # Backstage CR created by rhdh operator by default
 DEFAULT_RHDH_DEPLOYMENT="backstage-ai-rh-developer-hub" # deployment created by rhdh operator by default
 PLUGIN_CONFIGMAP="backstage-dynamic-plugins-ai-rh-developer-hub" # configmap created by rhdh operator for plugins by default
 CRD="tektonconfigs"
 
 # Variables
 BASE_DIR="$(realpath $(dirname ${BASH_SOURCE[0]}))/.."
-RHDH_BACKSTAGE_CR="${DEFAULT_BACKSTAGE_CR}"
 RHDH_DEPLOYMENT="${DEFAULT_RHDH_DEPLOYMENT}"
 RHDH_PLUGINS_CONFIGMAP="${PLUGIN_CONFIGMAP}"
 NAMESPACE=${NAMESPACE:-"ai-rhdh"}
@@ -17,7 +15,6 @@ PIPELINES_SECRET_NAME=${PIPELINES_SECRET_NAME:-'rhdh-pipelines-secret'}
 EXISTING_NAMESPACE=${EXISTING_NAMESPACE:-''}
 EXISTING_DEPLOYMENT=${EXISTING_DEPLOYMENT:-''}
 RHDH_PLUGINS=${RHDH_PLUGINS:-''}
-BACKSTAGE_CR=${BACKSTAGE_CR:-''}
 RHDH_INSTANCE_PROVIDED=${RHDH_INSTANCE_PROVIDED:-false}
 
 # Secret variables
@@ -32,7 +29,6 @@ if [[ $RHDH_INSTANCE_PROVIDED != "true" ]] && [[ $RHDH_INSTANCE_PROVIDED != "fal
     exit 1
 elif [[ $RHDH_INSTANCE_PROVIDED == "true" ]]; then
     NAMESPACE="${EXISTING_NAMESPACE}"
-    RHDH_BACKSTAGE_CR="${BACKSTAGE_CR}"
     RHDH_DEPLOYMENT="${EXISTING_DEPLOYMENT}"
     RHDH_PLUGINS_CONFIGMAP="${RHDH_PLUGINS}"
 fi
@@ -178,19 +174,10 @@ echo "OK"
 # Configure TLS
 # Patches Backstage CR to configure cluster TLS
 echo -n "* Configuring TLS: "
-if [[ "${RHDH_INSTANCE_PROVIDED}" == "true" ]] && [ -z "${RHDH_BACKSTAGE_CR}" ]; then
-    kubectl get deploy $RHDH_DEPLOYMENT -n $NAMESPACE -o yaml | \
-        yq '.spec.template.spec.containers[0].env += {"name": "NODE_TLS_REJECT_UNAUTHORIZED", "value": "0"} | 
-        .spec.template.spec.containers[0].env |= unique_by(.name)' | \
-        kubectl apply -f -
-else
-    until kubectl get backstage ${RHDH_BACKSTAGE_CR} >/dev/null 2>&1; do
-        echo -n "."
-        sleep 3
-    done
-    TLS_PATCH=$(yq -n '.spec.application.extraEnvs.Envs += [{"name": "NODE_TLS_REJECT_UNAUTHORIZED", "value": "0"}]' -M -I=0 -o=json)
-    kubectl patch backstage ${RHDH_BACKSTAGE_CR} --type 'merge' --patch "${TEKTON_CONFIG}" >/dev/null
-fi
+kubectl get deploy $RHDH_DEPLOYMENT -n $NAMESPACE -o yaml | \
+    yq '.spec.template.spec.containers[0].env += {"name": "NODE_TLS_REJECT_UNAUTHORIZED", "value": "0"} | 
+    .spec.template.spec.containers[0].env |= unique_by(.name)' | \
+    kubectl apply -f -
 if [ $? -ne 0 ]; then
     echo "FAIL"
     exit 1
