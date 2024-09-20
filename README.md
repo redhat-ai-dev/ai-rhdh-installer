@@ -47,4 +47,4 @@ Detailed documentation for configuring GitOps/ArgoCD can be found in [`GITOPS-CO
 
 ## Pipelines/Tekton Configuration
 
-Detailed documentation for configuring Pipelines/Tekton can be found in [`GITOPS-CONFIG.md`](./docs/PIPELINES-CONFIG.md)
+Detailed documentation for configuring Pipelines/Tekton can be found in [`PIPELINES-CONFIG.md`](./docs/PIPELINES-CONFIG.md)
