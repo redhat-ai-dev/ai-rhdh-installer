@@ -178,6 +178,9 @@ Using the returned name from the command above, we can bind this secret to the `
 ![Tekton Secret Addition](../assets/tekton-secret-example.png)
 
 ### Pre-Existing Instance: Script Configuration
+
+#### Step 1: Required Information
+
 If you have your own RHDH instance created you can configure it to work with the pipelines service with the use of our config script. You will need the following information on hand:
 
 1. Namespace of RHDH instance
@@ -186,7 +189,7 @@ If you have your own RHDH instance created you can configure it to work with the
    1. Typically `dynamic-plugins` for `Helm` installs and `backstage-dynamic-plugins-<name of developer hub instance>` for `Operator` installs
 4. Kubernetes API service account
 
-#### Step 1: Environment Variables
+#### Step 2: Environment Variables
 
 You are able to store these values in environment variables or paste them during the interactive prompts at runtime. Set the following the use environment variables:
 - `$EXISTING_NAMESPACE`
@@ -196,7 +199,7 @@ You are able to store these values in environment variables or paste them during
 - `$RHDH_PLUGINS`
   - Name of the dynamic plugins ConfigMap
 
-#### Step 2: Configure cosign
+#### Step 3: Configure cosign
 
 The installer will configure and set up cosign that the `configure-pipeline.sh` script needs to reference the cosign public key to set to the cosign secret under the deployment namespaces.
 
@@ -226,7 +229,7 @@ To configure cosign to sign secrets follow these steps:
     ````
 
 
-#### Step 3: Run configure script
+#### Step 4: Run configure script
 
 Once you have done the prior steps and have the information from the prior steps readily available you can follow:
 
@@ -237,7 +240,7 @@ Once you have done the prior steps and have the information from the prior steps
 
 #### Step 1: Configure cosign
 
-You will follow the same steps as [step 2 of the script configuration for a pre-existing instance](#step-2-configure-cosign).
+You will follow the same steps as [step 3 of the script configuration for a pre-existing instance](#step-3-configure-cosign).
 
 #### Step 2: Kubernetes API Service Account
 First you will need to create the [service account](../chart/templates/k8s-serviceaccount.yaml)
