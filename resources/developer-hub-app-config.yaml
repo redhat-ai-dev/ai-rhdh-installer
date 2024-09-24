@@ -1,0 +1,39 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: developer-hub-app-config
+data:
+  app-config.extra.yaml: |
+    auth:
+      environment: production
+    catalog:
+      locations:
+        - type: url
+          target: https://github.com/redhat-ai-dev/ai-lab-template/blob/main/all.yaml
+      rules:
+        - allow:
+          - Component
+          - System
+          - Group
+          - Resource
+          - Location
+          - Template
+          - API
+    proxy:
+      endpoints:
+        '/quay/api':
+          target: 'https://quay.io'
+          headers:
+            X-Requested-With: 'XMLHttpRequest'
+          changeOrigin: true
+          # Change to "false" in case of using self hosted quay instance with a self-signed certificate
+          secure: true
+    quay:
+      # The UI url for Quay, used to generate the link to Quay
+      uiUrl: 'https://quay.io'
+    techdocs:
+      builder: 'local'
+      generator:
+        runIn: 'local'
+      publisher:
+        type: 'local'
