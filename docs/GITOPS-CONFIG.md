@@ -51,7 +51,7 @@ Alternatively, we can use this series of commands to perform the same task with 
     --type='merge' \
     -p="{\"data\":{\"dynamic-plugins.yaml\":\"$(echo "$(cat temp-dynamic-plugins.yaml)" | sed 's/"/\\"/g' | sed 's/$/\\n/g' | tr -d '\n')\"}}"
     ```
-4. Dynamic plugins should be updated with the [ArgoCD plugins list](../dynamic-plugins/argocd-plugins.yaml) with a pod update triggered and you may remove the temp file at this point
+4. Dynamic plugins should be updated to include the [ArgoCD plugins list](../dynamic-plugins/argocd-plugins.yaml) with a pod update triggered and you may remove the temp file at this point
 
 #### Step 3: Updating RHDH Deployment
 Now that all of the required ConfigMaps and Secrets are part of the namespace, we must edit the RHDH Deployment to properly reference these items.
