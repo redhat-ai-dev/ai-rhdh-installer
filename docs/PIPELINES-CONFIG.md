@@ -13,7 +13,7 @@ As part of this section you will find information about the following configurat
 - [kubectl](https://github.com/kubernetes/kubectl) version compatible with your target cluster
 
 ### AI-RHDH-Installer: Script Configuration
-If you installed using the [`ai-rhdh-installer`](../README.md#install) all that is required for hooking up the Pipelines services and Tekton to your RHDH instance is to run `bash ./scripts/configure-tekton.sh`. Please note if you changed the installation namespace used by the installer you will first need to run `export NAMESPACE=<namespace used>` as the default value is `ai-rhdh`.
+If you installed using the [`ai-rhdh-installer`](../README.md#install) all that is required for hooking up the Pipelines services and Tekton to your RHDH instance is to run `bash ./scripts/configure-pipelines.sh`. Please note if you changed the installation namespace used by the installer you will first need to run `export NAMESPACE=<namespace used>` as the default value is `ai-rhdh`.
 
 ### AI-RHDH-Installer: Manual Configuration
 
