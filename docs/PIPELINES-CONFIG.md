@@ -135,7 +135,7 @@ imagePullSecrets:
 " >/dev/null
 ```
 
-#### Step 8: Updating Plugins
+#### Step 8.1: Updating Plugins with the web console
 
 To include the [Tekton plugins list](../dynamic-plugins/tekton-plugins.yaml) we need to edit the dynamic plugins ConfigMap that was created by the RHDH Operator:
 
@@ -144,6 +144,8 @@ To include the [Tekton plugins list](../dynamic-plugins/tekton-plugins.yaml) we 
 Edit the associated `yaml` file to include the contents of the [Tekton plugins list](../dynamic-plugins/tekton-plugins.yaml) under the `plugins` section:
 
 ![Dynamic Plugins Example 3](../assets/dynamic-plugins-example-3.png)
+
+#### Step 8.2: Updating Plugins with the CLI
 
 Alternatively, we can use this series of commands to perform the same task with `kubectl` and `yq` using the [`tekton-plugins.yaml`](../dynamic-plugins/tekton-plugins.yaml):
 
