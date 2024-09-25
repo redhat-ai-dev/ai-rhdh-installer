@@ -54,7 +54,7 @@ Alternatively, we can use this series of commands to perform the same task with 
 4. Dynamic plugins should be updated with the [ArgoCD plugins list](../dynamic-plugins/argocd-plugins.yaml) with a pod update triggered and you may remove the temp file at this point
 
 #### Step 3: Updating RHDH Deployment
-Now that all of the required ConfigMaps and Secrets are apart of the namespace, we must edit the RHDH Deployment to properly reference these items.
+Now that all of the required ConfigMaps and Secrets are part of the namespace, we must edit the RHDH Deployment to properly reference these items.
 
 We will need to add the `argocd-config.yaml` as a `VolumeMount` to the `containers` field in the RHDH Deployment under `.spec.template.spec.containers.volumeMounts`
 
