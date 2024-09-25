@@ -24,7 +24,7 @@ In your chosen namespace you should apply the `argocd-config` ConfigMap under [`
 
 As part of the `ai-rhdh-installer` a secret was created in your desired namespace with the name `rhdh-argocd-secret`, keep note of this Secret as well as the two ConfigMaps applied above.
 
-#### Step 2: Updating Plugins
+#### Step 2.1: Updating Plugins with the web console
 **Note: RHDH will encounter errors if the ArgoCD plugins are loaded before an instance is properly attached - This step may result in errors until all steps are completed**
 
 To include the [ArgoCD plugins list](../dynamic-plugins/argocd-plugins.yaml) we need to edit the dynamic plugins ConfigMap that was created by the RHDH Operator:
@@ -34,6 +34,8 @@ To include the [ArgoCD plugins list](../dynamic-plugins/argocd-plugins.yaml) we 
 Edit the associated `yaml` file to include the contents of the [ArgoCD plugins list](../dynamic-plugins/argocd-plugins.yaml) under the `plugins` section:
 
 ![Dynamic Plugins Example 2](../assets/dynamic-plugins-example-2.png)
+
+#### Step 2.2: Updating Plugins with the CLI
 
 Alternatively, we can use this series of commands to perform the same task with `kubectl` and `yq` using the [`argocd-plugins.yaml`](../dynamic-plugins/argocd-plugins.yaml):
 
