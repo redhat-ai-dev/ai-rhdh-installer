@@ -126,6 +126,6 @@ You will also need to create a Secret in your chosen namespace with the followin
 Follow the same steps as [step 2 for the ai-rhdh-installer](#step-2-updating-plugins).
 
 #### Step 4: Updating RHDH Deployment
-Once you have applied the ConfigMaps and Secrets to your cluster and the necessary namespace you can now follow the same steps in [step 3 for the ai-rhdh-installer](#step-3-updating-rhdh-deployment). Every step will be identical if your RHDH instance was created using the `Red Hat Developer Hub Operator`, however, if you installed RHDH using the `Helm Chart` you may find that `.spec.template.spec.containers.envFrom` does not exist in the Deployment yaml. If this is the case you can simply add that field and the necessary secret information.
+Once you have applied the ConfigMaps and Secrets to your cluster and the chosen namespace you can now follow the same steps in [step 3 for the ai-rhdh-installer](#step-3-updating-rhdh-deployment). Every step will be identical if your RHDH instance was created using the `Red Hat Developer Hub Operator`, however, if you installed RHDH using the `Helm Chart` you may find that `.spec.template.spec.containers.envFrom` does not exist in the Deployment yaml. If this is the case you can simply add `envFrom` field yourself and the reference to the `rhdh-argocd-secret` secret.
 
 Additionally, if RHDH was installed with `Helm` the naming for the RHDH Deployment and ConfigMap (for the dynamic plugins) may differ than the example but the content will look similar so you can reference that to find the proper files.
