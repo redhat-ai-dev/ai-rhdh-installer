@@ -9,8 +9,8 @@ As part of this section you will find information about the following configurat
 
 ### Prerequisites
 
-- [yq](https://github.com/mikefarah/yq/) version 4.0+.
-- [kubectl](https://github.com/kubernetes/kubectl) version compatible with your target cluster
+- [yq](https://github.com/mikefarah/yq/) version 4.0+
+- [kubectl](https://github.com/kubernetes/kubectl) or [oc](https://docs.openshift.com/container-platform/4.16/cli_reference/openshift_cli/getting-started-cli.html) version compatible with your target cluster
 
 ### AI-RHDH-Installer: Script Configuration
 If you installed using the [`ai-rhdh-installer`](../README.md#install) all that is required for hooking up the Pipelines services and Tekton to your RHDH instance is to run `bash ./scripts/configure-pipelines.sh`. Please note if you changed the installation namespace used by the installer you will first need to run `export NAMESPACE=<namespace used>` as the default value is `ai-rhdh`.

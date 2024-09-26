@@ -11,8 +11,9 @@ As part of this section you will find information about the following configurat
 <!---
 TODO: Once RHDH configuration is complete we should link a reference to it here.
 -->
-- In order to allow the configuration to be completed you must first have a working Red Hat Developer Hub (RHDH) instance (for example you are able to login and view Developer Hub).
-- [yq](https://github.com/mikefarah/yq/) version 4.0+.
+- In order to allow the configuration to be completed you must first have a working Red Hat Developer Hub (RHDH) instance (for example you are able to login and view Developer Hub)
+- [yq](https://github.com/mikefarah/yq/) version 4.0+
+- [kubectl](https://github.com/kubernetes/kubectl) or [oc](https://docs.openshift.com/container-platform/4.16/cli_reference/openshift_cli/getting-started-cli.html) version compatible with your target cluster
 
 ### AI-RHDH-Installer: Script Configuration
 If you installed using the [`ai-rhdh-installer`](../README.md#install) all that is required for hooking up the ArgoCD instance to your RHDH instance is to run `bash ./scripts/configure-gitops.sh`. Please note if you changed the installation namespace used by the installer you will first need to run `export NAMESPACE=<namespace used>` as the default value is `ai-rhdh`.
