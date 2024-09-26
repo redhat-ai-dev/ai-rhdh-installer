@@ -55,7 +55,7 @@ metadata:
 EOF
 ```
 
-#### Step 4: Setting up cosign secret under deployment namespaces
+#### Step 4: Setting Up Cosign Secret Under Deployment Namespaces
 
 First you will need to fetch the cosign public key from the `signing-secrets` secret in the `openshift-pipelines` namespace that was setup by the installer:
 
