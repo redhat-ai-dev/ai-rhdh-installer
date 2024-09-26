@@ -39,7 +39,7 @@ Before patching you will need to provide an additional field `transparency.url` 
 
 As part of the `ai-rhdh-installer` a service account with a token secret was created in your desired namespace with the name `rhdh-kubernetes-plugin`, token secret should have a name pattern `rhdh-kubernetes-plugin-token-*`, keep note of this Secret.
 
-#### Step 3: Setting up deployment namespaces
+#### Step 3: Setting Up Deployment Namespaces
 
 You will need to create the namespaces for the different app deployments. With a target namespace called `ai-rhdh`, these namespaces would be called `ai-rhdh-app-development`, `ai-rhdh-app-stage`, and `ai-rhdh-app-prod`. These namespaces can be created using the following:
 
