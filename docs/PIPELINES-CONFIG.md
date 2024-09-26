@@ -103,7 +103,7 @@ kubectl -n $APP_NAMESPACE create secret generic "gitops-auth-secret" \
     --dry-run=client -o yaml | kubectl -n $APP_NAMESPACE apply --filename - --overwrite=true >/dev/null
 ```
 
-#### Step 6: Setting up pipelines secret under deployment namespaces
+#### Step 6: Setting Up Pipelines Secret Under Deployment Namespaces
 
 You will need to create a pipeline secret containing the webhook secret for the Git organization for deployments to have proper access via the tekton pipelines:
 
