@@ -82,7 +82,7 @@ type: Opaque
 EOF
 ```
 
-#### Step 5: Setting up gitops authentication secret under deployment namespaces
+#### Step 5: Setting Up Gitops Authentication Secret Under Deployment Namespaces
 
 If you are using GitLab, you will need to create the GitLab authentication secret with your GitLab PAT as follows:
 
