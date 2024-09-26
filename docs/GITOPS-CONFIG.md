@@ -24,7 +24,7 @@ In your chosen namespace you should apply the `argocd-config` ConfigMap under [`
 
 As part of the `ai-rhdh-installer` a secret was created in your desired namespace with the name `rhdh-argocd-secret`, keep note of this Secret as well as the two ConfigMaps applied above.
 
-#### Step 2.1: Updating Plugins with the web console
+#### Step 2.1: Updating Plugins Via Web Console
 **Note: RHDH will encounter errors if the ArgoCD plugins are loaded before an instance is properly attached - This step may result in errors until all steps are completed**
 
 To include the [ArgoCD plugins list](../dynamic-plugins/argocd-plugins.yaml) we need to edit the dynamic plugins ConfigMap that was created by the RHDH Operator:
