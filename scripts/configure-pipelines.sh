@@ -174,6 +174,10 @@ while [ -z "${COSIGN_SIGNING_PUBLIC_KEY:-}" ]; do
     echo -n "_"
     sleep 2
     COSIGN_SIGNING_PUBLIC_KEY=$(kubectl get secrets -n openshift-pipelines signing-secrets -o jsonpath='{.data.cosign\.pub}' 2>/dev/null)
+    if [ $? -ne 0 ]; then
+        echo -n "FAIL"
+        exit 1
+    fi
 done
 for NAMESPACE_SUFFIX in "development" "prod" "stage"; do
     APP_NAMESPACE="${NAMESPACE}-app-${NAMESPACE_SUFFIX}"
@@ -186,6 +190,10 @@ metadata:
     argocd.argoproj.io/managed-by: $NAMESPACE
   name: $APP_NAMESPACE
 EOF
+    if [ $? -ne 0 ]; then
+        echo -n "FAIL"
+        exit 1
+    fi
 
     SECRET_NAME="cosign-pub"
     if [ -n "$COSIGN_SIGNING_PUBLIC_KEY" ]; then
@@ -203,6 +211,10 @@ metadata:
     namespace: $APP_NAMESPACE
 type: Opaque
 EOF
+        if [ $? -ne 0 ]; then
+            echo -n "FAIL"
+            exit 1
+        fi
         echo -n "."
     fi
     SECRET_NAME="gitlab-auth-secret"
@@ -212,6 +224,10 @@ EOF
             --from-literal=username=oauth2 \
             --type=kubernetes.io/basic-auth \
             --dry-run=client -o yaml | kubectl -n $APP_NAMESPACE apply --filename - --overwrite=true >/dev/null
+        if [ $? -ne 0 ]; then
+            echo -n "FAIL"
+            exit 1
+        fi
         echo -n "."
     fi
     SECRET_NAME="gitops-auth-secret"
@@ -220,6 +236,10 @@ EOF
             --from-literal=password=$GITOPS__GIT_TOKEN \
             --type=kubernetes.io/basic-auth \
             --dry-run=client -o yaml | kubectl -n $APP_NAMESPACE apply --filename - --overwrite=true >/dev/null
+        if [ $? -ne 0 ]; then
+            echo -n "FAIL"
+            exit 1
+        fi
         echo -n "."
     fi
     SECRET_NAME="pipelines-secret"
@@ -227,6 +247,10 @@ EOF
         kubectl -n $APP_NAMESPACE create secret generic "$SECRET_NAME" \
             --from-literal=webhook.secret=$GITHUB__APP__WEBHOOK__SECRET \
             --dry-run=client -o yaml | kubectl -n $APP_NAMESPACE apply --filename - --overwrite=true >/dev/null
+        if [ $? -ne 0 ]; then
+            echo -n "FAIL"
+            exit 1
+        fi
         echo -n "."
     fi
     SECRET_NAME="rhdh-image-registry-token"
@@ -236,6 +260,10 @@ EOF
         kubectl -n $APP_NAMESPACE create secret docker-registry "$SECRET_NAME" \
             --from-file=.dockerconfigjson="$DATA" --dry-run=client -o yaml | \
             kubectl -n $APP_NAMESPACE apply --filename - --overwrite=true >/dev/null
+        if [ $? -ne 0 ]; then
+            echo -n "FAIL"
+            exit 1
+        fi
         rm "$DATA"
         echo -n "."
         while ! kubectl -n $APP_NAMESPACE get serviceaccount pipeline >/dev/null &>2; do
@@ -249,6 +277,10 @@ EOF
         imagePullSecrets:
         - name: $SECRET_NAME
         " >/dev/null
+            if [ $? -ne 0 ]; then
+                echo -n "FAIL"
+                exit 1
+            fi
             echo -n "."
         done
         echo -n "."
