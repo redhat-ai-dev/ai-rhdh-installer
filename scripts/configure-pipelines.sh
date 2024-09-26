@@ -60,6 +60,7 @@ fi
 # Reads GitHub Org App Private Key
 until [ ! -z "${GITHUB__APP__PRIVATE_KEY}" ]; do
     read -p "Enter your GitHub App Private Key (Use CTRL-D when finished): " -d $'\04' GITHUB__APP__PRIVATE_KEY
+    echo ""
     if [ -z "${GITHUB__APP__PRIVATE_KEY}" ]; then
         echo "No GitHub App Private Key entered, try again."
     fi
@@ -81,6 +82,7 @@ fi
 # Optional: If left blank during user prompt, the namespace secret will not be created
 if [ -z "${QUAY__DOCKERCONFIGJSON}" ]; then
     read -p "Enter your Quay DockerConfig JSON (Optional|Use CTRL-D when finished): " -d $'\04' QUAY__DOCKERCONFIGJSON
+    echo ""
 fi
 echo "OK"
 
