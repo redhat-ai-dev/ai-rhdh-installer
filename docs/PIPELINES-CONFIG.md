@@ -35,6 +35,11 @@ Before patching you will need to provide an additional field `transparency.url` 
 }
 ```
 
+Now using the updated [`tekton-config.json`](../resources/tekton-config.json) you can patch the config with the following command:
+```sh
+cat resources/tekton-config.json | kubectl patch tektonconfig config --type 'merge' --patch - >/dev/null
+```
+
 #### Step 2: RHDH Kubernetes Plugin Service Account
 
 As part of the `ai-rhdh-installer` a service account with a token secret was created in your desired namespace with the name `rhdh-kubernetes-plugin`, token secret should have a name pattern `rhdh-kubernetes-plugin-token-*`, keep note of this Secret.
