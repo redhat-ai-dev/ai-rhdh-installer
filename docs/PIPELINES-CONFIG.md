@@ -113,7 +113,7 @@ kubectl -n $APP_NAMESPACE create secret generic "pipelines-secret" \
     --dry-run=client -o yaml | kubectl -n $APP_NAMESPACE apply --filename - --overwrite=true >/dev/null
 ```
 
-#### Step 7: Setting up quay image registry secret under deployment namespaces
+#### Step 7: Setting Up Quay Image Registry Secret Under Deployment Namespaces
 
 For accessing the quay image registry, you'll need to create a secret
 to store the docker config json file:
