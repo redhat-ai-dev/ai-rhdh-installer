@@ -145,7 +145,7 @@ Edit the associated `yaml` file to include the contents of the [Tekton plugins l
 
 ![Dynamic Plugins Example 3](../assets/dynamic-plugins-example-3.png)
 
-#### Step 8.2: Updating Plugins with the CLI
+#### Step 8.2: Updating Plugins Via CLI
 
 Alternatively, we can use this series of commands to perform the same task with `kubectl` and `yq` using the [`tekton-plugins.yaml`](../dynamic-plugins/tekton-plugins.yaml):
 
