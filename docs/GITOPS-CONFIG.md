@@ -35,7 +35,7 @@ Edit the associated `yaml` file to include the contents of the [ArgoCD plugins l
 
 ![Dynamic Plugins Example 2](../assets/dynamic-plugins-example-2.png)
 
-#### Step 2.2: Updating Plugins with the CLI
+#### Step 2.2: Updating Plugins Via CLI
 
 Alternatively, we can use this series of commands to perform the same task with `kubectl` and `yq` using the [`argocd-plugins.yaml`](../dynamic-plugins/argocd-plugins.yaml):
 
