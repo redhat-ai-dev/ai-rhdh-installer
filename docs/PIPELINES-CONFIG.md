@@ -135,7 +135,7 @@ imagePullSecrets:
 " >/dev/null
 ```
 
-#### Step 8.1: Updating Plugins with the web console
+#### Step 8.1: Updating Plugins Via Web Console
 
 To include the [Tekton plugins list](../dynamic-plugins/tekton-plugins.yaml) we need to edit the dynamic plugins ConfigMap that was created by the RHDH Operator:
 
