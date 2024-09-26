@@ -231,7 +231,7 @@ To configure cosign to sign secrets follow these steps:
     ````
 
 
-#### Step 4: Run configure script
+#### Step 4: Run Configure Script
 
 Once you have done the prior steps and have the information from the prior steps readily available you can follow:
 
