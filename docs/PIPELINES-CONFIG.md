@@ -120,7 +120,7 @@ kubectl -n $APP_NAMESPACE create secret generic "pipelines-secret" \
 
 #### Step 7: Setting Up Quay Image Registry Secret Under Deployment Namespaces
 
-For accessing the quay image registry, you'll need to create a secret to store the docker config json file:
+For accessing the quay image registry, you'll need to create a secret to store the docker config json file with authentication credentials you can obtain from your [quay.io](https://quay.io) account:
 
 ```sh
 kubectl -n $APP_NAMESPACE create secret docker-registry "rhdh-image-registry-token" \
