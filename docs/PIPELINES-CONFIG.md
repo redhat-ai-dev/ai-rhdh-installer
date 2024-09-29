@@ -155,7 +155,7 @@ Alternatively, we can use this series of commands to perform the same task with 
 
 1. Fetch the dynamic plugins ConfigMap and save the `dynamic-plugins.yaml` content within to a temp file
     ```sh
-    kubectl get configmap backstage-dynamic-plugins-ai-rh-developer-hub -n ai-rhdh -o yaml | yq '.data["dynamic-plugins.yaml"]' > temp-dynamic-plugins.yaml
+    kubectl get configmap backstage-dynamic-plugins-ai-rh-developer-hub -n $NAMESPACE -o yaml | yq '.data["dynamic-plugins.yaml"]' > temp-dynamic-plugins.yaml
     ```
 2. Merge the contents of [`tekton-plugins.yaml`](../dynamic-plugins/tekton-plugins.yaml) into the temp file
     ```sh
@@ -163,7 +163,7 @@ Alternatively, we can use this series of commands to perform the same task with 
     ```
 3. Patch the dynamic plugins ConfigMap with the updated content in the temp file
     ```sh
-    kubectl patch configmap backstage-dynamic-plugins-ai-rh-developer-hub -n ai-rhdh \
+    kubectl patch configmap backstage-dynamic-plugins-ai-rh-developer-hub -n $NAMESPACE \
     --type='merge' \
     -p="{\"data\":{\"dynamic-plugins.yaml\":\"$(echo "$(cat temp-dynamic-plugins.yaml)" | sed 's/"/\\"/g' | sed 's/$/\\n/g' | tr -d '\n')\"}}"
     ```
@@ -176,7 +176,7 @@ We need to map the referenced environment variable `K8S_SA_TOKEN` to the `rhdh-k
 We can get the name of the service account tied token secret with the following command:
 
 ```sh
-kubectl get secrets -n "<rhdh_namespace>" -o name | grep rhdh-kubernetes-plugin-token- | cut -d/ -f2 | head -1
+kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token- | cut -d/ -f2 | head -1
 ```
 
 Using the returned name from the command above, we can bind this secret to the `K8S_SA_TOKEN` under `.spec.template.spec.containers.env`
