@@ -46,7 +46,7 @@ As part of the `ai-rhdh-installer` a service account with a token secret was cre
 
 #### Step 3: Setting Up Deployment Namespaces
 
-You will need to create the namespaces for the different app deployments. With a target namespace called `ai-rhdh`, these namespaces would be called `ai-rhdh-app-development`, `ai-rhdh-app-stage`, and `ai-rhdh-app-prod`. These namespaces can be created using the following:
+You will need to create the namespaces for the different app deployments. You will need a namespace for each kind of the deployment: development, staging, and production. These namespaces would follow a naming pattern of `<rhdh_namepsace>-app-<deployment_kind>` with the target RHDH namespace as the prefix, therefore `$NAMESPACE-app-development`, `$NAMESPACE-app-stage`, and `$NAMESPACE-app-prod`. These namespaces can be created using the following:
 
 ```sh
 APP_NAMESPACE=$NAMESPACE-app-<developer|stage|prod>
