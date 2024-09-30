@@ -210,9 +210,9 @@ You are able to store these values in environment variables or paste them during
 The installer will configure and set up cosign that the `configure-pipeline.sh` script needs to reference the cosign public key to set to the cosign secret under the deployment namespaces.
 
 To configure cosign to sign secrets follow these steps:
-1. Download `cosign` cli tool
+1. Set the architecture you wish to use `ARCH=<architecture>`, for example `amd64` or `arm64`, and download `cosign` cli tool
     ```sh
-    curl -L https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64 -o cosign && chmod +x cosign
+    curl -L https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-$ARCH -o cosign && chmod +x cosign
     ```
 2. Delete the default secret if it exists
     ```sh
