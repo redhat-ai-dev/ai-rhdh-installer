@@ -99,6 +99,8 @@ kubectl -n $APP_NAMESPACE create secret generic "gitlab-auth-secret" \
     --dry-run=client -o yaml | kubectl -n $APP_NAMESPACE apply --filename - --overwrite=true >/dev/null
 ```
 
+More information about GitLab authentication and GitLab PATs can be found under the [Pipelines as Code with GitLab documentation](https://docs.redhat.com/en/documentation/red_hat_openshift_pipelines/1.15/html/pipelines_as_code/using-pipelines-as-code-repos#using-pipelines-as-code-with-gitlab_using-pipelines-as-code-repos).
+
 Otherwise, you will need to create a Git authentication secret with your PAT (e.g. GitHub PAT) as follows:
 
 ```sh
@@ -107,6 +109,8 @@ kubectl -n $APP_NAMESPACE create secret generic "gitops-auth-secret" \
     --type=kubernetes.io/basic-auth \
     --dry-run=client -o yaml | kubectl -n $APP_NAMESPACE apply --filename - --overwrite=true >/dev/null
 ```
+
+**Note**: For GitHub PATs, you will need to set permissions which are highlighted under the [Pipelines as Code with GitHub documentation](https://docs.redhat.com/en/documentation/red_hat_openshift_pipelines/1.15/html/pipelines_as_code/using-pipelines-as-code-repos#using-pipelines-as-code-with-github-webhook_using-pipelines-as-code-repos).
 
 #### Step 6: Setting Up Pipelines Secret Under Deployment Namespaces
 
