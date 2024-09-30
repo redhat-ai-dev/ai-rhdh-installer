@@ -15,15 +15,6 @@
             "artifacts.taskrun.format": "in-toto",
             "artifacts.taskrun.storage": "oci",
             "transparency.enabled": "true"
-        },
-        "platforms": {
-            "openshift": {
-                "pipelinesAsCode": {
-                    "settings": {
-                        "remember-ok-to-test": "false"
-                    }
-                }
-            }
         }
     }
 }
