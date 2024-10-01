@@ -48,3 +48,23 @@ Detailed documentation for configuring GitOps/ArgoCD can be found in [`GITOPS-CO
 ## Pipelines/Tekton Configuration
 
 Detailed documentation for configuring Pipelines/Tekton can be found in [`PIPELINES-CONFIG.md`](./docs/PIPELINES-CONFIG.md)
+
+## Setting Environment Variables for Configuration Scripts
+
+Configuration scripts can either take user input or can have environment variables set to skip manual input. To do this, follow the steps below:
+
+1. Run `cp default-private.env private.env` to copy the starting point into a private environment variables file
+2. Set each of these environment variables to the private values needed for the configuration scripts, surround all multiline values with `''`
+    - `GITHUB__APP__ID`
+        - GitHub Organization App ID
+    - `GITHUB__APP__WEBHOOK__SECRET`
+        - User set GitHub App Webhook Secret
+    - `GITHUB__APP__PRIVATE_KEY`
+        - GitHub App Private Key
+    - `GITOPS__GIT_TOKEN`
+        - Git Personal Access Token (alternative to `GITLAB__TOKEN`)
+    - `GITLAB__TOKEN`
+        - GitLab Personal Access Token (alternative to `GITOP__GIT_TOKEN`)
+    - `QUAY__DOCKERCONFIGJSON`
+        - Docker Config JSON File with Authentication Credentials for a given [Quay.io](https://quay.io) Account
+3. Run `source private.env` to set all set environment variables within `private.env`
