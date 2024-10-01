@@ -1,0 +1,20 @@
+# Properties to patch under the TektonConfig
+spec:
+  pipeline:
+    enable-bundles-resolver: true
+    enable-cluster-resolver: true
+    enable-custom-tasks: true
+    enable-git-resolver: true
+    enable-hub-resolver: true
+    enable-tekton-oci-bundles: true
+  chain:
+    artifacts.oci.storage: oci
+    artifacts.pipelinerun.format: in-toto
+    artifacts.pipelinerun.storage: oci
+    artifacts.taskrun.format: in-toto
+    artifacts.taskrun.storage: oci
+    transparency.enabled: "true"
+# 'openshift.pipelinesAsCode.settings.remember-ok-to-test: false' has been removed as the 
+# AI Software templates do not need this from RHTAP and up to date Konflux TektonConfig 
+# does not set this property: 
+# https://github.com/redhat-appstudio/infra-deployments/blob/c06c88f16fbd5998ad9465ae0cc2612f0ffee248/components/pipeline-service/development/main-pipeline-service-configuration.yaml#L1631-L1840
