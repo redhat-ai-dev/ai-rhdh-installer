@@ -12,14 +12,12 @@ BASE_DIR="$(realpath $(dirname ${BASH_SOURCE[0]}))/.."
 if [[ $ARGOCD_INSTANCE_PROVIDED == "false" ]]; then
     # Add ConfigMap To Configure ArgoCD
     kubectl apply -n $NAMESPACE -f $BASE_DIR/resources/argocd-config.yaml
-    # Add ConfigMap For ArgoCD Plugins
-    kubectl apply -n $NAMESPACE -f $BASE_DIR/resources/argocd-plugins.yaml
 
     # Grab configmap and parse out the defined yaml file inside of its data to a temp file
     kubectl get configmap $DEFAULT_PLUGIN_CONFIGMAP -n $NAMESPACE -o yaml | yq '.data["dynamic-plugins.yaml"]' > temp-dynamic-plugins.yaml
 
     # Edit the temp file to include the argocd plugins
-    yq -i '.includes += ["argocd-plugins.yaml"] | .includes |= unique' temp-dynamic-plugins.yaml
+    yq -i ".plugins += $(yq '.plugins' $BASE_DIR/dynamic-plugins/argocd-plugins.yaml -M -o json) | .plugins |= unique_by(.package)" temp-dynamic-plugins.yaml
 
     # Patch the configmap that is deployed to update the defined yaml inside of it
     kubectl patch configmap $DEFAULT_PLUGIN_CONFIGMAP -n $NAMESPACE \
@@ -31,12 +29,10 @@ if [[ $ARGOCD_INSTANCE_PROVIDED == "false" ]]; then
 
     # Add ArgoCD instance information and plugin to backstage deployment data
     kubectl get deploy $RHDH_DEPLOYMENT -n $NAMESPACE -o yaml | \
-    yq '.spec.template.spec.volumes += [{"name": "argocd-config", "configMap": {"name": "argocd-config", "defaultMode": 420, "optional": false}}, 
-    {"name": "argocd-plugins", "configMap": {"name": "argocd-plugins", "defaultMode": 420, "optional": false}}] |
+    yq '.spec.template.spec.volumes += [{"name": "argocd-config", "configMap": {"name": "argocd-config", "defaultMode": 420, "optional": false}}] |
     .spec.template.spec.containers[0].envFrom += [{"secretRef": {"name": "rhdh-argocd-secret"}}] |
     .spec.template.spec.containers[0].volumeMounts += [{"name": "argocd-config", "readOnly": true, "mountPath": "/opt/app-root/src/argocd-config.yaml", "subPath": "argocd-config.yaml"}] |
-    .spec.template.spec.containers[0].args += ["--config", "/opt/app-root/src/argocd-config.yaml"] |
-    .spec.template.spec.initContainers[0].volumeMounts += [{"name": "argocd-plugins", "readOnly": true, "mountPath": "/opt/app-root/src/argocd-plugins.yaml", "subPath": "argocd-plugins.yaml"}]' | 
+    .spec.template.spec.containers[0].args += ["--config", "/opt/app-root/src/argocd-config.yaml"]' | 
     kubectl apply -f -
 fi
 
@@ -124,13 +120,12 @@ if [[ $ARGOCD_INSTANCE_PROVIDED == "true" ]]; then
     echo "Applying ArgoCD ConfigMaps"
     # Create the plugin and config setup configmaps in the namespace
     kubectl apply -n $EXISTING_NAMESPACE -f $BASE_DIR/resources/argocd-config.yaml
-    kubectl apply -n $EXISTING_NAMESPACE -f $BASE_DIR/resources/argocd-plugins.yaml
     
     # Grab configmap and parse out the defined yaml file inside of its data to a temp file
     kubectl get configmap $RHDH_PLUGINS -n $EXISTING_NAMESPACE -o yaml | yq '.data["dynamic-plugins.yaml"]' > temp-dynamic-plugins.yaml
 
     # Edit the temp file to include the argocd plugins
-    yq -i '.includes += ["argocd-plugins.yaml"] | .includes |= unique' temp-dynamic-plugins.yaml
+    yq -i ".plugins += $(yq '.plugins' $BASE_DIR/dynamic-plugins/argocd-plugins.yaml -M -o json) | .plugins |= unique_by(.package)" temp-dynamic-plugins.yaml
 
     # Patch the configmap that is deployed to update the defined yaml inside of it
     kubectl patch configmap $RHDH_PLUGINS -n $EXISTING_NAMESPACE \
@@ -152,11 +147,9 @@ if [[ $ARGOCD_INSTANCE_PROVIDED == "true" ]]; then
 
     # Add ArgoCD instance information and plugin to backstage deployment data
     kubectl get deploy $EXISTING_DEPLOYMENT -n $EXISTING_NAMESPACE -o yaml | \
-    secretenv="$ARGO_INSTANCE_NAME-secret" yq '.spec.template.spec.volumes += [{"name": "argocd-config", "configMap": {"name": "argocd-config", "defaultMode": 420, "optional": false}}, 
-    {"name": "argocd-plugins", "configMap": {"name": "argocd-plugins", "defaultMode": 420, "optional": false}}] |
+    secretenv="$ARGO_INSTANCE_NAME-secret" yq '.spec.template.spec.volumes += [{"name": "argocd-config", "configMap": {"name": "argocd-config", "defaultMode": 420, "optional": false}}] |
     .spec.template.spec.containers[0].volumeMounts += [{"name": "argocd-config", "readOnly": true, "mountPath": "/opt/app-root/src/argocd-config.yaml", "subPath": "argocd-config.yaml"}] |
     .spec.template.spec.containers[0].args += ["--config", "/opt/app-root/src/argocd-config.yaml"] |
-    .spec.template.spec.initContainers[0].volumeMounts += [{"name": "argocd-plugins", "readOnly": true, "mountPath": "/opt/app-root/src/argocd-plugins.yaml", "subPath": "argocd-plugins.yaml"}] |
     .spec.template.spec.containers[0].envFrom += [{"secretRef": {"name": env(secretenv)}}]' | 
     kubectl apply -f -
 fi

@@ -23,7 +23,11 @@ spec:
         helm.sh/chart: "{{.Chart.Name}}-{{.Chart.Version}}"
     spec:
       containers:
+        {{ if and (hasKey .Values "openshift-gitops") (index .Values "openshift-gitops" "enabled") }}
         {{include "rhdh.gitops.unconfigure" . | indent 8 }}
+        {{ end }}
+        {{ if and (hasKey .Values "developer-hub") (index .Values "developer-hub" "enabled") }}
         {{include "rhdh.developer-hub.unconfigure" . | indent 8 }}
+        {{ end }}
       restartPolicy: Never
       serviceAccountName: helm-manager
