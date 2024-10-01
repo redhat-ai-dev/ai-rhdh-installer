@@ -268,7 +268,7 @@ EOF
         fi
         rm "$DATA"
         echo -n "."
-        while ! kubectl -n $APP_NAMESPACE get serviceaccount pipeline >/dev/null &>2; do
+        while ! kubectl -n $APP_NAMESPACE get serviceaccount pipeline >/dev/null; do
             sleep 2
             echo -n "_"
         done
