@@ -57,14 +57,24 @@ Configuration scripts can either take user input or can have environment variabl
 2. Set each of these environment variables to the private values needed for the configuration scripts, surround all multiline values with `''`
     - `GITHUB__APP__ID`
         - GitHub Organization App ID
+    - `GITHUB__APP__CLIENT__ID`
+        - GitHub Org App Client ID (alternative to `GITLAB__APP__CLIENT__ID`)
+    - `GITHUB__APP__CLIENT__SECRET`
+        - GitHub Org App Client Secret (alternative to `GITLAB__APP__CLIENT__SECRET`)
     - `GITHUB__APP__WEBHOOK__SECRET`
         - User set GitHub App Webhook Secret
     - `GITHUB__APP__PRIVATE_KEY`
         - GitHub App Private Key
     - `GITOPS__GIT_TOKEN`
         - Git Personal Access Token (alternative to `GITLAB__TOKEN`)
+    - `GITLAB__APP__CLIENT__ID`
+        - GitLab App Client ID (alternative to `GITHUB__APP__CLIENT__ID`)
+    - `GITLAB__APP__CLIENT__SECRET`
+        - GitLab App Client Secret (alternative to `GITHUB__APP__CLIENT__SECRET`)
     - `GITLAB__TOKEN`
         - GitLab Personal Access Token (alternative to `GITOP__GIT_TOKEN`)
     - `QUAY__DOCKERCONFIGJSON`
         - Docker Config JSON File with Authentication Credentials for a given [Quay.io](https://quay.io) Account
+    - `QUAY__API_TOKEN`
+        - Quay Org API Token
 3. Run `source private.env` to set all set environment variables within `private.env`
