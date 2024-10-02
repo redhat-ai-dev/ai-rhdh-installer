@@ -20,5 +20,12 @@
       cat <<EOF | kubectl delete -n "$NAMESPACE" -f - >/dev/null
       {{ include "rhdh.include.backstage" . | indent 6 }}
       EOF
+      echo "OK"
+
+      echo -n "* Deleting RHDH Extra Variables Secret: "
+      cat <<EOF | kubectl delete -f - >/dev/null
+      {{ include "rhdh.include.extra-env" . | indent 6 }}
+      EOF
+      echo "OK"
 {{ end }}
 {{ end }}

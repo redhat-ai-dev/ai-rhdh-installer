@@ -28,6 +28,12 @@
       #
       NAMESPACE="{{.Release.Namespace}}"
 
+      echo -n "* Create RHDH Extra Variables Secret: "
+      cat <<EOF | kubectl apply -f - >/dev/null
+      {{ include "rhdh.include.extra-env" . | indent 6 }}
+      EOF
+      echo "OK"
+
       echo -n "* Creating RHDH instance: "
       BACKSTAGE_CR_DATA=$(mktemp)
       cat <<EOF >"${BACKSTAGE_CR_DATA}"

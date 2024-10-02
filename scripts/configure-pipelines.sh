@@ -457,19 +457,6 @@ rm temp-dynamic-plugins.yaml
 
 echo "OK"
 
-# Configure TLS
-# Patches Backstage CR to configure cluster TLS
-echo -n "* Configuring TLS: "
-kubectl get deploy $RHDH_DEPLOYMENT -n $NAMESPACE -o yaml | \
-    yq '.spec.template.spec.containers[0].env += {"name": "NODE_TLS_REJECT_UNAUTHORIZED", "value": "0"} | 
-    .spec.template.spec.containers[0].env |= unique_by(.name)' | \
-    kubectl apply -f -
-if [ $? -ne 0 ]; then
-    echo "FAIL"
-    exit 1
-fi
-echo "OK"
-
 # Add Tekton information and plugin to backstage deployment data
 echo -n "* Adding Tekton information and plugin to backstage deployment data: "
 K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token- | cut -d/ -f2 | head -1)

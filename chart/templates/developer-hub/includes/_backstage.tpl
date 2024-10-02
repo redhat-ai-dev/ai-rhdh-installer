@@ -10,6 +10,9 @@ spec:
     replicas: 1
     route:
       enabled: true
+    extraEnvs:
+      secrets:
+        - name: ai-rh-developer-hub-env
   database:
     enableLocalDb: true
 {{ end }}
