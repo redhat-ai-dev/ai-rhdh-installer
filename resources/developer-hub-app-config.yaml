@@ -7,9 +7,6 @@ data:
     auth:
       environment: production
     catalog:
-      locations:
-        - type: url
-          target: https://github.com/redhat-ai-dev/ai-lab-template/blob/main/all.yaml
       rules:
         - allow:
           - Component
