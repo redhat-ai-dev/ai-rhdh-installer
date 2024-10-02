@@ -66,7 +66,8 @@
 
       kubectl get configmap $APPCONFIG_CONFIGMAP -n $NAMESPACE -o yaml | yq '.data["default.app-config.yaml"]' > $APPCONFIG_DATA
       echo -n "."
-      yq -i ".backend.baseUrl = \"${RHDH_URL}\" | .backend.cors.origin = \"${RHDH_URL}\"" $APPCONFIG_DATA
+      yq -i ".app.title = \"Red Hat Developer Hub for AI Software Templates\" | 
+        .app.baseUrl = \"${RHDH_URL}\" | .backend.baseUrl = \"${RHDH_URL}\" | .backend.cors.origin = \"${RHDH_URL}\"" $APPCONFIG_DATA
       echo -n "."
       kubectl patch configmap $APPCONFIG_CONFIGMAP -n $NAMESPACE --type='merge' -p="{\"data\":{\"default.app-config.yaml\":\"$(echo "$(cat ${APPCONFIG_DATA})" | sed 's/"/\\"/g' | sed 's/$/\\n/g' | tr -d '\n')\"}}"
 
