@@ -46,7 +46,7 @@
       BACKSTAGE_CR_NAME="$(yq '.metadata.name' $BACKSTAGE_CR_DATA)"
       APPCONFIG_CONFIGMAP="backstage-appconfig-${BACKSTAGE_CR_NAME}"
       echo -n "."
-      while [ $(kubectl get configmap -n $NAMESPACE $APPCONFIG_CONFIGMAP | grep -c "$APPCONFIG_CONFIGMAP") = "0" ]; do
+      while [ $(kubectl get configmap -n $NAMESPACE $APPCONFIG_CONFIGMAP --ignore-not-found | grep -c "$APPCONFIG_CONFIGMAP") = "0" ]; do
         echo -n "_"
         sleep 2
       done
