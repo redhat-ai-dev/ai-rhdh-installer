@@ -1,0 +1,22 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: backstage-appconfig-ai-rh-developer-hub
+  namespace: {{ .Release.Namespace }}
+  labels: 
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+data:
+  default.app-config.yaml: |
+    app:
+      baseURL: {{ index .Values "developer-hub" "baseUrl" }}
+      title: Red Hat Developer Hub
+    backend:
+      auth:
+        keys:
+          # This is a default value, which you should change by providing your own app-config
+          - secret: "pl4s3Ch4ng3M3"
+      baseUrl: {{ index .Values "developer-hub" "baseUrl" }}
+      cors:
+        origin: {{ index .Values "developer-hub" "baseUrl" }}
