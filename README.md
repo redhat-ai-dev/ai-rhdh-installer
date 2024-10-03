@@ -61,6 +61,8 @@ Configuration scripts can either take user input or can have environment variabl
         - GitHub Org App Client ID (alternative to `GITLAB__APP__CLIENT__ID`)
     - `GITHUB__APP__CLIENT__SECRET`
         - GitHub Org App Client Secret (alternative to `GITLAB__APP__CLIENT__SECRET`)
+    - `GITHUB__APP__WEBHOOK__URL`
+        - GitHub App Webhook URL to pipelines as code service
     - `GITHUB__APP__WEBHOOK__SECRET`
         - User set GitHub App Webhook Secret
     - `GITHUB__APP__PRIVATE_KEY`
