@@ -1,0 +1,41 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: dev-namespace-setup
+spec:
+  description: |-
+    Create the required resources for AI Software Template tasks to run in a namespace.
+  params:
+    - default: ''
+      description: |
+        Git token
+      name: git_token
+      type: string
+    - default: ''
+      description: |
+        GitLab Personal Access Token
+      name: gitlab_token
+      type: string
+    - default: ''
+      description: |
+        Pipelines as Code webhook secret
+      name: pipelines_webhook_secret
+      type: string
+    - default: ''
+      description: |
+        Image registry token
+      name: quay_dockerconfigjson
+      type: string
+  steps:
+    - env:
+      - name: GIT_TOKEN
+        value: $(params.git_token)
+      - name: GITLAB_TOKEN
+        value: $(params.gitlab_token)
+      - name: PIPELINES_WEBHOOK_SECRET
+        value: $(params.pipelines_webhook_secret)
+      - name: QUAY_DOCKERCONFIGJSON
+        value: $(params.quay_dockerconfigjson)
+      image: "registry.redhat.io/openshift4/ose-tools-rhel8:latest"
+      name: setup
+      script: ''
