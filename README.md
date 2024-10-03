@@ -80,3 +80,21 @@ Configuration scripts can either take user input or can have environment variabl
     - `QUAY__API_TOKEN`
         - Quay Org API Token
 3. Run `source private.env` to set all set environment variables within `private.env`
+
+## Setting Catalogs for Developer Hub Configuration
+
+The [`configure-dh.sh`](./scripts/configure-dh.sh) script uses [`catalogs.yaml`](catalogs.yaml) by default, you can provide your own custom catalogs URL list instead by following these steps:
+1. Create a yaml file to use as your catalogs URL list, content should begin with `catalogs` at root level as follows:
+```yaml
+catalogs:
+```
+2. Add the link(s) to the catalog files you wish to include in your developer hub deployment:
+```yaml
+catalogs:
+    - https://github.com/<org-or-user>/ai-lab-template/blob/main/all.yaml
+```
+3. Export `CATALOGS_FILE` to be set to your file:
+```sh
+export CATALOGS_FILE=<path-to-your-catalogs-list-file>
+```
+4. Now when you run `configure-dh.sh` it should use `<path-to-your-catalogs-list-file>` instead

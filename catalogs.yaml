@@ -1,0 +1,3 @@
+# List of Software Template catalogs to setup with RHDH
+catalogs:
+  - https://github.com/redhat-ai-dev/ai-lab-template/blob/main/all.yaml
