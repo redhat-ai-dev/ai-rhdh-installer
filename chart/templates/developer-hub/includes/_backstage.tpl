@@ -13,6 +13,9 @@ spec:
     extraEnvs:
       secrets:
         - name: ai-rh-developer-hub-env
+    appConfig:
+      configMaps:
+        - name: developer-hub-base-app-config
   database:
     enableLocalDb: true
 {{ end }}

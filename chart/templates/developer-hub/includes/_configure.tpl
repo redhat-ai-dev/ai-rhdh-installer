@@ -27,10 +27,17 @@
       # All actions must be idempotent
       #
       NAMESPACE="{{.Release.Namespace}}"
+      APPCONFIG_CONFIGMAP="developer-hub-base-app-config"
 
-      echo -n "* Create RHDH Extra Variables Secret: "
+      echo -n "* Creating RHDH Extra Variables Secret: "
       cat <<EOF | kubectl apply -f - >/dev/null
       {{ include "rhdh.include.extra-env" . | indent 6 }}
+      EOF
+      echo "OK"
+
+      echo -n "* Creating RHDH Base App Config: "
+      cat <<EOF | kubectl apply -f - >/dev/null
+      {{ include "rhdh.include.appconfig" . | indent 6 }}
       EOF
       echo "OK"
 
@@ -42,17 +49,8 @@
       cat $BACKSTAGE_CR_DATA | kubectl apply -n "$NAMESPACE" -f - >/dev/null
       echo "OK"
 
-      echo -n "* Waiting for RHDH Default App Config: "
-      BACKSTAGE_CR_NAME="$(yq '.metadata.name' $BACKSTAGE_CR_DATA)"
-      APPCONFIG_CONFIGMAP="backstage-appconfig-${BACKSTAGE_CR_NAME}"
-      echo -n "."
-      while [ $(kubectl get configmap -n $NAMESPACE $APPCONFIG_CONFIGMAP --ignore-not-found | grep -c "$APPCONFIG_CONFIGMAP") = "0" ]; do
-        echo -n "_"
-        sleep 2
-      done
-      echo "OK"
-
       echo -n "* Waiting for RHDH route: "
+      BACKSTAGE_CR_NAME="$(yq '.metadata.name' $BACKSTAGE_CR_DATA)"
       until kubectl get route -n "$NAMESPACE" "backstage-${BACKSTAGE_CR_NAME}" >/dev/null 2>&1; do
         echo -n "_"
         sleep 2
@@ -64,12 +62,11 @@
       RHDH_URL="https://$(kubectl get route -n "$NAMESPACE" "backstage-${BACKSTAGE_CR_NAME}" --ignore-not-found -o jsonpath={.spec.host})"
       echo -n "."
 
-      kubectl get configmap $APPCONFIG_CONFIGMAP -n $NAMESPACE -o yaml | yq '.data["default.app-config.yaml"]' > $APPCONFIG_DATA
+      kubectl get configmap $APPCONFIG_CONFIGMAP -n $NAMESPACE -o yaml | yq '.data["app-config.base.yaml"]' > $APPCONFIG_DATA
       echo -n "."
-      yq -i ".app.title = \"Red Hat Developer Hub for AI Software Templates\" | 
-        .app.baseUrl = \"${RHDH_URL}\" | .backend.baseUrl = \"${RHDH_URL}\" | .backend.cors.origin = \"${RHDH_URL}\"" $APPCONFIG_DATA
+      yq -i ".app.baseUrl = \"${RHDH_URL}\" | .backend.baseUrl = \"${RHDH_URL}\" | .backend.cors.origin = \"${RHDH_URL}\"" $APPCONFIG_DATA
       echo -n "."
-      kubectl patch configmap $APPCONFIG_CONFIGMAP -n $NAMESPACE --type='merge' -p="{\"data\":{\"default.app-config.yaml\":\"$(echo "$(cat ${APPCONFIG_DATA})" | sed 's/"/\\"/g' | sed 's/$/\\n/g' | tr -d '\n')\"}}"
+      kubectl patch configmap $APPCONFIG_CONFIGMAP -n $NAMESPACE --type='merge' -p="{\"data\":{\"app-config.base.yaml\":\"$(echo "$(cat ${APPCONFIG_DATA})" | sed 's/"/\\"/g' | sed 's/$/\\n/g' | tr -d '\n')\"}}"
 
       echo "OK"
 

@@ -22,6 +22,12 @@
       EOF
       echo "OK"
 
+      echo -n "* Deleting RHDH Base App Config: "
+      cat <<EOF | kubectl delete -f - >/dev/null
+      {{ include "rhdh.include.appconfig" . | indent 6 }}
+      EOF
+      echo "OK"
+
       echo -n "* Deleting RHDH Extra Variables Secret: "
       cat <<EOF | kubectl delete -f - >/dev/null
       {{ include "rhdh.include.extra-env" . | indent 6 }}
