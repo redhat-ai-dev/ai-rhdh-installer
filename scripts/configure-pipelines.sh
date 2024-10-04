@@ -212,7 +212,8 @@ if [ ! -z "${GITHUB__APP__WEBHOOK__SECRET}" ]; then
     echo -n "."
 fi
 if [ ! -z "${QUAY__DOCKERCONFIGJSON}" ]; then
-    DEV_SETUP_TASK=$(QUAY__DOCKERCONFIGJSON=${QUAY__DOCKERCONFIGJSON} echo "${DEV_SETUP_TASK}" | yq ".spec.params[3].default = strenv(QUAY__DOCKERCONFIGJSON)" -M)
+    export QUAY__DOCKERCONFIGJSON=${QUAY__DOCKERCONFIGJSON}
+    DEV_SETUP_TASK=$(echo "${DEV_SETUP_TASK}" | yq ".spec.params[3].default = strenv(QUAY__DOCKERCONFIGJSON)" -M)
     if [ $? -ne 0 ]; then
         echo -n "FAIL"
         exit 1
