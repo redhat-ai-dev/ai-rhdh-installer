@@ -234,9 +234,9 @@ data:
 kind: Secret
 metadata:
   labels:
-  app.kubernetes.io/instance: default
-  app.kubernetes.io/part-of: tekton-chains
-  operator.tekton.dev/operand-name: tektoncd-chains
+    app.kubernetes.io/instance: default
+    app.kubernetes.io/part-of: tekton-chains
+    operator.tekton.dev/operand-name: tektoncd-chains
   name: \$SECRET_NAME
 type: Opaque
 EOF
