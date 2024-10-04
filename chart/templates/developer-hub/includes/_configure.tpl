@@ -41,6 +41,12 @@
       EOF
       echo "OK"
 
+      echo -n "* Creating RHDH Dynamic Plugins Config: "
+      cat <<EOF | kubectl apply -f - >/dev/null
+      {{ include "rhdh.include.plugins" . | indent 6 }}
+      EOF
+      echo "OK"
+
       echo -n "* Creating RHDH instance: "
       BACKSTAGE_CR_DATA=$(mktemp)
       cat <<EOF >"${BACKSTAGE_CR_DATA}"
