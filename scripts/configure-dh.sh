@@ -350,8 +350,8 @@ if [[ $RHDH_INSTANCE_PROVIDED == "true" ]]; then
         kubectl apply -f - >/dev/null
 else
     kubectl -n $NAMESPACE get backstage $BACKSTAGE_CR_NAME -o yaml | \
-        yq '.spec.application.extraFiles.configMaps += [{"name": "argocd-config"}] | 
-            .spec.application.extraFiles.configMaps |= unique_by(.name) |
+        yq '.spec.application.appConfig.configMaps += [{"name": "argocd-config"}] | 
+            .spec.application.appConfig.configMaps |= unique_by(.name) |
             .spec.application.extraEnvs.secrets += [{"name": "rhdh-argocd-secret"}] | 
             .spec.application.extraEnvs.secrets |= unique_by(.name)' -M -I=0 -o=json | \
         kubectl apply -n $NAMESPACE -f - >/dev/null
