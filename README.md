@@ -49,6 +49,12 @@ Detailed documentation for configuring GitOps/ArgoCD can be found in [`GITOPS-CO
 
 Detailed documentation for configuring Pipelines/Tekton can be found in [`PIPELINES-CONFIG.md`](./docs/PIPELINES-CONFIG.md)
 
+## Developer Hub Configuration
+
+**Note**: It is required to go through the steps under documentation mentioned in [GitOps/ArgoCD Configuration](#gitopsargocd-configuration) and [Pipelines/Tekton Configuration](#pipelinestekton-configuration) before the steps under the documentation below.
+
+Detailed documentation for configuring Developer Hub can be found in [`RHDH-CONFIG.md`](./docs/RHDH-CONFIG.md)
+
 ## Setting Environment Variables for Configuration Scripts
 
 Configuration scripts can either take user input or can have environment variables set to skip manual input. To do this, follow the steps below:
