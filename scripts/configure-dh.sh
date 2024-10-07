@@ -167,8 +167,16 @@ if [ ! -z "${QUAY__API_TOKEN}" ]; then
 fi
 if [ -z "${RHDH_EXTRA_ENV_SECRET}" ]; then
     kubectl create secret generic $EXTRA_ENV_SECRET -n $NAMESPACE
+    if [ $? -ne 0 ]; then
+        echo "FAIL"
+        exit 1
+    fi
     echo -n "."
 elif [ -z "$(kubectl -n $NAMESPACE get secret $RHDH_EXTRA_ENV_SECRET -o name --ignore-not-found)" ]; then
+    if [ $? -ne 0 ]; then
+        echo "FAIL"
+        exit 1
+    fi
     echo -n "Extra environment variable secret '${RHDH_EXTRA_ENV_SECRET}' not found!"
     echo "FAIL"
     exit 1
@@ -176,6 +184,10 @@ fi
 kubectl patch secret ${RHDH_EXTRA_ENV_SECRET:-$EXTRA_ENV_SECRET} -n $NAMESPACE \
     --type 'merge' \
     -p="$EXTRA_ENV_SECRET_PATCH" >/dev/null
+if [ $? -ne 0 ]; then
+    echo "FAIL"
+    exit 1
+fi
 echo "OK"
 
 # Creating up app config
@@ -213,6 +225,10 @@ if [ ! -z "${QUAY__API_TOKEN}" ]; then
 fi
 EXTRA_APPCONFIG=$EXTRA_APPCONFIG yq ".data[\"app-config.extra.yaml\"] = strenv(EXTRA_APPCONFIG)" $BASE_DIR/resources/developer-hub-app-config.yaml | \
     kubectl -n $NAMESPACE apply -f - >/dev/null
+if [ $? -ne 0 ]; then
+    echo "FAIL"
+    exit 1
+fi
 echo "OK"
 
 # Setting app config to instance
@@ -229,6 +245,10 @@ else
         yq '.spec.application.appConfig.configMaps += [{"name": "developer-hub-app-config"}] | 
             .spec.application.appConfig.configMaps |= unique_by(.name)' -M -I=0 -o=json | \
         kubectl apply -n $NAMESPACE -f - >/dev/null
+fi
+if [ $? -ne 0 ]; then
+    echo "FAIL"
+    exit 1
 fi
 echo "OK"
 
@@ -277,6 +297,10 @@ if [[ $RHDH_INSTANCE_PROVIDED == "true" ]]; then
         yq ".spec.template.spec.containers[0].envFrom += [{\"secretRef\": {\"name\": \"${RHDH_EXTRA_ENV_SECRET:-$EXTRA_ENV_SECRET}\"}}] |
         .spec.template.spec.containers[0].envFrom |= unique_by(.secretRef.name)" | \
         kubectl apply -f - >/dev/null
+    if [ $? -ne 0 ]; then
+        echo "FAIL"
+        exit 1
+    fi
     echo "OK"
 fi
 
@@ -331,5 +355,9 @@ else
             .spec.application.extraEnvs.secrets += [{"name": "rhdh-argocd-secret"}] | 
             .spec.application.extraEnvs.secrets |= unique_by(.name)' -M -I=0 -o=json | \
         kubectl apply -n $NAMESPACE -f - >/dev/null
+fi
+if [ $? -ne 0 ]; then
+    echo "FAIL"
+    exit 1
 fi
 echo "OK"
