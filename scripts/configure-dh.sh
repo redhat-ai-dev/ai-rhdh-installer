@@ -3,7 +3,7 @@
 # Constants
 BACKSTAGE_CR_NAME="ai-rh-developer-hub"
 DEFAULT_RHDH_DEPLOYMENT="backstage-ai-rh-developer-hub" # deployment created by rhdh operator by default
-PLUGIN_CONFIGMAP="backstage-dynamic-plugins-ai-rh-developer-hub" # configmap created by rhdh operator for plugins by default
+PLUGIN_CONFIGMAP="dynamic-plugins" # configmap created by rhdh operator for plugins by default
 EXTRA_ENV_SECRET="ai-rh-developer-hub-env" # secret created by rhdh installer to store private env vars
 
 # Variables
@@ -165,7 +165,15 @@ if [ ! -z "${QUAY__API_TOKEN}" ]; then
         ".data.QUAY__API_TOKEN = \"$(echo "${QUAY__API_TOKEN}" | base64)\""  -M -I=0 -o=json)
     echo -n "."
 fi
-kubectl patch secret $RHDH_EXTRA_ENV_SECRET -n $NAMESPACE \
+if [ -z "${RHDH_EXTRA_ENV_SECRET}" ]; then
+    kubectl create secret generic $EXTRA_ENV_SECRET -n $NAMESPACE
+    echo -n "."
+elif [ -z "$(kubectl -n $NAMESPACE get secret $RHDH_EXTRA_ENV_SECRET -o name --ignore-not-found)" ]; then
+    echo -n "Extra environment variable secret '${RHDH_EXTRA_ENV_SECRET}' not found!"
+    echo "FAIL"
+    exit 1
+fi
+kubectl patch secret ${RHDH_EXTRA_ENV_SECRET:-$EXTRA_ENV_SECRET} -n $NAMESPACE \
     --type 'merge' \
     -p="$EXTRA_ENV_SECRET_PATCH" >/dev/null
 echo "OK"
@@ -220,6 +228,108 @@ else
     kubectl -n $NAMESPACE get backstage $BACKSTAGE_CR_NAME -o yaml | \
         yq '.spec.application.appConfig.configMaps += [{"name": "developer-hub-app-config"}] | 
             .spec.application.appConfig.configMaps |= unique_by(.name)' -M -I=0 -o=json | \
+        kubectl apply -n $NAMESPACE -f - >/dev/null
+fi
+echo "OK"
+
+# Include plugins
+# Patches dynamic plugins ConfigMap with lists from each plugins file
+if [ -z "$(kubectl -n $NAMESPACE get configmap $RHDH_PLUGINS_CONFIGMAP -o name --ignore-not-found)" ]; then
+    echo -n "Plugins configmap '${RHDH_PLUGINS_CONFIGMAP}' not found!"
+    echo "FAIL"
+    exit 1
+fi
+for f in $BASE_DIR/dynamic-plugins/*.yaml; do
+    echo -n "* Patching in $(basename $f .yaml) plugins: "
+    # Grab configmap and parse out the defined yaml file inside of its data to a temp file
+    kubectl get configmap $RHDH_PLUGINS_CONFIGMAP -n $NAMESPACE -o yaml | yq '.data["dynamic-plugins.yaml"]' > temp-dynamic-plugins.yaml
+    if [ $? -ne 0 ]; then
+        echo "FAIL"
+        exit 1
+    fi
+
+    # Edit the temp file to include the plugins
+    yq -i ".plugins += $(yq '.plugins' $f -M -o json) | .plugins |= unique_by(.package)" temp-dynamic-plugins.yaml
+    if [ $? -ne 0 ]; then
+        echo "FAIL"
+        exit 1
+    fi
+
+    # Patch the configmap that is deployed to update the defined yaml inside of it
+    kubectl patch configmap $RHDH_PLUGINS_CONFIGMAP -n $NAMESPACE \
+    --type='merge' \
+    -p="{\"data\":{\"dynamic-plugins.yaml\":\"$(echo "$(cat temp-dynamic-plugins.yaml)" | sed 's/"/\\"/g' | sed 's/$/\\n/g' | tr -d '\n')\"}}"
+    if [ $? -ne 0 ]; then
+        echo "FAIL"
+        exit 1
+    fi
+
+    # Cleanup temp files
+    rm temp-dynamic-plugins.yaml
+
+    echo "OK"
+done
+
+# Update existing RHDH deployment
+if [[ $RHDH_INSTANCE_PROVIDED == "true" ]]; then
+    echo -n "* Updating existing RHDH deployment"
+    kubectl get deploy $RHDH_DEPLOYMENT -n $NAMESPACE -o yaml | \
+        yq ".spec.template.spec.containers[0].envFrom += [{\"secretRef\": {\"name\": \"${RHDH_EXTRA_ENV_SECRET:-$EXTRA_ENV_SECRET}\"}}] |
+        .spec.template.spec.containers[0].envFrom |= unique_by(.secretRef.name)" | \
+        kubectl apply -f - >/dev/null
+    echo "OK"
+fi
+
+# Add Tekton information and plugin to backstage deployment data
+echo -n "* Adding Tekton information and plugin to backstage deployment data: "
+K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token- | cut -d/ -f2 | head -1)
+if [ $? -ne 0 ]; then
+    echo "FAIL"
+    exit 1
+fi
+if [[ $RHDH_INSTANCE_PROVIDED == "true" ]]; then
+    kubectl get deploy $RHDH_DEPLOYMENT -n $NAMESPACE -o yaml | \
+        yq ".spec.template.spec.containers[0].env += {\"name\": \"K8S_SA_TOKEN\", \"valueFrom\": {\"secretKeyRef\": {\"name\": \"${K8S_SA_SECRET_NAME}\", \"key\": \"token\"}}} | 
+        .spec.template.spec.containers[0].env |= unique_by(.name)" | \
+        kubectl apply -f - >/dev/null
+else
+    K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
+    
+    kubectl -n $NAMESPACE get secret $EXTRA_ENV_SECRET -o yaml | yq ".data.K8S_SA_TOKEN = \"${K8S_SA_TOKEN}\"" -M -I=0 | \
+        kubectl apply -n $NAMESPACE -f - >/dev/null
+fi
+if [ $? -ne 0 ]; then
+    echo "FAIL"
+    exit 1
+fi
+echo "OK"
+
+# Add ArgoCD information to backstage deployment data
+echo -n "* Adding ArgoCD information to backstage deployment data: "
+if [ -z "$(kubectl -n $NAMESPACE get configmap "argocd-config" -o name --ignore-not-found)" ]; then
+    echo -n "ArgoCD config 'argocd-config' not found!"
+    echo "FAIL"
+    exit 1
+fi
+if [ -z "$(kubectl -n $NAMESPACE get secret "rhdh-argocd-secret" -o name --ignore-not-found)" ]; then
+    echo -n "ArgoCD secret 'rhdh-argocd-secret' not found!"
+    echo "FAIL"
+    exit 1
+fi
+if [[ $RHDH_INSTANCE_PROVIDED == "true" ]]; then
+    # Add ArgoCD instance information and plugin to backstage deployment data
+    kubectl get deploy $RHDH_DEPLOYMENT -n $NAMESPACE -o yaml | \
+        yq '.spec.template.spec.volumes += [{"name": "argocd-config", "configMap": {"name": "argocd-config", "defaultMode": 420, "optional": false}}] |
+        .spec.template.spec.containers[0].envFrom += [{"secretRef": {"name": "rhdh-argocd-secret"}}] |
+        .spec.template.spec.containers[0].volumeMounts += [{"name": "argocd-config", "readOnly": true, "mountPath": "/opt/app-root/src/argocd-config.yaml", "subPath": "argocd-config.yaml"}] |
+        .spec.template.spec.containers[0].args += ["--config", "/opt/app-root/src/argocd-config.yaml"]' | \
+        kubectl apply -f - >/dev/null
+else
+    kubectl -n $NAMESPACE get backstage $BACKSTAGE_CR_NAME -o yaml | \
+        yq '.spec.application.extraFiles.configMaps += [{"name": "argocd-config"}] | 
+            .spec.application.extraFiles.configMaps |= unique_by(.name) |
+            .spec.application.extraEnvs.secrets += [{"name": "rhdh-argocd-secret"}] | 
+            .spec.application.extraEnvs.secrets |= unique_by(.name)' -M -I=0 -o=json | \
         kubectl apply -n $NAMESPACE -f - >/dev/null
 fi
 echo "OK"
