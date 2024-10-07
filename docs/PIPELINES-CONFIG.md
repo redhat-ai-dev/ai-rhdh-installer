@@ -44,9 +44,169 @@ cat resources/tekton-config.json | kubectl patch tektonconfig config --type 'mer
 
 As part of the `ai-rhdh-installer` a service account with a token secret was created in your desired namespace with the name `rhdh-kubernetes-plugin`, token secret should have a name pattern `rhdh-kubernetes-plugin-token-*`, keep note of this Secret.
 
-#### Step 3: Setting Up Deployment Namespaces
+#### Step 3: Create App Namespace Setup Task
 
-You will need to create the namespaces for the different app deployments. You will need a namespace for each kind of the deployment: development, staging, and production. These namespaces would follow a naming pattern of `<rhdh_namepsace>-app-<deployment_kind>` with the target RHDH namespace as the prefix, therefore `$NAMESPACE-app-development`, `$NAMESPACE-app-stage`, and `$NAMESPACE-app-prod`. These namespaces can be created using the following:
+In order to set up target app namespaces for the software template created components, you will need to create a Tekton Task that will trigger when the app is created from the template. You can use [dev-setup-task.yaml](../resources/dev-setup-task.yaml) as the starting point.
+
+First you will need to set the default values under `.spec.params`, second you will need to fetch the cosign signing public key, third set `.spec.steps[0].script` to a script that will create the needed secret resources when the Task is run.
+
+##### Step 3.1: Set Git Token Default Value
+
+The `git_token` parameter is set to a Personal Access Token \(PAT\) that is tied to an account that accesses the RHDH Git repositories, such as a GitHub account PAT. The default value can be set by setting the `default` field:
+
+```yaml
+- default: '<git_pat>'
+  description: |
+    Git token
+  name: git_token
+  type: string
+```
+
+##### Step 3.2: Set GitLab Token Default Value
+
+The `gitlab_token` parameter is set to a Personal Access Token \(PAT\) that is tied to a GitLab account that accesses the RHDH GitLab repositories. The default value can be set by setting the `default` field:
+
+```yaml
+- default: '<gitlab_pat>'
+  description: |
+    GitLab Personal Access Token
+  name: gitlab_token
+  type: string
+```
+
+##### Step 3.3: Set GitHub Webhook Secret Default Value
+
+The `pipelines_webhook_secret` parameter is set to an user set secret string that is tied to a GitHub Webhook that points to the Pipelines as Code service on the OpenShift cluster. The default value can be set by setting the `default` field:
+
+```yaml
+- default: '<github_webhook_secret>'
+  description: |
+    Pipelines as Code webhook secret
+  name: pipelines_webhook_secret
+  type: string
+```
+
+##### Step 3.4: Set Quay DockerConfig JSON Default Value
+
+The `quay_dockerconfigjson` parameter is set to the Quay DockerConfig JSON with an authentication string for logging into a Quay account that has access to the RHDH target image registries. The default value can be set by setting the `default` field:
+
+```yaml
+- default: '<quay_authentication_json>'
+  description: |
+    Image registry token
+  name: quay_dockerconfigjson
+  type: string
+```
+
+#### Step 3.5: Fetch the Cosign Signing Public Key
+
+For setting the script, you will need to get the cosign signing public key from the `signing-secrets` secret under the `openshift-pipelines` namespace by running the following:
+
+```sh
+kubectl get secrets -n openshift-pipelines signing-secrets -o jsonpath='{.data.cosign\.pub}'
+```
+
+**Keep note** of the returned public key for the next step.
+
+##### Step 3.6: Set the Task Script
+
+Set the `.spec.steps[0].script` to the following script and replace the `<cosign_signing_public_key>` with the fetched cosign signing public key you fetched earlier:
+
+```yaml
+spec:
+  ...
+  steps:
+    - ...
+      name: setup
+      script: |
+        set -o errexit
+        set -o nounset
+        set -o pipefail
+
+        SECRET_NAME="cosign-pub"
+        if [ -n "<cosign_signing_public_key>" ]; then
+          echo -n "* $SECRET_NAME secret: "
+          cat <<EOF | kubectl apply -f - >/dev/null
+        apiVersion: v1
+        data:
+          cosign.pub: <cosign_signing_public_key>
+        kind: Secret
+        metadata:
+        labels:
+          app.kubernetes.io/instance: default
+          app.kubernetes.io/part-of: tekton-chains
+          operator.tekton.dev/operand-name: tektoncd-chains
+        name: $SECRET_NAME
+        type: Opaque
+        EOF
+          echo "OK"
+        fi
+
+        SECRET_NAME="gitlab-auth-secret"
+        if [ -n "$GITLAB_TOKEN" ]; then
+          echo -n "* $SECRET_NAME secret: "
+          kubectl create secret generic "$SECRET_NAME" \
+            --from-literal=password=$GITLAB_TOKEN \
+            --from-literal=username=oauth2 \
+            --type=kubernetes.io/basic-auth \
+            --dry-run=client -o yaml | kubectl apply --filename - --overwrite=true >/dev/null
+          echo "OK"
+        fi
+
+        SECRET_NAME="gitops-auth-secret"
+        if [ -n "$GIT_TOKEN" ]; then
+          echo -n "* $SECRET_NAME secret: "
+          kubectl create secret generic "$SECRET_NAME" \
+            --from-literal=password=$GIT_TOKEN \
+            --type=kubernetes.io/basic-auth \
+            --dry-run=client -o yaml | kubectl apply --filename - --overwrite=true >/dev/null
+          echo "OK"
+        fi
+
+        SECRET_NAME="pipelines-secret"
+        if [ -n "$PIPELINES_WEBHOOK_SECRET" ]; then
+          echo -n "* $SECRET_NAME secret: "
+          kubectl create secret generic "$SECRET_NAME" \
+            --from-literal=webhook.secret=$PIPELINES_WEBHOOK_SECRET \
+            --dry-run=client -o yaml | kubectl apply --filename - --overwrite=true >/dev/null
+          echo "OK"
+        fi
+
+        SECRET_NAME="rhdh-image-registry-token"
+        if [ -n "$QUAY_DOCKERCONFIGJSON" ]; then
+          echo -n "* $SECRET_NAME secret: "
+          DATA=$(mktemp)
+          echo -n "$QUAY_DOCKERCONFIGJSON" >"$DATA"
+          kubectl create secret docker-registry "$SECRET_NAME" \
+            --from-file=.dockerconfigjson="$DATA" --dry-run=client -o yaml | \
+            kubectl apply --filename - --overwrite=true >/dev/null
+          rm "$DATA"
+          echo -n "."
+          while ! kubectl get serviceaccount pipeline >/dev/null &>2; do
+            sleep 2
+            echo -n "_"
+          done
+          for SA in default pipeline; do
+            kubectl patch serviceaccounts "$SA" --patch "
+          secrets:
+            - name: $SECRET_NAME
+          imagePullSecrets:
+            - name: $SECRET_NAME
+          " >/dev/null
+            echo -n "."
+          done
+          echo "OK"
+        fi"
+```
+
+See the following optional steps for more information about each secret being created in this Task:
+1. [Setting Up Gitops Authentication Secret Under Deployment Namespaces](#step-6-setting-up-gitops-authentication-secret-under-deployment-namespaces-optional)
+2. [Setting Up Pipelines Secret Under Deployment Namespaces](#step-7-setting-up-pipelines-secret-under-deployment-namespaces-optional)
+3. [Setting Up Quay Image Registry Secret Under Deployment Namespaces](#step-8-setting-up-quay-image-registry-secret-under-deployment-namespaces-optional)
+
+#### Step 4: Setting Up Deployment Namespaces \(Optional\)
+
+Optionally, you can create the namespaces for the different app deployments, this will mirror some the steps for the Tekton Task created. You will need a namespace for each kind of the deployment: development, staging, and production. These namespaces would follow a naming pattern of `<rhdh_namepsace>-app-<deployment_kind>` with the target RHDH namespace as the prefix, therefore `$NAMESPACE-app-development`, `$NAMESPACE-app-stage`, and `$NAMESPACE-app-prod`. These namespaces can be created using the following:
 
 ```sh
 APP_NAMESPACE=$NAMESPACE-app-<developer|stage|prod>
@@ -60,7 +220,7 @@ metadata:
 EOF
 ```
 
-#### Step 4: Setting Up Cosign Secret Under Deployment Namespaces
+#### Step 5: Setting Up Cosign Secret Under Deployment Namespaces \(Optional\)
 
 First you will need to fetch the cosign public key from the `signing-secrets` secret in the `openshift-pipelines` namespace that was setup by the installer:
 
@@ -87,7 +247,7 @@ type: Opaque
 EOF
 ```
 
-#### Step 5: Setting Up Gitops Authentication Secret Under Deployment Namespaces
+#### Step 6: Setting Up Gitops Authentication Secret Under Deployment Namespaces \(Optional\)
 
 If you are using GitLab, you will need to create the GitLab authentication secret with your GitLab PAT as follows:
 
@@ -112,7 +272,7 @@ kubectl -n $APP_NAMESPACE create secret generic "gitops-auth-secret" \
 
 **Note**: For GitHub PATs, you will need to set permissions which are highlighted under the [Pipelines as Code with GitHub documentation](https://docs.redhat.com/en/documentation/red_hat_openshift_pipelines/1.15/html/pipelines_as_code/using-pipelines-as-code-repos#using-pipelines-as-code-with-github-webhook_using-pipelines-as-code-repos).
 
-#### Step 6: Setting Up Pipelines Secret Under Deployment Namespaces
+#### Step 7: Setting Up Pipelines Secret Under Deployment Namespaces \(Optional\)
 
 You will need to create a pipeline secret containing the webhook secret for the Git organization for deployments to have proper access via the tekton pipelines:
 
@@ -122,7 +282,7 @@ kubectl -n $APP_NAMESPACE create secret generic "pipelines-secret" \
     --dry-run=client -o yaml | kubectl -n $APP_NAMESPACE apply --filename - --overwrite=true >/dev/null
 ```
 
-#### Step 7: Setting Up Quay Image Registry Secret Under Deployment Namespaces
+#### Step 8: Setting Up Quay Image Registry Secret Under Deployment Namespaces \(Optional\)
 
 For accessing the quay image registry, you'll need to create a secret to store the docker config json file with authentication credentials you can obtain from your [quay.io](https://quay.io) account:
 
@@ -143,7 +303,7 @@ imagePullSecrets:
 " >/dev/null
 ```
 
-#### Step 8.1: Updating Plugins Via Web Console
+#### Step 9.1: Updating Plugins Via Web Console
 
 To include the [Tekton plugins list](../dynamic-plugins/tekton-plugins.yaml) we need to edit the dynamic plugins ConfigMap that was created by the RHDH Operator:
 
@@ -153,7 +313,7 @@ Edit the associated `yaml` file to include the contents of the [Tekton plugins l
 
 ![Dynamic Plugins Example 3](../assets/dynamic-plugins-example-3.png)
 
-#### Step 8.2: Updating Plugins Via CLI
+#### Step 9.2: Updating Plugins Via CLI
 
 Alternatively, we can use this series of commands to perform the same task with `kubectl` and `yq` using the [`tekton-plugins.yaml`](../dynamic-plugins/tekton-plugins.yaml):
 
@@ -173,7 +333,7 @@ Alternatively, we can use this series of commands to perform the same task with 
     ```
 4. Dynamic plugins should be updated with the [Tekton plugins list](../dynamic-plugins/tekton-plugins.yaml) with a pod update triggered and you may remove the temp file at this point
 
-#### Step 9: Updating RHDH Deployment
+#### Step 10: Updating RHDH Deployment
 
 We need to map the referenced environment variable `K8S_SA_TOKEN` to the `rhdh-kubernetes-plugin` service account token secret.
 
@@ -264,19 +424,22 @@ Once the service account is created there will be a tied secret which stores the
 
 Keep note of the name of this secret.
 
-#### Step 3: Setting up deployment namespaces
+#### Step 3: Create App Namespace Setup Task
 
-You will follow the following same steps for setting up the deployment namespaces with the ai-rhdh-installer:
+You will follow the same steps as [step 3 for the ai-rhdh-installer](#step-3-create-app-namespace-setup-task)
 
-1. [Setting up deployment namespaces](#step-3-setting-up-deployment-namespaces)
-2. [Setting up cosign secret under deployment namespaces](#step-4-setting-up-cosign-secret-under-deployment-namespaces)
-3. [Setting up gitops authentication secret under deployment namespaces](#step-5-setting-up-gitops-authentication-secret-under-deployment-namespaces)
-4. [Setting up gitops authentication secret under deployment namespaces](#step-5-setting-up-gitops-authentication-secret-under-deployment-namespaces)
-5. [Setting up pipelines secret under deployment namespaces](#step-6-setting-up-pipelines-secret-under-deployment-namespaces)
-6. [Setting up quay image registry secret under deployment namespaces](#step-7-setting-up-quay-image-registry-secret-under-deployment-namespaces)
+#### Step 4: Setting up deployment namespaces \(Optional\)
 
-#### Step 4: Updating Plugins
-You will follow the same steps as [step 8 for the ai-rhdh-installer](#step-8-updating-plugins).
+You can follow the following same steps for setting up the deployment namespaces with the ai-rhdh-installer:
 
-#### Step 5: Updating RHDH Deployment
-Once you have applied the Secrets and patched the ConfigMaps in your cluster and the necessary namespace you can now follow the same steps in [step 9 for the ai-rhdh-installer](#step-9-updating-rhdh-deployment).
+1. [Setting up deployment namespaces](#step-4-setting-up-deployment-namespaces-optional)
+2. [Setting up cosign secret under deployment namespaces](#step-5-setting-up-cosign-secret-under-deployment-namespaces-optional)
+3. [Setting up gitops authentication secret under deployment namespaces](#step-6-setting-up-gitops-authentication-secret-under-deployment-namespaces-optional)
+4. [Setting up pipelines secret under deployment namespaces](#step-7-setting-up-pipelines-secret-under-deployment-namespaces-optional)
+5. [Setting up quay image registry secret under deployment namespaces](#step-8-setting-up-quay-image-registry-secret-under-deployment-namespaces-optional)
+
+#### Step 5: Updating Plugins
+You will follow the same steps as either [step 9.1](#step-91-updating-plugins-via-web-console) or [step 9.2](#step-92-updating-plugins-via-cli) for the ai-rhdh-installer.
+
+#### Step 6: Updating RHDH Deployment
+Once you have applied the Secrets and patched the ConfigMaps in your cluster and the necessary namespace you can now follow the same steps in [step 10 for the ai-rhdh-installer](#step-10-updating-rhdh-deployment).
