@@ -27,11 +27,14 @@ This helm chart installs and configures the following operators:
 
 ### Install
 
-Run `helm upgrade --install <release-name> <path-to-chart> --namespace <namespace> --create-namespace` to deploy default installations of the necessary operators.
+Run `install.sh` script to deploy default installations of the necessary operators.
 
 #### Example
 
-`helm upgrade --install ai-rhdh ./chart --namespace ai-rhdh --create-namespace`
+```bash
+export NAMESPACE='ai-rhdh' # ai-rhdh is actually the default
+bash install.sh
+```
 
 ### Uninstall
 
@@ -48,6 +51,10 @@ Detailed documentation for configuring GitOps/ArgoCD can be found in [`GITOPS-CO
 ## Pipelines/Tekton Configuration
 
 Detailed documentation for configuring Pipelines/Tekton can be found in [`PIPELINES-CONFIG.md`](./docs/PIPELINES-CONFIG.md)
+
+## Lightspeed Plugin Configuration
+
+Detailed documentation for configuring lightspeed can be found in [`LIGHSPEED-CONFIG.md`](./docs/LIGHTSPEED-CONFIG.md)
 
 ## Setting Environment Variables for Configuration Scripts
 
