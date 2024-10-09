@@ -303,50 +303,6 @@ imagePullSecrets:
 " >/dev/null
 ```
 
-#### Step 9.1: Updating Plugins Via Web Console
-
-To include the [Tekton plugins list](../dynamic-plugins/tekton-plugins.yaml) we need to edit the dynamic plugins ConfigMap that was created by the RHDH Operator:
-
-![Dynamic Plugins Example](../assets/dynamic-plugins-example.png)
-
-Edit the associated `yaml` file to include the contents of the [Tekton plugins list](../dynamic-plugins/tekton-plugins.yaml) under the `plugins` section:
-
-![Dynamic Plugins Example 3](../assets/dynamic-plugins-example-3.png)
-
-#### Step 9.2: Updating Plugins Via CLI
-
-Alternatively, we can use this series of commands to perform the same task with `kubectl` and `yq` using the [`tekton-plugins.yaml`](../dynamic-plugins/tekton-plugins.yaml):
-
-1. Fetch the dynamic plugins ConfigMap and save the `dynamic-plugins.yaml` content within to a temp file
-    ```sh
-    kubectl get configmap backstage-dynamic-plugins-ai-rh-developer-hub -n $NAMESPACE -o yaml | yq '.data["dynamic-plugins.yaml"]' > temp-dynamic-plugins.yaml
-    ```
-2. Merge the contents of [`tekton-plugins.yaml`](../dynamic-plugins/tekton-plugins.yaml) into the temp file
-    ```sh
-    yq -i ".plugins += $(yq '.plugins' ./dynamic-plugins/tekton-plugins.yaml -M -o json) | .plugins |= unique_by(.package)" temp-dynamic-plugins.yaml
-    ```
-3. Patch the dynamic plugins ConfigMap with the updated content in the temp file
-    ```sh
-    kubectl patch configmap backstage-dynamic-plugins-ai-rh-developer-hub -n $NAMESPACE \
-    --type='merge' \
-    -p="{\"data\":{\"dynamic-plugins.yaml\":\"$(echo "$(cat temp-dynamic-plugins.yaml)" | sed 's/"/\\"/g' | sed 's/$/\\n/g' | tr -d '\n')\"}}"
-    ```
-4. Dynamic plugins should be updated with the [Tekton plugins list](../dynamic-plugins/tekton-plugins.yaml) with a pod update triggered and you may remove the temp file at this point
-
-#### Step 10: Updating RHDH Deployment
-
-We need to map the referenced environment variable `K8S_SA_TOKEN` to the `rhdh-kubernetes-plugin` service account token secret.
-
-We can get the name of the service account tied token secret with the following command:
-
-```sh
-kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token- | cut -d/ -f2 | head -1
-```
-
-Using the returned name from the command above, we can bind this secret to the `K8S_SA_TOKEN` under `.spec.template.spec.containers.env`
-
-![Tekton Secret Addition](../assets/tekton-secret-example.png)
-
 ### Pre-Existing Instance: Script Configuration
 
 #### Step 1: Required Information
@@ -361,7 +317,7 @@ If you have your own RHDH instance created you can configure it to work with the
 
 #### Step 2: Environment Variables
 
-You are able to store these values in environment variables or paste them during the interactive prompts at runtime. Set the following the use environment variables:
+You are able to store these values in environment variables. Set the following the use environment variables:
 - `$EXISTING_NAMESPACE`
   - Name of target RHDH namespace
 - `$EXISTING_DEPLOYMENT`
@@ -437,9 +393,3 @@ You can follow the following same steps for setting up the deployment namespaces
 3. [Setting up gitops authentication secret under deployment namespaces](#step-6-setting-up-gitops-authentication-secret-under-deployment-namespaces-optional)
 4. [Setting up pipelines secret under deployment namespaces](#step-7-setting-up-pipelines-secret-under-deployment-namespaces-optional)
 5. [Setting up quay image registry secret under deployment namespaces](#step-8-setting-up-quay-image-registry-secret-under-deployment-namespaces-optional)
-
-#### Step 5: Updating Plugins
-You will follow the same steps as either [step 9.1](#step-91-updating-plugins-via-web-console) or [step 9.2](#step-92-updating-plugins-via-cli) for the ai-rhdh-installer.
-
-#### Step 6: Updating RHDH Deployment
-Once you have applied the Secrets and patched the ConfigMaps in your cluster and the necessary namespace you can now follow the same steps in [step 10 for the ai-rhdh-installer](#step-10-updating-rhdh-deployment).
