@@ -71,10 +71,12 @@ if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
     done
 
     # Reads Git PAT
-    # Optional: If left blank during user prompt
-    if [ -z "${GITOPS__GIT_TOKEN}" ]; then
-        read -p "Enter your Git Token (Optional): " GITOPS__GIT_TOKEN
-    fi
+    until [ ! -z "${GITOPS__GIT_TOKEN}" ]; do
+        read -p "Enter your Git Token: " GITOPS__GIT_TOKEN
+        if [ -z "${GITOPS__GIT_TOKEN}" ]; then
+            echo "No Git Token entered, try again."
+        fi
+    done
 fi
 
 # Reads GitLab secrets if enabling GitHub integration

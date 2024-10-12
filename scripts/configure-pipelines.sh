@@ -16,6 +16,8 @@ EXISTING_NAMESPACE=${EXISTING_NAMESPACE:-''}
 EXISTING_DEPLOYMENT=${EXISTING_DEPLOYMENT:-''}
 RHDH_PLUGINS=${RHDH_PLUGINS:-''}
 RHDH_INSTANCE_PROVIDED=${RHDH_INSTANCE_PROVIDED:-false}
+RHDH_GITHUB_INTEGRATION=${RHDH_GITHUB_INTEGRATION:-true}
+RHDH_GITLAB_INTEGRATION=${RHDH_GITLAB_INTEGRATION:-false}
 
 # Secret variables
 GITHUB__APP__ID=${GITHUB__APP__ID:-''}
@@ -39,43 +41,52 @@ fi
 # Reading secrets
 # Reads secrets either from environment variables or user input
 echo "* Reading secrets: "
-# Reads GitHub Org App ID
-until [ ! -z "${GITHUB__APP__ID}" ]; do
-    read -p "Enter your GitHub App ID: " GITHUB__APP__ID
-    if [ -z "${GITHUB__APP__ID}" ]; then
-        echo "No GitHub App ID entered, try again."
-    fi
-done
 
-# Reads GitHub Org App Webhook Secret
-# Optional: If left blank during user prompt, one is generated instead
-if [ -z "${GITHUB__APP__WEBHOOK__SECRET}" ]; then
-    read -p "Enter your GitHub App Webhook Secret (Optional): " GITHUB__APP__WEBHOOK__SECRET
-    if [ -z "${GITHUB__APP__WEBHOOK__SECRET}" ]; then
-        GITHUB__APP__WEBHOOK__SECRET="$(openssl rand -hex 20)"
-        echo "Use the following as your GitHub App Webhook Secret: ${GITHUB__APP__WEBHOOK__SECRET}"
-    fi
+# Reads GitHub secrets if enabling GitHub integration
+if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
+    # Reads GitHub Org App ID
+    until [ ! -z "${GITHUB__APP__ID}" ]; do
+        read -p "Enter your GitHub App ID: " GITHUB__APP__ID
+        if [ -z "${GITHUB__APP__ID}" ]; then
+            echo "No GitHub App ID entered, try again."
+        fi
+    done
+
+    # Reads GitHub Org App Webhook Secret
+    until [ ! -z "${GITHUB__APP__WEBHOOK__SECRET}" ]; do
+        read -p "Enter your GitHub App Webhook Secret: " GITHUB__APP__WEBHOOK__SECRET
+        if [ -z "${GITHUB__APP__WEBHOOK__SECRET}" ]; then
+            echo "No GitHub App Webhook Secret entered, try again."
+        fi
+    done
+
+    # Reads GitHub Org App Private Key
+    until [ ! -z "${GITHUB__APP__PRIVATE_KEY}" ]; do
+        read -p "Enter your GitHub App Private Key (Use CTRL-D when finished): " -d $'\04' GITHUB__APP__PRIVATE_KEY
+        echo ""
+        if [ -z "${GITHUB__APP__PRIVATE_KEY}" ]; then
+            echo "No GitHub App Private Key entered, try again."
+        fi
+    done
+
+    # Reads Git PAT
+    until [ ! -z "${GITOPS__GIT_TOKEN}" ]; do
+        read -p "Enter your Git Token: " GITOPS__GIT_TOKEN
+        if [ -z "${GITOPS__GIT_TOKEN}" ]; then
+            echo "No Git Token entered, try again."
+        fi
+    done
 fi
 
-# Reads GitHub Org App Private Key
-until [ ! -z "${GITHUB__APP__PRIVATE_KEY}" ]; do
-    read -p "Enter your GitHub App Private Key (Use CTRL-D when finished): " -d $'\04' GITHUB__APP__PRIVATE_KEY
-    echo ""
-    if [ -z "${GITHUB__APP__PRIVATE_KEY}" ]; then
-        echo "No GitHub App Private Key entered, try again."
-    fi
-done
-
-# Reads Git PAT
-# Optional: If left blank during user prompt, the namespace secret will not be created
-if [ -z "${GITOPS__GIT_TOKEN}" ]; then
-    read -p "Enter your Git Token (Optional): " GITOPS__GIT_TOKEN
-fi
-
-# Reads GitLab PAT
-# Optional: If left blank during user prompt, the namespace secret will not be created
-if [ -z "${GITLAB__TOKEN}" ]; then
-    read -p "Enter your GitLab Token (Optional): " GITLAB__TOKEN
+# Reads GitLab secrets if enabling GitHub integration
+if [[ $RHDH_GITLAB_INTEGRATION == "true" ]]; then
+    # Reads GitLab PAT
+    until [ ! -z "${GITLAB__TOKEN}" ]; do
+        read -p "Enter your GitLab Token: " GITLAB__TOKEN
+        if [ -z "${GITLAB__TOKEN}" ]; then
+            echo "No GitLab Token entered, try again."
+        fi
+    done
 fi
 
 # Reads Quay DockerConfig JSON
