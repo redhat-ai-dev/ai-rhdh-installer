@@ -45,14 +45,6 @@ if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
         fi
     done
 
-    # Reads GitHub Org App Webhook URL
-    until [ ! -z "${GITHUB__APP__WEBHOOK__URL}" ]; do
-        read -p "Enter your GitHub App Webhook URL: " GITHUB__APP__WEBHOOK__URL
-        if [ -z "${GITHUB__APP__WEBHOOK__URL}" ]; then
-            echo "No GitHub App Webhook URL entered, try again."
-        fi
-    done
-
     # Reads GitHub Org App Webhook Secret
     until [ ! -z "${GITHUB__APP__WEBHOOK__SECRET}" ]; do
         read -p "Enter your GitHub App Webhook Secret: " GITHUB__APP__WEBHOOK__SECRET

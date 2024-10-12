@@ -3,17 +3,20 @@
 # Constants
 DEFAULT_RHDH_DEPLOYMENT="backstage-ai-rh-developer-hub" # deployment created by rhdh operator by default
 PLUGIN_CONFIGMAP="backstage-dynamic-plugins-ai-rh-developer-hub" # configmap created by rhdh operator for plugins by default
+EXTRA_ENV_SECRET="ai-rh-developer-hub-env" # secret created by rhdh installer to store private env vars
 CRD="tektonconfigs"
 
 # Variables
 BASE_DIR="$(realpath $(dirname ${BASH_SOURCE[0]}))/.."
 RHDH_DEPLOYMENT="${DEFAULT_RHDH_DEPLOYMENT}"
 RHDH_PLUGINS_CONFIGMAP="${PLUGIN_CONFIGMAP}"
+RHDH_EXTRA_ENV_SECRET="${EXTRA_ENV_SECRET}"
 NAMESPACE=${NAMESPACE:-"ai-rhdh"}
 PIPELINES_NAMESPACE=${PIPELINES_NAMESPACE:-"openshift-pipelines"}
 PIPELINES_SECRET_NAME=${PIPELINES_SECRET_NAME:-'rhdh-pipelines-secret'}
 EXISTING_NAMESPACE=${EXISTING_NAMESPACE:-''}
 EXISTING_DEPLOYMENT=${EXISTING_DEPLOYMENT:-''}
+EXISTING_EXTRA_ENV_SECRET=${EXISTING_EXTRA_ENV_SECRET:-''}
 RHDH_PLUGINS=${RHDH_PLUGINS:-''}
 RHDH_INSTANCE_PROVIDED=${RHDH_INSTANCE_PROVIDED:-false}
 RHDH_GITHUB_INTEGRATION=${RHDH_GITHUB_INTEGRATION:-true}
@@ -21,6 +24,7 @@ RHDH_GITLAB_INTEGRATION=${RHDH_GITLAB_INTEGRATION:-false}
 
 # Secret variables
 GITHUB__APP__ID=${GITHUB__APP__ID:-''}
+GITHUB__APP__WEBHOOK__URL=${GITHUB__APP__WEBHOOK__URL:-''}
 GITHUB__APP__WEBHOOK__SECRET=${GITHUB__APP__WEBHOOK__SECRET:-''}
 GITHUB__APP__PRIVATE_KEY=${GITHUB__APP__PRIVATE_KEY:-''}
 GITOPS__GIT_TOKEN=${GITOPS__GIT_TOKEN:-''}
@@ -35,6 +39,7 @@ if [[ $RHDH_INSTANCE_PROVIDED != "true" ]] && [[ $RHDH_INSTANCE_PROVIDED != "fal
 elif [[ $RHDH_INSTANCE_PROVIDED == "true" ]]; then
     NAMESPACE="${EXISTING_NAMESPACE}"
     RHDH_DEPLOYMENT="${EXISTING_DEPLOYMENT}"
+    RHDH_EXTRA_ENV_SECRET="${EXISTING_EXTRA_ENV_SECRET}"
     RHDH_PLUGINS_CONFIGMAP="${RHDH_PLUGINS}"
 fi
 
@@ -128,12 +133,49 @@ if [ $? -ne 0 ]; then
 fi
 echo "OK"
 
+# Fetching Webhook URL
+if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
+    echo -n "* Fetching Webhook URL: "
+    if [ -z "${GITHUB__APP__WEBHOOK__URL}" ]; then
+        if [ -z "$(kubectl -n ${NAMESPACE} get ${RHDH_EXTRA_ENV_SECRET} --ignore-not-found -o name)" ]; then
+            if [ $? -ne 0 ]; then
+                echo "FAIL"
+                exit 1
+            fi
+            echo -n "Extra environment variable secret '${RHDH_EXTRA_ENV_SECRET}' not found!"
+            echo "FAIL"
+            exit 1
+        elif [ -z "${RHDH_EXTRA_ENV_SECRET}" ]; then
+            GITHUB__APP__WEBHOOK__URL="$(kubectl get routes -n "${PIPELINES_NAMESPACE}" pipelines-as-code-controller -o jsonpath="https://{.spec.host}")"
+            kubectl -n ${NAMESPACE} create secret generic ${EXTRA_ENV_SECRET} \
+                --from-literal="GITHUB__APP__WEBHOOK__URL=${GITHUB__APP__WEBHOOK__URL}" >/dev/null
+        elif [[ "$(kubectl -n ${NAMESPACE} get ${RHDH_EXTRA_ENV_SECRET} -o yaml | yq '.data.GITHUB__APP__WEBHOOK__URL')" == "null" ]]; then
+            if [ $? -ne 0 ]; then
+                echo "FAIL"
+                exit 1
+            fi
+            GITHUB__APP__WEBHOOK__URL="$(kubectl get routes -n "${PIPELINES_NAMESPACE}" pipelines-as-code-controller -o jsonpath="https://{.spec.host}")"
+            kubectl -n ${NAMESPACE} get ${RHDH_EXTRA_ENV_SECRET} -o yaml | \
+                yq ".data.GITHUB__APP__WEBHOOK__URL = $(echo ${GITHUB__APP__WEBHOOK__URL} | base64)" | \
+                kubectl patch secret ${RHDH_EXTRA_ENV_SECRET} -n $NAMESPACE --type 'merge' -p - >/dev/null
+        else
+            GITHUB__APP__WEBHOOK__URL="$(kubectl -n ${NAMESPACE} get ${RHDH_EXTRA_ENV_SECRET} -o yaml | yq '.data.GITHUB__APP__WEBHOOK__URL')"
+        fi
+
+        if [ $? -ne 0 ]; then
+            echo "FAIL"
+            exit 1
+        fi
+    fi
+    echo "OK"
+fi
+
 # Update the TektonConfig resource
 # Updates Tekton config CR to have setup with target namespace and 
 # compatiablty with RHDH instances
 echo -n "* Update the TektonConfig resource: "
 until kubectl get tektonconfig config >/dev/null 2>&1; do
-    echo -n "."
+    echo -n "_"
     sleep 3
 done
 TEKTON_CONFIG=$(yq ".spec.chain.\"transparency.url\" = \"http://rekor-server.${NAMESPACE}.svc\"" $BASE_DIR/resources/tekton-config.yaml -M -I=0 -o='json')
@@ -151,7 +193,7 @@ if [ "$(kubectl -n "${NAMESPACE}" get secret "${PIPELINES_SECRET_NAME}" -o name 
     WEBHOOK_SECRET=$(sed "s/'/\\'/g" <<< ${GITHUB__APP__WEBHOOK__SECRET} | sed 's/"/\"/g')
     kubectl -n "${NAMESPACE}" create secret generic "${PIPELINES_SECRET_NAME}" \
         --from-literal="webhook-github-secret=${WEBHOOK_SECRET}" \
-        --from-literal="webhook-url=$(kubectl get routes -n "${PIPELINES_NAMESPACE}" pipelines-as-code-controller -o jsonpath="https://{.spec.host}")" >/dev/null
+        --from-literal="webhook-url=${GITHUB__APP__WEBHOOK__URL}" >/dev/null
 else
     WEBHOOK_SECRET="$(kubectl -n "${NAMESPACE}" get secret "${PIPELINES_SECRET_NAME}" ) -o jsonpath="{.data.webhook-github-secret}" | base64 -d"
 fi

@@ -13,6 +13,7 @@ RHDH_DEPLOYMENT="${DEFAULT_RHDH_DEPLOYMENT}"
 RHDH_EXTRA_ENV_SECRET="${EXTRA_ENV_SECRET}"
 RHDH_PLUGINS_CONFIGMAP="${PLUGIN_CONFIGMAP}"
 NAMESPACE=${NAMESPACE:-"ai-rhdh"}
+PIPELINES_NAMESPACE=${PIPELINES_NAMESPACE:-"openshift-pipelines"}
 EXISTING_NAMESPACE=${EXISTING_NAMESPACE:-''}
 EXISTING_DEPLOYMENT=${EXISTING_DEPLOYMENT:-''}
 EXISTING_EXTRA_ENV_SECRET=${EXISTING_EXTRA_ENV_SECRET:-''}
@@ -77,14 +78,6 @@ if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
         fi
     done
 
-    # Reads GitHub Org App Webhook URL
-    until [ ! -z "${GITHUB__APP__WEBHOOK__URL}" ]; do
-        read -p "Enter your GitHub App Webhook URL: " GITHUB__APP__WEBHOOK__URL
-        if [ -z "${GITHUB__APP__WEBHOOK__URL}" ]; then
-            echo "No GitHub App Webhook URL entered, try again."
-        fi
-    done
-
     # Reads GitHub Org App Webhook Secret
     until [ ! -z "${GITHUB__APP__WEBHOOK__SECRET}" ]; do
         read -p "Enter your GitHub App Webhook Secret: " GITHUB__APP__WEBHOOK__SECRET
@@ -137,6 +130,54 @@ if [ -z "${QUAY__API_TOKEN}" ]; then
 fi
 
 echo "OK"
+
+# Waiting for pipelines operator deployment
+# Waits for the deployment of the pipelines services to finish before proceeding.
+echo -n "* Waiting for pipelines operator deployment: "
+until kubectl get namespace "${PIPELINES_NAMESPACE}" >/dev/null 2>&1; do
+    echo -n "."
+    sleep 3
+done
+until kubectl get route -n "${PIPELINES_NAMESPACE}" pipelines-as-code-controller >/dev/null 2>&1; do
+    echo -n "."
+    sleep 3
+done
+if [ $? -ne 0 ]; then
+    echo "FAIL"
+    exit 1
+fi
+echo "OK"
+
+# Fetching Webhook URL
+if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
+    echo -n "* Fetching Webhook URL: "
+    if [ -z "${GITHUB__APP__WEBHOOK__URL}" ]; then
+        if [ -z "$(kubectl -n ${NAMESPACE} get ${RHDH_EXTRA_ENV_SECRET} --ignore-not-found -o name)" ]; then
+            if [ $? -ne 0 ]; then
+                echo "FAIL"
+                exit 1
+            fi
+            echo -n "Extra environment variable secret '${RHDH_EXTRA_ENV_SECRET}' not found!"
+            echo "FAIL"
+            exit 1
+        elif [ -z "${RHDH_EXTRA_ENV_SECRET}" ] || \
+            [[ "$(kubectl -n ${NAMESPACE} get ${RHDH_EXTRA_ENV_SECRET} -o yaml | yq '.data.GITHUB__APP__WEBHOOK__URL')" == "null" ]]; then
+            if [ $? -ne 0 ]; then
+                echo "FAIL"
+                exit 1
+            fi
+            GITHUB__APP__WEBHOOK__URL="$(kubectl get routes -n "${PIPELINES_NAMESPACE}" pipelines-as-code-controller -o jsonpath="https://{.spec.host}")"
+        else
+            GITHUB__APP__WEBHOOK__URL="$(kubectl -n ${NAMESPACE} get ${RHDH_EXTRA_ENV_SECRET} -o yaml | yq '.data.GITHUB__APP__WEBHOOK__URL' | base64 -d)"
+        fi
+        
+        if [ $? -ne 0 ]; then
+            echo "FAIL"
+            exit 1
+        fi
+    fi
+    echo "OK"
+fi
 
 # Patching extra env secret
 # Patches extra env var secret to include private vars passed into this script 
