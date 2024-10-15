@@ -111,6 +111,7 @@ if [ -z "${QUAY__DOCKERCONFIGJSON}" ]; then
     echo ""
 fi
 
+echo ''
 echo "**GitOps/ArgoCD Configuration**"
 
 bash $BASE_DIR/scripts/configure-gitops.sh
@@ -120,6 +121,7 @@ if [ $? -ne 0 ]; then
 fi
 echo "GitOps/ArgoCD Configuration: OK"
 
+echo ''
 echo "**Pipelines/Tekton Configuration**"
 
 bash $BASE_DIR/scripts/configure-pipelines.sh
@@ -129,6 +131,7 @@ if [ $? -ne 0 ]; then
 fi
 echo "Pipelines/Tekton Configuration: OK"
 
+echo ''
 echo "**Developer Hub Configuration**"
 
 bash $BASE_DIR/scripts/configure-dh.sh
@@ -138,6 +141,7 @@ if [ $? -ne 0 ]; then
 fi
 echo "Developer Hub Configuration: OK"
 
+echo ''
 echo "**Printing Installation Information**"
 
 bash $BASE_DIR/scripts/install-info.sh
