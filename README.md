@@ -47,7 +47,7 @@ For convenience you can configure your Red Hat Developer Hub, GitOps, and Pipeli
 
 `bash ./configure.sh`
 
-Please note if you changed the installation namespace used by the installer you will first need to run `export NAMESPACE=<namespace used>` as the default value is `ai-rhdh`.
+**Note**: If you changed the installation namespace used by the installer you will first need to run `export NAMESPACE=<namespace used>` as the default value is `ai-rhdh`.
 
 See the documents below on the configuration details for setting up each component.
 
