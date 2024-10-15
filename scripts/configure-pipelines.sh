@@ -155,11 +155,10 @@ if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
                 exit 1
             fi
             GITHUB__APP__WEBHOOK__URL="$(kubectl get routes -n "${PIPELINES_NAMESPACE}" pipelines-as-code-controller -o jsonpath="https://{.spec.host}")"
-            kubectl -n ${NAMESPACE} get ${RHDH_EXTRA_ENV_SECRET} -o yaml | \
-                yq ".data.GITHUB__APP__WEBHOOK__URL = $(echo ${GITHUB__APP__WEBHOOK__URL} | base64)" | \
-                kubectl patch secret ${RHDH_EXTRA_ENV_SECRET} -n $NAMESPACE --type 'merge' -p - >/dev/null
+            SECRET_PATCH=$(yq -n ".data.GITHUB__APP__WEBHOOK__URL = \"$(echo ${GITHUB__APP__WEBHOOK__URL} | base64)\"" -M -I=0 -o=json)
+            kubectl patch secret ${RHDH_EXTRA_ENV_SECRET} -n $NAMESPACE --type 'merge' -p "${SECRET_PATCH}" >/dev/null
         else
-            GITHUB__APP__WEBHOOK__URL="$(kubectl -n ${NAMESPACE} get secret ${RHDH_EXTRA_ENV_SECRET} -o yaml | yq '.data.GITHUB__APP__WEBHOOK__URL')"
+            GITHUB__APP__WEBHOOK__URL="$(kubectl -n ${NAMESPACE} get secret ${RHDH_EXTRA_ENV_SECRET} -o yaml | yq '.data.GITHUB__APP__WEBHOOK__URL' | base64 -d)"
         fi
 
         if [ $? -ne 0 ]; then
