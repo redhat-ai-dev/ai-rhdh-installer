@@ -43,7 +43,7 @@ This installer is incompatible with `default` namespace installations, install a
 
 ## Configuration
 
-To configure your RHDH/GitOps/Pipelines setup to use AI Software Templates, run the following:
+For convenience you can configure your Red Hat Developer Hub, GitOps, and Pipelines Operators to enable the use of AI Software Templates by running the following:
 
 `bash ./configure.sh`
 
