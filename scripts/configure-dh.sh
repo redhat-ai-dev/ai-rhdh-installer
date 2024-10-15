@@ -152,7 +152,7 @@ echo "OK"
 if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
     echo -n "* Fetching Webhook URL: "
     if [ -z "${GITHUB__APP__WEBHOOK__URL}" ]; then
-        if [ -z "$(kubectl -n ${NAMESPACE} get ${RHDH_EXTRA_ENV_SECRET} --ignore-not-found -o name)" ]; then
+        if [ -z "$(kubectl -n ${NAMESPACE} get secret ${RHDH_EXTRA_ENV_SECRET} --ignore-not-found -o name)" ]; then
             if [ $? -ne 0 ]; then
                 echo "FAIL"
                 exit 1
@@ -161,14 +161,14 @@ if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
             echo "FAIL"
             exit 1
         elif [ -z "${RHDH_EXTRA_ENV_SECRET}" ] || \
-            [[ "$(kubectl -n ${NAMESPACE} get ${RHDH_EXTRA_ENV_SECRET} -o yaml | yq '.data.GITHUB__APP__WEBHOOK__URL')" == "null" ]]; then
+            [[ "$(kubectl -n ${NAMESPACE} get secret ${RHDH_EXTRA_ENV_SECRET} -o yaml | yq '.data.GITHUB__APP__WEBHOOK__URL')" == "null" ]]; then
             if [ $? -ne 0 ]; then
                 echo "FAIL"
                 exit 1
             fi
             GITHUB__APP__WEBHOOK__URL="$(kubectl get routes -n "${PIPELINES_NAMESPACE}" pipelines-as-code-controller -o jsonpath="https://{.spec.host}")"
         else
-            GITHUB__APP__WEBHOOK__URL="$(kubectl -n ${NAMESPACE} get ${RHDH_EXTRA_ENV_SECRET} -o yaml | yq '.data.GITHUB__APP__WEBHOOK__URL' | base64 -d)"
+            GITHUB__APP__WEBHOOK__URL="$(kubectl -n ${NAMESPACE} get secret ${RHDH_EXTRA_ENV_SECRET} -o yaml | yq '.data.GITHUB__APP__WEBHOOK__URL' | base64 -d)"
         fi
         
         if [ $? -ne 0 ]; then
