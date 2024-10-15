@@ -41,15 +41,23 @@ Run `helm upgrade --install <release-name> <path-to-chart> --namespace <namespac
 
 This installer is incompatible with `default` namespace installations, install and uninstall commands must include `--namespace <target-namespace>` or the context namespace must be changed, e.g. `oc project <target-namespace>`.
 
-## GitOps/ArgoCD Configuration
+## Configuration
+
+To configure your RHDH/GitOps/Pipelines setup to use AI Software Templates, run the following:
+
+`NAMESPACE=<target-namespace> bash ./configure.sh`
+
+See the documents below on the configuration details for setting up each component.
+
+### GitOps/ArgoCD Configuration
 
 Detailed documentation for configuring GitOps/ArgoCD can be found in [`GITOPS-CONFIG.md`](./docs/GITOPS-CONFIG.md)
 
-## Pipelines/Tekton Configuration
+### Pipelines/Tekton Configuration
 
 Detailed documentation for configuring Pipelines/Tekton can be found in [`PIPELINES-CONFIG.md`](./docs/PIPELINES-CONFIG.md)
 
-## Developer Hub Configuration
+### Developer Hub Configuration
 
 **Note**: It is required to go through the steps under documentation mentioned in [GitOps/ArgoCD Configuration](#gitopsargocd-configuration) and [Pipelines/Tekton Configuration](#pipelinestekton-configuration) before the steps under the documentation below.
 
