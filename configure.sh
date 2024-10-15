@@ -137,3 +137,12 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 echo "Developer Hub Configuration: OK"
+
+echo "**Printing Installation Information**"
+
+bash $BASE_DIR/scripts/install-info.sh
+if [ $? -ne 0 ]; then
+    echo "Printing Installation Information: FAILED"
+    exit 1
+fi
+echo "Printing Installation Information: OK"
