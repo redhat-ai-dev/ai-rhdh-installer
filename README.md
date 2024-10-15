@@ -45,7 +45,9 @@ This installer is incompatible with `default` namespace installations, install a
 
 To configure your RHDH/GitOps/Pipelines setup to use AI Software Templates, run the following:
 
-`NAMESPACE=<target-namespace> bash ./configure.sh`
+`bash ./configure.sh`
+
+Please note if you changed the installation namespace used by the installer you will first need to run `export NAMESPACE=<namespace used>` as the default value is `ai-rhdh`.
 
 See the documents below on the configuration details for setting up each component.
 
