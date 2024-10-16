@@ -3,22 +3,28 @@
 # Constants
 DEFAULT_RHDH_DEPLOYMENT="backstage-ai-rh-developer-hub" # deployment created by rhdh operator by default
 PLUGIN_CONFIGMAP="backstage-dynamic-plugins-ai-rh-developer-hub" # configmap created by rhdh operator for plugins by default
+EXTRA_ENV_SECRET="ai-rh-developer-hub-env" # secret created by rhdh installer to store private env vars
 CRD="tektonconfigs"
 
 # Variables
 BASE_DIR="$(realpath $(dirname ${BASH_SOURCE[0]}))/.."
 RHDH_DEPLOYMENT="${DEFAULT_RHDH_DEPLOYMENT}"
 RHDH_PLUGINS_CONFIGMAP="${PLUGIN_CONFIGMAP}"
+RHDH_EXTRA_ENV_SECRET="${EXTRA_ENV_SECRET}"
 NAMESPACE=${NAMESPACE:-"ai-rhdh"}
 PIPELINES_NAMESPACE=${PIPELINES_NAMESPACE:-"openshift-pipelines"}
 PIPELINES_SECRET_NAME=${PIPELINES_SECRET_NAME:-'rhdh-pipelines-secret'}
 EXISTING_NAMESPACE=${EXISTING_NAMESPACE:-''}
 EXISTING_DEPLOYMENT=${EXISTING_DEPLOYMENT:-''}
+EXISTING_EXTRA_ENV_SECRET=${EXISTING_EXTRA_ENV_SECRET:-''}
 RHDH_PLUGINS=${RHDH_PLUGINS:-''}
 RHDH_INSTANCE_PROVIDED=${RHDH_INSTANCE_PROVIDED:-false}
+RHDH_GITHUB_INTEGRATION=${RHDH_GITHUB_INTEGRATION:-true}
+RHDH_GITLAB_INTEGRATION=${RHDH_GITLAB_INTEGRATION:-false}
 
 # Secret variables
 GITHUB__APP__ID=${GITHUB__APP__ID:-''}
+GITHUB__APP__WEBHOOK__URL=${GITHUB__APP__WEBHOOK__URL:-''}
 GITHUB__APP__WEBHOOK__SECRET=${GITHUB__APP__WEBHOOK__SECRET:-''}
 GITHUB__APP__PRIVATE_KEY=${GITHUB__APP__PRIVATE_KEY:-''}
 GITOPS__GIT_TOKEN=${GITOPS__GIT_TOKEN:-''}
@@ -33,49 +39,59 @@ if [[ $RHDH_INSTANCE_PROVIDED != "true" ]] && [[ $RHDH_INSTANCE_PROVIDED != "fal
 elif [[ $RHDH_INSTANCE_PROVIDED == "true" ]]; then
     NAMESPACE="${EXISTING_NAMESPACE}"
     RHDH_DEPLOYMENT="${EXISTING_DEPLOYMENT}"
+    RHDH_EXTRA_ENV_SECRET="${EXISTING_EXTRA_ENV_SECRET}"
     RHDH_PLUGINS_CONFIGMAP="${RHDH_PLUGINS}"
 fi
 
 # Reading secrets
 # Reads secrets either from environment variables or user input
 echo "* Reading secrets: "
-# Reads GitHub Org App ID
-until [ ! -z "${GITHUB__APP__ID}" ]; do
-    read -p "Enter your GitHub App ID: " GITHUB__APP__ID
-    if [ -z "${GITHUB__APP__ID}" ]; then
-        echo "No GitHub App ID entered, try again."
-    fi
-done
 
-# Reads GitHub Org App Webhook Secret
-# Optional: If left blank during user prompt, one is generated instead
-if [ -z "${GITHUB__APP__WEBHOOK__SECRET}" ]; then
-    read -p "Enter your GitHub App Webhook Secret (Optional): " GITHUB__APP__WEBHOOK__SECRET
-    if [ -z "${GITHUB__APP__WEBHOOK__SECRET}" ]; then
-        GITHUB__APP__WEBHOOK__SECRET="$(openssl rand -hex 20)"
-        echo "Use the following as your GitHub App Webhook Secret: ${GITHUB__APP__WEBHOOK__SECRET}"
-    fi
+# Reads GitHub secrets if enabling GitHub integration
+if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
+    # Reads GitHub Org App ID
+    until [ ! -z "${GITHUB__APP__ID}" ]; do
+        read -p "Enter your GitHub App ID: " GITHUB__APP__ID
+        if [ -z "${GITHUB__APP__ID}" ]; then
+            echo "No GitHub App ID entered, try again."
+        fi
+    done
+
+    # Reads GitHub Org App Webhook Secret
+    until [ ! -z "${GITHUB__APP__WEBHOOK__SECRET}" ]; do
+        read -p "Enter your GitHub App Webhook Secret: " GITHUB__APP__WEBHOOK__SECRET
+        if [ -z "${GITHUB__APP__WEBHOOK__SECRET}" ]; then
+            echo "No GitHub App Webhook Secret entered, try again."
+        fi
+    done
+
+    # Reads GitHub Org App Private Key
+    until [ ! -z "${GITHUB__APP__PRIVATE_KEY}" ]; do
+        read -p "Enter your GitHub App Private Key (Use CTRL-D when finished): " -d $'\04' GITHUB__APP__PRIVATE_KEY
+        echo ""
+        if [ -z "${GITHUB__APP__PRIVATE_KEY}" ]; then
+            echo "No GitHub App Private Key entered, try again."
+        fi
+    done
+
+    # Reads Git PAT
+    until [ ! -z "${GITOPS__GIT_TOKEN}" ]; do
+        read -p "Enter your Git Token: " GITOPS__GIT_TOKEN
+        if [ -z "${GITOPS__GIT_TOKEN}" ]; then
+            echo "No Git Token entered, try again."
+        fi
+    done
 fi
 
-# Reads GitHub Org App Private Key
-until [ ! -z "${GITHUB__APP__PRIVATE_KEY}" ]; do
-    read -p "Enter your GitHub App Private Key (Use CTRL-D when finished): " -d $'\04' GITHUB__APP__PRIVATE_KEY
-    echo ""
-    if [ -z "${GITHUB__APP__PRIVATE_KEY}" ]; then
-        echo "No GitHub App Private Key entered, try again."
-    fi
-done
-
-# Reads Git PAT
-# Optional: If left blank during user prompt, the namespace secret will not be created
-if [ -z "${GITOPS__GIT_TOKEN}" ]; then
-    read -p "Enter your Git Token (Optional): " GITOPS__GIT_TOKEN
-fi
-
-# Reads GitLab PAT
-# Optional: If left blank during user prompt, the namespace secret will not be created
-if [ -z "${GITLAB__TOKEN}" ]; then
-    read -p "Enter your GitLab Token (Optional): " GITLAB__TOKEN
+# Reads GitLab secrets if enabling GitHub integration
+if [[ $RHDH_GITLAB_INTEGRATION == "true" ]]; then
+    # Reads GitLab PAT
+    until [ ! -z "${GITLAB__TOKEN}" ]; do
+        read -p "Enter your GitLab Token: " GITLAB__TOKEN
+        if [ -z "${GITLAB__TOKEN}" ]; then
+            echo "No GitLab Token entered, try again."
+        fi
+    done
 fi
 
 # Reads Quay DockerConfig JSON
@@ -117,12 +133,48 @@ if [ $? -ne 0 ]; then
 fi
 echo "OK"
 
+# Fetching Webhook URL
+if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
+    echo -n "* Fetching Webhook URL: "
+    if [ -z "${GITHUB__APP__WEBHOOK__URL}" ]; then
+        if [ -z "${RHDH_EXTRA_ENV_SECRET}" ]; then
+            GITHUB__APP__WEBHOOK__URL="$(kubectl get routes -n "${PIPELINES_NAMESPACE}" pipelines-as-code-controller -o jsonpath="https://{.spec.host}")"
+            kubectl -n ${NAMESPACE} create secret generic ${EXTRA_ENV_SECRET} \
+                --from-literal="GITHUB__APP__WEBHOOK__URL=${GITHUB__APP__WEBHOOK__URL}" >/dev/null
+        elif [ -z "$(kubectl -n ${NAMESPACE} get secret ${RHDH_EXTRA_ENV_SECRET} --ignore-not-found -o name)" ]; then
+            if [ $? -ne 0 ]; then
+                echo "FAIL"
+                exit 1
+            fi
+            echo -n "Extra environment variable secret '${RHDH_EXTRA_ENV_SECRET}' not found!"
+            echo "FAIL"
+            exit 1
+        elif [[ "$(kubectl -n ${NAMESPACE} get secret ${RHDH_EXTRA_ENV_SECRET} -o yaml | yq '.data.GITHUB__APP__WEBHOOK__URL')" == "null" ]]; then
+            if [ $? -ne 0 ]; then
+                echo "FAIL"
+                exit 1
+            fi
+            GITHUB__APP__WEBHOOK__URL="$(kubectl get routes -n "${PIPELINES_NAMESPACE}" pipelines-as-code-controller -o jsonpath="https://{.spec.host}")"
+            SECRET_PATCH=$(yq -n ".data.GITHUB__APP__WEBHOOK__URL = \"$(echo ${GITHUB__APP__WEBHOOK__URL} | base64)\"" -M -I=0 -o=json)
+            kubectl patch secret ${RHDH_EXTRA_ENV_SECRET} -n $NAMESPACE --type 'merge' -p "${SECRET_PATCH}" >/dev/null
+        else
+            GITHUB__APP__WEBHOOK__URL="$(kubectl -n ${NAMESPACE} get secret ${RHDH_EXTRA_ENV_SECRET} -o yaml | yq '.data.GITHUB__APP__WEBHOOK__URL' | base64 -d)"
+        fi
+
+        if [ $? -ne 0 ]; then
+            echo "FAIL"
+            exit 1
+        fi
+    fi
+    echo "OK"
+fi
+
 # Update the TektonConfig resource
 # Updates Tekton config CR to have setup with target namespace and 
 # compatiablty with RHDH instances
 echo -n "* Update the TektonConfig resource: "
 until kubectl get tektonconfig config >/dev/null 2>&1; do
-    echo -n "."
+    echo -n "_"
     sleep 3
 done
 TEKTON_CONFIG=$(yq ".spec.chain.\"transparency.url\" = \"http://rekor-server.${NAMESPACE}.svc\"" $BASE_DIR/resources/tekton-config.yaml -M -I=0 -o='json')
@@ -140,7 +192,7 @@ if [ "$(kubectl -n "${NAMESPACE}" get secret "${PIPELINES_SECRET_NAME}" -o name 
     WEBHOOK_SECRET=$(sed "s/'/\\'/g" <<< ${GITHUB__APP__WEBHOOK__SECRET} | sed 's/"/\"/g')
     kubectl -n "${NAMESPACE}" create secret generic "${PIPELINES_SECRET_NAME}" \
         --from-literal="webhook-github-secret=${WEBHOOK_SECRET}" \
-        --from-literal="webhook-url=$(kubectl get routes -n "${PIPELINES_NAMESPACE}" pipelines-as-code-controller -o jsonpath="https://{.spec.host}")" >/dev/null
+        --from-literal="webhook-url=${GITHUB__APP__WEBHOOK__URL}" >/dev/null
 else
     WEBHOOK_SECRET="$(kubectl -n "${NAMESPACE}" get secret "${PIPELINES_SECRET_NAME}" ) -o jsonpath="{.data.webhook-github-secret}" | base64 -d"
 fi
@@ -424,65 +476,4 @@ EOF
         echo -n "."
     fi
 done
-echo "OK"
-
-# Include Tekton plugins
-# Patches dynamic plugins ConfigMap with list of Tekton plugins
-echo -n "* Patching in Tekton plugins: "
-# Grab configmap and parse out the defined yaml file inside of its data to a temp file
-kubectl get configmap $RHDH_PLUGINS_CONFIGMAP -n $NAMESPACE -o yaml | yq '.data["dynamic-plugins.yaml"]' > temp-dynamic-plugins.yaml
-if [ $? -ne 0 ]; then
-    echo "FAIL"
-    exit 1
-fi
-
-# Edit the temp file to include the tekton plugins
-yq -i ".plugins += $(yq '.plugins' $BASE_DIR/dynamic-plugins/tekton-plugins.yaml -M -o json) | .plugins |= unique_by(.package)" temp-dynamic-plugins.yaml
-if [ $? -ne 0 ]; then
-    echo "FAIL"
-    exit 1
-fi
-
-# Patch the configmap that is deployed to update the defined yaml inside of it
-kubectl patch configmap $RHDH_PLUGINS_CONFIGMAP -n $NAMESPACE \
---type='merge' \
--p="{\"data\":{\"dynamic-plugins.yaml\":\"$(echo "$(cat temp-dynamic-plugins.yaml)" | sed 's/"/\\"/g' | sed 's/$/\\n/g' | tr -d '\n')\"}}"
-if [ $? -ne 0 ]; then
-    echo "FAIL"
-    exit 1
-fi
-
-# Cleanup temp files
-rm temp-dynamic-plugins.yaml
-
-echo "OK"
-
-# Configure TLS
-# Patches Backstage CR to configure cluster TLS
-echo -n "* Configuring TLS: "
-kubectl get deploy $RHDH_DEPLOYMENT -n $NAMESPACE -o yaml | \
-    yq '.spec.template.spec.containers[0].env += {"name": "NODE_TLS_REJECT_UNAUTHORIZED", "value": "0"} | 
-    .spec.template.spec.containers[0].env |= unique_by(.name)' | \
-    kubectl apply -f -
-if [ $? -ne 0 ]; then
-    echo "FAIL"
-    exit 1
-fi
-echo "OK"
-
-# Add Tekton information and plugin to backstage deployment data
-echo -n "* Adding Tekton information and plugin to backstage deployment data: "
-K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token- | cut -d/ -f2 | head -1)
-if [ $? -ne 0 ]; then
-    echo "FAIL"
-    exit 1
-fi
-kubectl get deploy $RHDH_DEPLOYMENT -n $NAMESPACE -o yaml | \
-    yq ".spec.template.spec.containers[0].env += {\"name\": \"K8S_SA_TOKEN\", \"valueFrom\": {\"secretKeyRef\": {\"name\": \"${K8S_SA_SECRET_NAME}\", \"key\": \"token\"}}} | 
-    .spec.template.spec.containers[0].env |= unique_by(.name)" | \
-    kubectl apply -f -
-if [ $? -ne 0 ]; then
-    echo "FAIL"
-    exit 1
-fi
 echo "OK"
