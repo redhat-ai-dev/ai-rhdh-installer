@@ -66,6 +66,10 @@ See the following for further customization of the configuration:
 
 To configure RHDH to use GitLab as the git repository source, you will need to first run `export RHDH_GITLAB_INTEGRATION=true` before running any of the [configuration](#configuration) scripts. Run `export RHDH_GITHUB_INTEGRATION=false` to disable GitHub integration.
 
+### Lightspeed Plugin Configuration
+
+Lightspeed plugin is installed as part of developer hub configuration script, if the `LIGHTSPEED_MODEL_URL` environment variable is set. Optionally, set the variable `LIGHTSPEED_API_TOKEN` for authenticated communication with the model service.
+
 ## Setting Environment Variables for Configuration Scripts
 
 For more information regarding where you can obtain these values see [APP-SETUP.md](./docs/APP-SETUP.md)
@@ -98,10 +102,18 @@ Configuration scripts can either take user input or can have environment variabl
         - Docker Config JSON File with Authentication Credentials for a given [Quay.io](https://quay.io) Account
     - `QUAY__API_TOKEN`
         - Quay Org API Token
+<<<<<<< HEAD
     - `RHDH_GITHUB_INTEGRATION`
         - Toggle GitHub integration (login). Accepts `true` or `false`
     - `RHDH_GITLAB_INTEGRATION`
         - Toggle GitLab integration (login). Accepts `true` or `false`
+=======
+    - `LIGHTSPEED_MODEL_URL`
+        - Target model URL for lightspeed plugin
+    - `LIGHTSPEED_API_TOKEN`
+        - API token for lightspeed plugin model service
+3. Run `source private.env` to set all set environment variables within `private.env`
+>>>>>>> 52ce187 (configure lightspeed plugin)
 
 ## Setting Catalogs for Developer Hub Configuration
 

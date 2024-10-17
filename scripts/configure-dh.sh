@@ -131,6 +131,30 @@ fi
 
 echo "OK"
 
+# Reads Model URL for lightspeed plugin
+# Optional: If no URL is entered, lightspeed plugin will not be configured
+if [ -z "${LIGHTSPEED_MODEL_URL}" ]; then
+    read -p "Enter your model URL for lightspeed (Optional): " LIGHTSPEED_MODEL_URL
+
+    # Reads API token for lightspeed plugin
+    # Optional: If no token is entered, lightspeed plugin will not use authenticated communication
+    if [ -z "${LIGHTSPEED_API_TOKEN}" ]; then
+        read -p "Enter API token for lightspeed (Optional): " LIGHTSPEED_API_TOKEN
+    fi
+    echo "OK"
+fi
+if [ ! -z "${LIGHTSPEED_MODEL_URL}" ]; then
+    # make sure the target url ends in /v1
+    if ! [[ $LIGHTSPEED_MODEL_URL =~ \/v1$ ]]; then
+        LIGHTSPEED_MODEL_URL="$LIGHTSPEED_MODEL_URL/v1"
+    fi
+
+    plugin_sha=$(npm view @janus-idp/backstage-plugin-lightspeed dist.integrity)
+
+    cp -f $BASE_DIR/resources/lightspeed-plugins.yaml $BASE_DIR/dynamic-plugins/
+    yq -i ".plugins.[0].integrity = \"${plugin_sha}\"" $BASE_DIR/dynamic-plugins/lightspeed-plugins.yaml
+fi
+
 # Waiting for pipelines operator deployment
 # Waits for the deployment of the pipelines services to finish before proceeding.
 echo -n "* Waiting for pipelines operator deployment: "
@@ -207,6 +231,11 @@ if [ ! -z "${QUAY__API_TOKEN}" ]; then
         ".data.QUAY__API_TOKEN = \"$(echo "${QUAY__API_TOKEN}" | base64)\""  -M -I=0 -o=json)
     echo -n "."
 fi
+if [ ! -z "${LIGHTSPEED_API_TOKEN}" ]; then
+    EXTRA_ENV_SECRET_PATCH=$(echo "$EXTRA_ENV_SECRET_PATCH" | yq \
+        ".data.LIGHTSPEED_API_TOKEN = \"$(echo "${LIGHTSPEED_API_TOKEN}" | base64)\""  -M -I=0 -o=json)
+    echo -n "."
+fi
 if [ -z "${RHDH_EXTRA_ENV_SECRET}" ]; then
     kubectl create secret generic $EXTRA_ENV_SECRET -n $NAMESPACE
     if [ $? -ne 0 ]; then
@@ -263,6 +292,14 @@ if [[ $RHDH_GITLAB_INTEGRATION == "true" ]]; then
 fi
 if [ ! -z "${QUAY__API_TOKEN}" ]; then
     EXTRA_APPCONFIG=$(echo "$EXTRA_APPCONFIG" | yq ".proxy.endpoints./quay/api.headers.Authorization = \"Bearer \${QUAY__API_TOKEN}\"" -M -)
+    echo -n "."
+fi
+if [ ! -z "${LIGHTSPEED_MODEL_URL}" ]; then
+    EXTRA_APPCONFIG=$(echo "$EXTRA_APPCONFIG" | yq ".proxy.endpoints./lightspeed/api.target = \"${LIGHTSPEED_MODEL_URL}\"" -M -)
+
+    if [ ! -z "${LIGHTSPEED_API_TOKEN}" ]; then
+        EXTRA_APPCONFIG=$(echo "$EXTRA_APPCONFIG" | yq ".proxy.endpoints./lightspeed/api.headers.Authorization = \"Bearer \${LIGHTSPEED_API_TOKEN}\"" -M -)
+    fi
     echo -n "."
 fi
 EXTRA_APPCONFIG=$EXTRA_APPCONFIG yq ".data[\"app-config.extra.yaml\"] = strenv(EXTRA_APPCONFIG)" $BASE_DIR/resources/developer-hub-app-config.yaml | \
@@ -331,6 +368,7 @@ for f in $BASE_DIR/dynamic-plugins/*.yaml; do
 
     echo "OK"
 done
+rm -f $BASE_DIR/dynamic-plugins/lightspeed-plugins.yaml
 
 # Update existing RHDH deployment
 if [[ $RHDH_INSTANCE_PROVIDED == "true" ]]; then
