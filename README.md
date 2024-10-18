@@ -65,6 +65,10 @@ Detailed documentation for configuring Pipelines/Tekton can be found in [`PIPELI
 
 Detailed documentation for configuring Developer Hub can be found in [`RHDH-CONFIG.md`](./docs/RHDH-CONFIG.md)
 
+### Lightspeed Plugin Configuration
+
+The Lightspeed plugin is installed as part of the Developer Hub configuration script if the `LIGHTSPEED_MODEL_URL` environment variable is set. Optionally, set the variable `LIGHTSPEED_API_TOKEN` for authenticated communication with the model service.
+
 ## Setting Environment Variables for Configuration Scripts
 
 Configuration scripts can either take user input or can have environment variables set to skip manual input. To do this, follow the steps below:
@@ -95,6 +99,10 @@ Configuration scripts can either take user input or can have environment variabl
         - Docker Config JSON File with Authentication Credentials for a given [Quay.io](https://quay.io) Account
     - `QUAY__API_TOKEN`
         - Quay Org API Token
+    - `LIGHTSPEED_MODEL_URL`
+        - Target model URL for lightspeed plugin
+    - `LIGHTSPEED_API_TOKEN`
+        - API token for lightspeed plugin model service
 3. Run `source private.env` to set all set environment variables within `private.env`
 
 ## Setting Catalogs for Developer Hub Configuration
