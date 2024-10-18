@@ -35,6 +35,8 @@ GITLAB__APP__CLIENT__SECRET=${GITLAB__APP__CLIENT__SECRET:-''}
 GITLAB__TOKEN=${GITLAB__TOKEN:-''}
 QUAY__DOCKERCONFIGJSON=${QUAY__DOCKERCONFIGJSON:-''}
 QUAY__API_TOKEN=${QUAY__API_TOKEN:-''}
+LIGHTSPEED_MODEL_URL=${LIGHTSPEED_MODEL_URL:-''}
+LIGHTSPEED_API_TOKEN=${LIGHTSPEED_API_TOKEN:-''}
 
 # Use existing variables if RHDH instance is provided
 if [[ $RHDH_INSTANCE_PROVIDED != "true" ]] && [[ $RHDH_INSTANCE_PROVIDED != "false" ]]; then
@@ -150,9 +152,7 @@ if [ ! -z "${LIGHTSPEED_MODEL_URL}" ]; then
     fi
 
     plugin_sha=$(npm view @janus-idp/backstage-plugin-lightspeed dist.integrity)
-
-    cp -f $BASE_DIR/resources/lightspeed-plugins.yaml $BASE_DIR/dynamic-plugins/
-    yq -i ".plugins.[0].integrity = \"${plugin_sha}\"" $BASE_DIR/dynamic-plugins/lightspeed-plugins.yaml
+    yq -i ".plugins.[0].integrity = \"${plugin_sha}\"" $BASE_DIR/optional-plugins/lightspeed-plugins.yaml
 fi
 
 # Waiting for pipelines operator deployment
@@ -338,7 +338,12 @@ if [ -z "$(kubectl -n $NAMESPACE get configmap $RHDH_PLUGINS_CONFIGMAP -o name -
     echo "FAIL"
     exit 1
 fi
-for f in $BASE_DIR/dynamic-plugins/*.yaml; do
+
+plugins=$BASE_DIR/dynamic-plugins/*.yaml
+if [ ! -z "${LIGHTSPEED_MODEL_URL}" ]; then
+    plugins="$plugins $BASE_DIR/optional-plugins/lightspeed-plugins.yaml"
+fi
+for f in $plugins; do
     echo -n "* Patching in $(basename $f .yaml) plugins: "
     # Grab configmap and parse out the defined yaml file inside of its data to a temp file
     kubectl get configmap $RHDH_PLUGINS_CONFIGMAP -n $NAMESPACE -o yaml | yq '.data["dynamic-plugins.yaml"]' > temp-dynamic-plugins.yaml
@@ -368,7 +373,6 @@ for f in $BASE_DIR/dynamic-plugins/*.yaml; do
 
     echo "OK"
 done
-rm -f $BASE_DIR/dynamic-plugins/lightspeed-plugins.yaml
 
 # Update existing RHDH deployment
 if [[ $RHDH_INSTANCE_PROVIDED == "true" ]]; then

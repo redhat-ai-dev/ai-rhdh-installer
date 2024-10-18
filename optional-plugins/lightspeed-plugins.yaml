@@ -1,7 +1,7 @@
 plugins:
   - disabled: false
     package: '@janus-idp/backstage-plugin-lightspeed'
-    integrity: <sha>
+    integrity: sha512-bCKETjVhjZFLx7ImSFcptA3yvwJhFLFTFhMo/LvdVc0K5E76/SpEEkYBPup4aEQMivZBJKn0iVQFBuduChCDpA==
     pluginConfig:
       dynamicPlugins:
         frontend:
