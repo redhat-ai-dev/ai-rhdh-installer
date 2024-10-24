@@ -129,6 +129,8 @@ Helpful reading can be found [here](https://backstage.io/docs/integrations/githu
 4. Click into the App and create an OAuth token with `create`, `read`, and `write` access to repositories.
    1. Store this token somewhere safe.
 
+**Note:** The `.json` and token will be used as part of the configuration for RHDH. You can find more information [here](https://github.com/redhat-ai-dev/ai-rhdh-installer/blob/main/README.md#setting-environment-variables-for-configuration-scripts)
+
 ## Homepage / Callback / Webhook URLs
 
 ### Homepage URL
