@@ -3,7 +3,7 @@
 ## Table of Contents
 
 - [GitHub Personal Access Token (PAT)](#github-personal-access-token-pat)
-  - [Prerequisities](#prerequisites)
+  - [Prerequisites](#prerequisites)
   - [Procedure](#procedure)
 - [GitHub App](#github-app)
   - [Procedure](#procedure-1)
@@ -33,10 +33,8 @@
 
 ### Procedure
 
-1. Navigate to [Developer Settings](https://github.com/settings/apps) on GitHub and click `Personal access tokens` on the left hand side. Select `Tokens (classic)`.
-2. From the `Generate new token` drop down menu under the page banner, select `Generate new token (classic)`.
-3. Enter a name and expiration date for your new token. For the scopes you should select `repo`, selecting this option will include all scopes within `repo`.
-4. Select `Generate token`, when your token is visible please save this token somewhere safe for later reference.
+1. See [creating a personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic) on the GitHub official documentation.
+2. For the scopes you should select `repo`, selecting this option will include all scopes within `repo`.
 
 ![Example of Repo Scope](../assets/repo-scope-example.png)
 
