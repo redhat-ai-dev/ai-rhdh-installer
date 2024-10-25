@@ -60,37 +60,22 @@
 
 ### App Permissions
 
-Helpful reading can be found [here](https://backstage.io/docs/integrations/github/github-apps/#app-permissions), however, all required permissions and subscriptions have been compiled below:
+Helpful reading can be found [here](https://backstage.io/docs/integrations/github/github-apps/#app-permissions), however, all required permissions and subscriptions for running AI Software Templates have been compiled below:
 
 #### Repository Permissions
 - **Actions** - Read & Write
 - **Administration** - Read & Write
-- **Checks** - Read & Write
-- **Commit Statuses** - Read
 - **Contents** - Read & Write
-- **Environments** - Read & Write
-- **Issues** - Read & Write
 - **Metadata** - Read
 - **Pull Requests** - Read & Write
-- **Secrets** - Read & Write
-- **Variables** - Read & Write
 - **Workflows** - Read & Write
 
 #### Organization Permissions
 - **Members** - Read
-- **Plan** - Read
 
 #### Subscribed Events
-- Check suite
-- Check run
-- Commit comment
-- Issue comment
 - Pull request
 - Push
-- Repository dispatch
-- Workflow dispatch
-- Workflow job
-- Workflow run
 
 ## GitLab Personal Access Token (PAT)
 
