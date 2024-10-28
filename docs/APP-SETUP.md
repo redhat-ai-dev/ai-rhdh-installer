@@ -66,14 +66,21 @@ Helpful reading can be found [here](https://backstage.io/docs/integrations/githu
 - **Actions** - Read & Write
 - **Administration** - Read & Write
 - **Contents** - Read & Write
+- **Checks** - Read & Write
+- **Issues** - Read & Write
 - **Metadata** - Read
 - **Pull Requests** - Read & Write
 - **Workflows** - Read & Write
 
 #### Organization Permissions
 - **Members** - Read
+- **Plan** - Read
 
 #### Subscribed Events
+- Check run
+- Check suite
+- Issue comment
+- Commit comment
 - Pull request
 - Push
 
