@@ -13,15 +13,7 @@ This helm chart installs and configures the following operators:
 ## Requirements
 
 - Helm CLI (more information [here](https://helm.sh/docs/intro/install/))
-- A GitHub App and its associated information (c.f. [Create a Pipelines-as-Code GitHub App](https://pipelinesascode.com/docs/install/github_apps/)).
-  - `General`
-    - Use placeholder values for `Homepage URL`, `Callback URL` and `Webhook URL`.
-    - Generate a `Webhook secret`.
-  - `Permissions & events`
-    - Follow the instructions from the Pipelines-as-Code documentation.
-    - `Repository permissions`
-      - `Administration`: `Read and write`
-- The GitHub App must be installed at the organization/user level.
+- A GitHub or GitLab App created via [APP-SETUP.md](./docs/APP-SETUP.md)
 
 ## CLI
 
@@ -63,9 +55,11 @@ Detailed documentation for configuring Pipelines/Tekton can be found in [`PIPELI
 
 **Note**: It is required to go through the steps under documentation mentioned in [GitOps/ArgoCD Configuration](#gitopsargocd-configuration) and [Pipelines/Tekton Configuration](#pipelinestekton-configuration) before the steps under the documentation below.
 
-Detailed documentation for configuring Developer Hub can be found in [`RHDH-CONFIG.md`](./docs/RHDH-CONFIG.md)
+Detailed documentation for configuring Developer Hub can be found in [`RHDH-CONFIG.md`](./docs/RHDH-CONFIG.md).
 
 ## Setting Environment Variables for Configuration Scripts
+
+For more information regarding where you can obtain these values see [APP-SETUP.md](./docs/APP-SETUP.md)
 
 Configuration scripts can either take user input or can have environment variables set to skip manual input. To do this, follow the steps below:
 
