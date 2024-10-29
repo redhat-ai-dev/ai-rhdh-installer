@@ -12,8 +12,10 @@ This helm chart installs and configures the following operators:
 
 ## Requirements
 
+- OpenShift (more information [here](https://www.redhat.com/en/technologies/cloud-computing/openshift) or [create](https://console.redhat.com/openshift/create) your OpenShift cluster)
+- OpenShift AI (optional, more information [here](https://www.redhat.com/en/technologies/cloud-computing/openshift/openshift-ai))
 - Helm CLI (more information [here](https://helm.sh/docs/intro/install/))
-- A GitHub or GitLab App created via [APP-SETUP.md](./docs/APP-SETUP.md)
+- GitHub or GitLab App created via [APP-SETUP.md](./docs/APP-SETUP.md)
 
 ## CLI
 
