@@ -133,27 +133,33 @@ fi
 
 echo "OK"
 
-# Reads Model URL for lightspeed plugin
-# Optional: If no URL is entered, lightspeed plugin will not be configured
-if [ -z "${LIGHTSPEED_MODEL_URL}" ]; then
-    read -p "Enter your model URL for lightspeed (Optional): " LIGHTSPEED_MODEL_URL
-
+# Reads secrets for lightspeed plugin if enabling lightspeed integration
+if [[ ${LIGHTSPEED_INTEGRATION} == "true" ]]; then
+    # Reads lightspeed model endpoint URL
+    until [ ! -z "${LIGHTSPEED_MODEL_URL}" ]; do
+        read -p "Enter your model URL for lightspeed: " LIGHTSPEED_MODEL_URL
+        if [ -z "${LIGHTSPEED_MODEL_URL}" ]; then
+            echo "No model URL for lightspeed entered, try again."
+        fi
+    done
+    
     # Reads API token for lightspeed plugin
     # Optional: If no token is entered, lightspeed plugin will not use authenticated communication
     if [ -z "${LIGHTSPEED_API_TOKEN}" ]; then
         read -p "Enter API token for lightspeed (Optional): " LIGHTSPEED_API_TOKEN
     fi
-    echo "OK"
-fi
-if [ ! -z "${LIGHTSPEED_MODEL_URL}" ]; then
-    # make sure the target url ends in /v1
+
+    # Make sure the target url ends in /v1
     if ! [[ $LIGHTSPEED_MODEL_URL =~ \/v1$ ]]; then
         LIGHTSPEED_MODEL_URL="$LIGHTSPEED_MODEL_URL/v1"
     fi
 
+    # Keep the plugin checksum up to date with the latest release
     plugin_sha=$(npm view @janus-idp/backstage-plugin-lightspeed dist.integrity)
     yq -i ".plugins.[0].integrity = \"${plugin_sha}\"" $BASE_DIR/optional-plugins/lightspeed-plugins.yaml
 fi
+
+echo "OK"
 
 # Waiting for pipelines operator deployment
 # Waits for the deployment of the pipelines services to finish before proceeding.
@@ -294,7 +300,7 @@ if [ ! -z "${QUAY__API_TOKEN}" ]; then
     EXTRA_APPCONFIG=$(echo "$EXTRA_APPCONFIG" | yq ".proxy.endpoints./quay/api.headers.Authorization = \"Bearer \${QUAY__API_TOKEN}\"" -M -)
     echo -n "."
 fi
-if [ ! -z "${LIGHTSPEED_MODEL_URL}" ]; then
+if [[ $LIGHTSPEED_INTEGRATION == "true" ]]; then
     EXTRA_APPCONFIG=$(echo "$EXTRA_APPCONFIG" | yq ".proxy.endpoints./lightspeed/api.target = \"${LIGHTSPEED_MODEL_URL}\"" -M -)
 
     if [ ! -z "${LIGHTSPEED_API_TOKEN}" ]; then
@@ -340,7 +346,7 @@ if [ -z "$(kubectl -n $NAMESPACE get configmap $RHDH_PLUGINS_CONFIGMAP -o name -
 fi
 
 plugins=$BASE_DIR/dynamic-plugins/*.yaml
-if [ ! -z "${LIGHTSPEED_MODEL_URL}" ]; then
+if [[ $LIGHTSPEED_INTEGRATION == "true" ]]; then
     plugins="$plugins $BASE_DIR/optional-plugins/lightspeed-plugins.yaml"
 fi
 for f in $plugins; do

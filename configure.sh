@@ -14,6 +14,7 @@ fi
 
 export RHDH_GITHUB_INTEGRATION=${RHDH_GITHUB_INTEGRATION:-true}
 export RHDH_GITLAB_INTEGRATION=${RHDH_GITLAB_INTEGRATION:-false}
+export LIGHTSPEED_INTEGRATION=${LIGHTSPEED_INTEGRATION:-false}
 
 # Secret variables
 export GITHUB__APP__ID=${GITHUB__APP__ID:-''}
@@ -28,6 +29,8 @@ export GITLAB__APP__CLIENT__SECRET=${GITLAB__APP__CLIENT__SECRET:-''}
 export GITLAB__TOKEN=${GITLAB__TOKEN:-''}
 export QUAY__DOCKERCONFIGJSON=${QUAY__DOCKERCONFIGJSON:-''}
 export QUAY__API_TOKEN=${QUAY__API_TOKEN:-''}
+export LIGHTSPEED_MODEL_URL=${LIGHTSPEED_MODEL_URL:-''}
+export LIGHTSPEED_API_TOKEN=${LIGHTSPEED_API_TOKEN:-''}
 
 # Reads GitHub secrets if enabling GitHub integration
 if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
@@ -106,6 +109,23 @@ if [[ $RHDH_GITLAB_INTEGRATION == "true" ]]; then
             echo "No GitLab Token entered, try again."
         fi
     done
+fi
+
+# Reads secrets for lightspeed plugin if enabling lightspeed integration
+if [[ ${LIGHTSPEED_INTEGRATION} == "true" ]]; then
+    # Reads lightspeed model endpoint URL
+    until [ ! -z "${LIGHTSPEED_MODEL_URL}" ]; do
+        read -p "Enter your model URL for lightspeed: " LIGHTSPEED_MODEL_URL
+        if [ -z "${LIGHTSPEED_MODEL_URL}" ]; then
+            echo "No model URL for lightspeed entered, try again."
+        fi
+    done
+    
+    # Reads API token for lightspeed plugin
+    # Optional: If no token is entered, lightspeed plugin will not use authenticated communication
+    if [ -z "${LIGHTSPEED_API_TOKEN}" ]; then
+        read -p "Enter API token for lightspeed (Optional): " LIGHTSPEED_API_TOKEN
+    fi
 fi
 
 # Reads Quay API Token
