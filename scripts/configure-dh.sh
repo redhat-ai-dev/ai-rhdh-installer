@@ -127,7 +127,7 @@ fi
 
 # Reads Quay API Token
 # Optional: If an API Token is not entered, there will be none provided to the developer hub app config
-if [ -z "${QUAY__API_TOKEN}" ]; then
+if [[ ! $BYPASS_OPTIONAL_INPUT =~ ",QUAY__API_TOKEN" ]] && [ -z "${QUAY__API_TOKEN}" ]; then
     read -p "Enter your Quay API Token (Optional): " QUAY__API_TOKEN
 fi
 
@@ -145,7 +145,7 @@ if [[ ${LIGHTSPEED_INTEGRATION} == "true" ]]; then
     
     # Reads API token for lightspeed plugin
     # Optional: If no token is entered, lightspeed plugin will not use authenticated communication
-    if [ -z "${LIGHTSPEED_API_TOKEN}" ]; then
+    if [[ ! $BYPASS_OPTIONAL_INPUT =~ ",LIGHTSPEED_API_TOKEN" ]] && [ -z "${LIGHTSPEED_API_TOKEN}" ]; then
         read -p "Enter API token for lightspeed (Optional): " LIGHTSPEED_API_TOKEN
     fi
 

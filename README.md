@@ -102,18 +102,15 @@ Configuration scripts can either take user input or can have environment variabl
         - Docker Config JSON File with Authentication Credentials for a given [Quay.io](https://quay.io) Account
     - `QUAY__API_TOKEN`
         - Quay Org API Token
-<<<<<<< HEAD
     - `RHDH_GITHUB_INTEGRATION`
         - Toggle GitHub integration (login). Accepts `true` or `false`
     - `RHDH_GITLAB_INTEGRATION`
         - Toggle GitLab integration (login). Accepts `true` or `false`
-=======
     - `LIGHTSPEED_MODEL_URL`
         - Target model URL for lightspeed plugin
     - `LIGHTSPEED_API_TOKEN`
         - API token for lightspeed plugin model service
 3. Run `source private.env` to set all set environment variables within `private.env`
->>>>>>> 52ce187 (configure lightspeed plugin)
 
 ## Setting Catalogs for Developer Hub Configuration
 

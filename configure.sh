@@ -32,6 +32,9 @@ export QUAY__API_TOKEN=${QUAY__API_TOKEN:-''}
 export LIGHTSPEED_MODEL_URL=${LIGHTSPEED_MODEL_URL:-''}
 export LIGHTSPEED_API_TOKEN=${LIGHTSPEED_API_TOKEN:-''}
 
+# Skipped optional variables
+export BYPASS_OPTIONAL_INPUT=''
+
 # Reads GitHub secrets if enabling GitHub integration
 if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
     # Reads GitHub Org App ID
@@ -125,6 +128,7 @@ if [[ ${LIGHTSPEED_INTEGRATION} == "true" ]]; then
     # Optional: If no token is entered, lightspeed plugin will not use authenticated communication
     if [ -z "${LIGHTSPEED_API_TOKEN}" ]; then
         read -p "Enter API token for lightspeed (Optional): " LIGHTSPEED_API_TOKEN
+        BYPASS_OPTIONAL_INPUT+=",LIGHTSPEED_API_TOKEN"
     fi
 fi
 
@@ -132,6 +136,7 @@ fi
 # Optional: If an API Token is not entered, there will be none provided to the developer hub app config
 if [ -z "${QUAY__API_TOKEN}" ]; then
     read -p "Enter your Quay API Token (Optional): " QUAY__API_TOKEN
+    BYPASS_OPTIONAL_INPUT+=",QUAY__API_TOKEN"
 fi
 
 # Reads Quay DockerConfig JSON
@@ -139,6 +144,7 @@ fi
 if [ -z "${QUAY__DOCKERCONFIGJSON}" ]; then
     read -p "Enter your Quay DockerConfig JSON (Optional|Use CTRL-D when finished): " -d $'\04' QUAY__DOCKERCONFIGJSON
     echo ""
+    BYPASS_OPTIONAL_INPUT+=",QUAY__DOCKERCONFIGJSON"
 fi
 
 echo ''
