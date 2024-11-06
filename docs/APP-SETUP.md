@@ -93,20 +93,28 @@ Helpful reading can be found [here](https://backstage.io/docs/integrations/githu
 ### Procedure
 
 - See [create a personal access token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html#create-a-personal-access-token).
-- Set the following token permissions:
+- Set the following token scopes:
   - `api`
   - `read_repository`
   - `write_repository`
 
-**Note:** Remember to save your PAT somewhere safe.
+**Note:** Remember to save your `PAT` somewhere safe.
 
 ## GitLab App
 
 ### Procedure
 
-1. Create a GitLab App for your GitLab Group.
-   1. See [create a group owned application](https://docs.gitlab.com/ee/integration/oauth_provider.html#create-a-group-owned-application).
-   2. The `Homepage / Callback / Webhook URLs` can be any value as a placeholder for now.
+- Create a GitLab App for your GitLab Group.
+   - See [create a group owned application](https://docs.gitlab.com/ee/integration/oauth_provider.html#create-a-group-owned-application).
+   - The `Callback URL` can be any value as a placeholder for now.
+- Set the following token scopes:
+   - `api`
+   - `read_user`
+   - `read_repository`
+   - `write_repository`
+   - `openid`
+   - `profile`
+   - `email`
 
 **Note:** Store your `Application ID` and `Secret` somewhere safe.
 
