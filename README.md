@@ -16,6 +16,7 @@ This helm chart installs and configures the following operators:
 - OpenShift AI (optional, more information [here](https://www.redhat.com/en/technologies/cloud-computing/openshift/openshift-ai)).
 - Helm CLI (more information [here](https://helm.sh/docs/intro/install/)).
 - GitHub or GitLab App created via [APP-SETUP.md](./docs/APP-SETUP.md).
+- Image Registry. Example, [Quay](https://quay.io/).
 
 ## CLI
 
