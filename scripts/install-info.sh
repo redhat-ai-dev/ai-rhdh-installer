@@ -128,12 +128,12 @@ if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
 
     echo "Docs URL:       ${GITHUB_DOCS_URL}"
     echo "Homepage URL:   ${HOMEPAGE_URL}"
-    echo "Callback URL:   ${CALLBACK_URL}"
+    echo "GitHub Callback URL:   ${CALLBACK_URL}"
     echo "Webhook URL:    ${GITHUB__APP__WEBHOOK__URL}"
     echo "Webhook Secret: ${GITHUB__APP__WEBHOOK__SECRET}"
 fi
 if [[ $RHDH_GITLAB_INTEGRATION == "true" ]]; then
     CALLBACK_URL="${HOMEPAGE_URL}/api/auth/gitlab/handler/frame"
 
-    echo "Callback URL:   ${CALLBACK_URL}"
+    echo "GitLab Callback URL:   ${CALLBACK_URL}"
 fi
