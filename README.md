@@ -1,5 +1,7 @@
 # Red Hat Developer Hub Installer for AI Software Templates
 
+> We are only supporting **GitHub Authentication**, **GitLab Authentication** is planned for future versions.
+
 This helm chart installs and configures the following operators:
 
 |       Product       |      Installation       |                                                                                                      Configuration                                                                                                       |
