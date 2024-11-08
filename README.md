@@ -24,7 +24,7 @@ This helm chart installs and configures the following operators:
 ## Helm Chart Installer
 
 > [!IMPORTANT]
-> It is heavily recommended you run the Helm Chart on a fresh cluster that does not have pre-existing GitOps/ArgoCD, Pipelines/Tekton and Developer Hub Operators.
+> It is recommended you run the Helm chart on a fresh cluster that does not have pre-existing GitOps/ArgoCD, Pipelines/Tekton and Developer Hub Operators.
 
 ### Install
 
@@ -45,7 +45,7 @@ This installer is incompatible with `default` namespace installations, install a
 ## Configuration
 
 > [!IMPORTANT] 
-> It is recommended you configure using the `configure.sh` script listed below. Configuration options for pre-existing Instances are a work-in-progress (WIP). You can find information for those WIP options below:
+> It is recommended you configure using the `configure.sh` script listed below. Configuration options for pre-existing instances are a work-in-progress (WIP), you can find this information here:
 >- [Pre-existing GitOps/ArgoCD Instances](./docs/GITOPS-CONFIG.md)
 >- [Pre-existing Pipelines/Tekton Instances](./docs/PIPELINES-CONFIG.md)
 >- [Pre-existing Developer Hub Instances](./docs/RHDH-CONFIG.md)
