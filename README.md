@@ -46,7 +46,17 @@ For convenience you can configure your Red Hat Developer Hub, GitOps, and Pipeli
 
 **Note**: If you changed the installation namespace used by the installer you will first need to run `export NAMESPACE=<namespace used>` as the default value is `ai-rhdh`.
 
-Alternatively, if you do not wish to use the all-in-one `configure.sh` script, you can find documentation below for configuring each component individually.
+See the following for further customization of the configuration:
+
+- [Enabling GitLab Integration](#gitlab-integration)
+- [Setting Environment Variables](#setting-environment-variables-for-configuration-scripts)
+- [Setting Catalogs for Developer Hub Configuration](#setting-catalogs-for-developer-hub-configuration)
+
+Alternatively, if you do not wish to use the all-in-one `configure.sh` script, you can find documentation below for configuring each component individually:
+
+- [GitOps/ArgoCD Configuration](#gitopsargocd-configuration)
+- [Pipelines/Tekton Configuration](#pipelinestekton-configuration)
+- [Developer Hub Configuration](#developer-hub-configuration)
 
 ### GitOps/ArgoCD Configuration
 
