@@ -1,5 +1,8 @@
 # Red Hat Developer Hub Installer for AI Software Templates
 
+> [!IMPORTANT] 
+> Currently, only the **GitHub Authentication** is supported. **GitLab Authentication** is planned for future versions.
+
 This helm chart installs and configures the following operators:
 
 |       Product       |      Installation       |                                                                                                      Configuration                                                                                                       |
@@ -18,7 +21,7 @@ This helm chart installs and configures the following operators:
 - GitHub or GitLab app created via [APP-SETUP.md](./docs/APP-SETUP.md).
 - [Quay](https://quay.io/) image registry (more information [here](./docs/APP-SETUP.md#quay-setup)).
 
-## CLI
+## Helm Chart Installer
 
 ### Install
 
@@ -44,7 +47,17 @@ For convenience you can configure your Red Hat Developer Hub, GitOps, and Pipeli
 
 **Note**: If you changed the installation namespace used by the installer you will first need to run `export NAMESPACE=<namespace used>` as the default value is `ai-rhdh`.
 
-Alternatively, if you do not wish to use the all-in-one `configure.sh` script, you can find documentation below for configuring each component individually.
+See the following for further customization of the configuration:
+
+- [Enabling GitLab Integration](#gitlab-integration)
+- [Setting Environment Variables](#setting-environment-variables-for-configuration-scripts)
+- [Setting Catalogs for Developer Hub Configuration](#setting-catalogs-for-developer-hub-configuration)
+
+Alternatively, if you do not wish to use the all-in-one `configure.sh` script, you can find documentation below for configuring each component individually:
+
+- [GitOps/ArgoCD Configuration](#gitopsargocd-configuration)
+- [Pipelines/Tekton Configuration](#pipelinestekton-configuration)
+- [Developer Hub Configuration](#developer-hub-configuration)
 
 ### GitOps/ArgoCD Configuration
 
@@ -59,6 +72,10 @@ Detailed documentation for configuring Pipelines/Tekton can be found in [`PIPELI
 **Note**: It is required to go through the steps under documentation mentioned in [GitOps/ArgoCD Configuration](#gitopsargocd-configuration) and [Pipelines/Tekton Configuration](#pipelinestekton-configuration) before the steps under the documentation below.
 
 Detailed documentation for configuring Developer Hub can be found in [`RHDH-CONFIG.md`](./docs/RHDH-CONFIG.md).
+
+## GitLab Integration
+
+To configure RHDH to use GitLab as the git repository source, you will need to first run `export RHDH_GITLAB_INTEGRATION=true` before running any of the [configuration](#configuration) scripts. Run `export RHDH_GITHUB_INTEGRATION=false` to disable GitHub integration.
 
 ## Setting Environment Variables for Configuration Scripts
 
