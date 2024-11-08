@@ -4,8 +4,8 @@ As part of this section you will find information about the following configurat
 
 1. [Configuring GitOps/ArgoCD with the configuration script after using our `ai-rhdh-installer`](#ai-rhdh-installer-script-configuration)
 2. [Configuring GitOps/ArgoCD manually after using our `ai-rhdh-installer`](#ai-rhdh-installer-manual-configuration)
-3. [Configuring GitOps/ArgoCD with the configuration script for a pre-existing ArgoCD and Red Hat Developer Hub instance](#pre-existing-instance-script-configuration)
-4. [Configuring GitOps/ArgoCD manually for a pre-existing ArgoCD and Red Hat Developer Hub instance](#pre-existing-instance-manual-configuration)
+3. [**WIP:** Configuring GitOps/ArgoCD with the configuration script for a pre-existing ArgoCD and Red Hat Developer Hub instance](#pre-existing-instance-script-configuration)
+4. [**WIP:** Configuring GitOps/ArgoCD manually for a pre-existing ArgoCD and Red Hat Developer Hub instance](#pre-existing-instance-manual-configuration)
 
 ### Prerequisites
 
@@ -20,7 +20,7 @@ In your chosen namespace you should apply the `argocd-config` ConfigMap under [`
 
 As part of the `ai-rhdh-installer` a secret was created in your desired namespace with the name `rhdh-argocd-secret`, keep note of this Secret as well as the two ConfigMaps applied above.
 
-### Pre-Existing Instance: Script Configuration
+### WIP: Pre-Existing Instance: Script Configuration
 If you have your own ArgoCD instance created you can configure it to work with RHDH with the use of our config script. You will need the following information on hand:
 
 1. Namespace of RHDH & ArgoCD instance
@@ -48,7 +48,7 @@ Once you have that information readily available you can follow:
 1. Run `export ARGOCD_INSTANCE_PROVIDED=true`
 2. Run `bash ./scripts/configure-gitops.sh` and follow the prompts in the command line
 
-### Pre-Existing Instance: Manual Configuration
+### WIP: Pre-Existing Instance: Manual Configuration
 
 #### Step 1: Required Information
 You will need the following information on hand to properly configure an existing ArgoCD instance with RHDH:
