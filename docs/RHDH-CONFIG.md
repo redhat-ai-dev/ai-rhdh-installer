@@ -313,7 +313,21 @@ If using a [RHDH Operator](https://github.com/redhat-developer/rhdh-operator) in
 - `.backend.baseUrl`
 - `.backend.cors.origin`
 
-You will need to ensure the above fields are set to the developer hub entrypoint url the tied app config. **Note**: Having these fields set under any app config ConfigMap tied to the existing RHDH instance should work. 
+You will need to ensure the above fields are set to the developer hub entrypoint url the tied app config. For example:
+
+```yaml
+data:
+  app-config.base.yaml: |
+    app:
+      title: "Red Hat Developer Hub for AI Software Templates"
+      baseUrl: https://backstage-ai-rh-developer-hub-ai-rhdh.apps.example-cluster.devcluster.openshift.com
+    backend:
+      baseUrl: https://backstage-ai-rh-developer-hub-ai-rhdh.apps.example-cluster.devcluster.openshift.com
+      cors:
+        origin: https://backstage-ai-rh-developer-hub-ai-rhdh.apps.example-cluster.devcluster.openshift.com
+```
+
+**Note**: Having these fields set under any app config ConfigMap tied to the existing RHDH instance should work. 
 
 If you are planning to use GitHub integration run `export RHDH_GITHUB_INTEGRATION=true` and to use GitLab integration run `export RHDH_GITLAB_INTEGRATION=true`. 
 
