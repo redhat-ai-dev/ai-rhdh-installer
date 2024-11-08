@@ -308,10 +308,26 @@ You are able to store these values in environment variables. Set the following t
 - `$EXISTING_EXTRA_ENV_SECRET`
   - Name of the extra environment variables Secret
 
-If using a [RHDH Operator](https://github.com/redhat-developer/rhdh-operator) instance, you will need to ensure the following fields are set to the developer hub entrypoint url under any of the app configs tied to your developer hub instance: 
+If using a [RHDH Operator](https://github.com/redhat-developer/rhdh-operator) instance the following required fields will be missing **by default (unless already setup)**:
 - `.app.baseUrl`
 - `.backend.baseUrl`
 - `.backend.cors.origin`
+
+You will need to ensure the above fields are set to the developer hub entrypoint url the tied app config. For example:
+
+```yaml
+data:
+  app-config.base.yaml: |
+    app:
+      title: "Red Hat Developer Hub for AI Software Templates"
+      baseUrl: https://backstage-ai-rh-developer-hub-ai-rhdh.apps.example-cluster.devcluster.openshift.com
+    backend:
+      baseUrl: https://backstage-ai-rh-developer-hub-ai-rhdh.apps.example-cluster.devcluster.openshift.com
+      cors:
+        origin: https://backstage-ai-rh-developer-hub-ai-rhdh.apps.example-cluster.devcluster.openshift.com
+```
+
+**Note**: Having these fields set under any app config ConfigMap tied to the existing RHDH instance should work. See [Configuring the Developer Hub Custom Resource](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.2/html/administration_guide_for_red_hat_developer_hub/assembly-add-custom-app-file-openshift_admin-rhdh#proc-add-custom-app-config-file-ocp-operator_admin-rhdh) for further details about setting up the RHDH app config.
 
 If you are planning to use GitHub integration run `export RHDH_GITHUB_INTEGRATION=true` and to use GitLab integration run `export RHDH_GITLAB_INTEGRATION=true`. 
 
