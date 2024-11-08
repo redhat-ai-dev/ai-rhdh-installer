@@ -308,10 +308,12 @@ You are able to store these values in environment variables. Set the following t
 - `$EXISTING_EXTRA_ENV_SECRET`
   - Name of the extra environment variables Secret
 
-If using a [RHDH Operator](https://github.com/redhat-developer/rhdh-operator) instance, you will need to ensure the following fields are set to the developer hub entrypoint url under any of the app configs tied to your developer hub instance: 
+If using a [RHDH Operator](https://github.com/redhat-developer/rhdh-operator) instance the following required fields will be missing **by default (unless already setup)**:
 - `.app.baseUrl`
 - `.backend.baseUrl`
 - `.backend.cors.origin`
+
+You will need to ensure the above fields are set to the developer hub entrypoint url the tied app config. **Note**: Having these fields set under any app config ConfigMap tied to the existing RHDH instance should work. 
 
 If you are planning to use GitHub integration run `export RHDH_GITHUB_INTEGRATION=true` and to use GitLab integration run `export RHDH_GITLAB_INTEGRATION=true`. 
 
