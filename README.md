@@ -23,6 +23,9 @@ This helm chart installs and configures the following operators:
 
 ## Helm Chart Installer
 
+> [!IMPORTANT]
+> It is heavily recommended you run the Helm Chart on a fresh cluster that does not have pre-existing GitOps/ArgoCD, Pipelines/Tekton and Developer Hub Operators.
+
 ### Install
 
 Run `helm upgrade --install <release-name> <path-to-chart> --namespace <namespace> --create-namespace` to deploy default installations of the necessary operators.
@@ -41,7 +44,13 @@ This installer is incompatible with `default` namespace installations, install a
 
 ## Configuration
 
-For convenience you can configure your Red Hat Developer Hub, GitOps, and Pipelines Operators to enable the use of AI Software Templates by running the following:
+> [!IMPORTANT] 
+> It is recommended you configure using the `configure.sh` script listed below. Configuration options for pre-existing Instances are a work-in-progress (WIP). You can find information for those WIP options below:
+>- [Pre-existing GitOps/ArgoCD Instances](./docs/GITOPS-CONFIG.md)
+>- [Pre-existing Pipelines/Tekton Instances](./docs/PIPELINES-CONFIG.md)
+>- [Pre-existing Developer Hub Instances](./docs/RHDH-CONFIG.md)
+
+For convenience you can configure your Red Hat Developer Hub, GitOps, and Pipelines Operators to enable the use of AI Software Templates by running the following from the root of this repository:
 
 `bash ./configure.sh`
 
@@ -52,26 +61,6 @@ See the following for further customization of the configuration:
 - [Enabling GitLab Integration](#gitlab-integration)
 - [Setting Environment Variables](#setting-environment-variables-for-configuration-scripts)
 - [Setting Catalogs for Developer Hub Configuration](#setting-catalogs-for-developer-hub-configuration)
-
-Alternatively, if you do not wish to use the all-in-one `configure.sh` script, you can find documentation below for configuring each component individually:
-
-- [GitOps/ArgoCD Configuration](#gitopsargocd-configuration)
-- [Pipelines/Tekton Configuration](#pipelinestekton-configuration)
-- [Developer Hub Configuration](#developer-hub-configuration)
-
-### GitOps/ArgoCD Configuration
-
-Detailed documentation for configuring GitOps/ArgoCD can be found in [`GITOPS-CONFIG.md`](./docs/GITOPS-CONFIG.md)
-
-### Pipelines/Tekton Configuration
-
-Detailed documentation for configuring Pipelines/Tekton can be found in [`PIPELINES-CONFIG.md`](./docs/PIPELINES-CONFIG.md)
-
-### Developer Hub Configuration
-
-**Note**: It is required to go through the steps under documentation mentioned in [GitOps/ArgoCD Configuration](#gitopsargocd-configuration) and [Pipelines/Tekton Configuration](#pipelinestekton-configuration) before the steps under the documentation below.
-
-Detailed documentation for configuring Developer Hub can be found in [`RHDH-CONFIG.md`](./docs/RHDH-CONFIG.md).
 
 ## GitLab Integration
 
