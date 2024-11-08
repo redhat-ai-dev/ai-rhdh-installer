@@ -126,6 +126,7 @@ Helpful reading can be found [here](https://backstage.io/docs/integrations/githu
 2. Navigate to `Docker Configuration` and grab your `.json` file.
    1. Store this `.json` somewhere safe.
 3. Create a Quay Organization and create an App under that Organization.
+   1. These names can be different. The Quay Organization name is what will be entered as part of your AI Software Template.
 4. Click into the App and create an OAuth token with `create`, `read`, and `write` access to repositories.
    1. Store this token somewhere safe.
 
