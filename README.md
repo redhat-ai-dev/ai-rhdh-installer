@@ -20,7 +20,7 @@ This helm chart installs and configures the following operators:
 - Helm CLI (more information [here](https://helm.sh/docs/intro/install/))
 - GitHub or GitLab App created via [APP-SETUP.md](./docs/APP-SETUP.md)
 
-## CLI
+## Helm Chart Installer
 
 ### Install
 
