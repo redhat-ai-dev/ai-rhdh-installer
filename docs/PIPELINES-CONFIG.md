@@ -4,8 +4,8 @@ As part of this section you will find information about the following configurat
 
 1. [Configuring Pipelines/Tekton with the configuration script after using our `ai-rhdh-installer`](#ai-rhdh-installer-script-configuration)
 2. [Configuring Pipelines/Tekton manually after using our `ai-rhdh-installer`](#ai-rhdh-installer-manual-configuration)
-3. [Configuring Pipelines/Tekton with the configuration script for a pre-existing Red Hat Developer Hub instance](#pre-existing-instance-script-configuration)
-4. [Configuring Pipelines/Tekton manually for a pre-existing Red Hat Developer Hub instance](#pre-existing-instance-manual-configuration)
+3. [**WIP:** Configuring Pipelines/Tekton with the configuration script for a pre-existing Red Hat Developer Hub instance](#pre-existing-instance-script-configuration)
+4. [**WIP:** Configuring Pipelines/Tekton manually for a pre-existing Red Hat Developer Hub instance](#pre-existing-instance-manual-configuration)
 
 ### Prerequisites
 
@@ -303,7 +303,7 @@ imagePullSecrets:
 " >/dev/null
 ```
 
-### Pre-Existing Instance: Script Configuration
+### WIP: Pre-Existing Instance: Script Configuration
 
 #### Step 1: Required Information
 
@@ -365,7 +365,7 @@ Once you have done the prior steps and have the information from the prior steps
 1. Run `export RHDH_INSTANCE_PROVIDED=true`
 2. Run `bash ./scripts/configure-pipelines.sh` and follow the prompts in the command line
 
-### Pre-Existing Instance: Manual Configuration
+### WIP: Pre-Existing Instance: Manual Configuration
 
 #### Step 1: Configure cosign
 
