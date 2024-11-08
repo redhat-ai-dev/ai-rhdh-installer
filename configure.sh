@@ -2,8 +2,18 @@
 
 # Variables
 BASE_DIR="$(realpath $(dirname ${BASH_SOURCE[0]}))"
-RHDH_GITHUB_INTEGRATION=${RHDH_GITHUB_INTEGRATION:-true}
-RHDH_GITLAB_INTEGRATION=${RHDH_GITLAB_INTEGRATION:-false}
+
+# Check for presence of private.env file
+if [ -f "$BASE_DIR/private.env" ]; then
+    echo "... Sourcing private.env file found in repository root"
+    source $BASE_DIR/private.env
+else
+    echo "... No private.env file present"
+    echo "... Prompting user for input"
+fi
+
+export RHDH_GITHUB_INTEGRATION=${RHDH_GITHUB_INTEGRATION:-true}
+export RHDH_GITLAB_INTEGRATION=${RHDH_GITLAB_INTEGRATION:-false}
 
 # Secret variables
 export GITHUB__APP__ID=${GITHUB__APP__ID:-''}
@@ -150,3 +160,9 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 echo "Printing Installation Information: OK"
+
+echo "Creating new private.env file"
+if [ -f "$BASE_DIR/private.env" ]; then
+    echo "... Moving old private.env to private.env.backup"
+fi
+bash ./scripts/store-private-env.sh
