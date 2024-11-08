@@ -327,7 +327,7 @@ data:
         origin: https://backstage-ai-rh-developer-hub-ai-rhdh.apps.example-cluster.devcluster.openshift.com
 ```
 
-**Note**: Having these fields set under any app config ConfigMap tied to the existing RHDH instance should work. See [Configuring the Developer Hub Custom Resource](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.1/html/administration_guide_for_red_hat_developer_hub/assembly-install-rhdh-ocp#proc-config-rhdh-custom-resource_admin-rhdh) for further details about setting up the RHDH app config.
+**Note**: Having these fields set under any app config ConfigMap tied to the existing RHDH instance should work. See [Configuring the Developer Hub Custom Resource](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.2/html/administration_guide_for_red_hat_developer_hub/assembly-add-custom-app-file-openshift_admin-rhdh#proc-add-custom-app-config-file-ocp-operator_admin-rhdh) for further details about setting up the RHDH app config.
 
 If you are planning to use GitHub integration run `export RHDH_GITHUB_INTEGRATION=true` and to use GitLab integration run `export RHDH_GITLAB_INTEGRATION=true`. 
 
