@@ -62,6 +62,10 @@ Detailed documentation for configuring Pipelines/Tekton can be found in [`PIPELI
 
 Detailed documentation for configuring Developer Hub can be found in [`RHDH-CONFIG.md`](./docs/RHDH-CONFIG.md).
 
+## GitLab Integration
+
+To configure RHDH to use GitLab as the git repository source, you will need to first run `export RHDH_GITLAB_INTEGRATION=true` before running any of the [configuration](#configuration) scripts. Run `export RHDH_GITHUB_INTEGRATION=false` to disable GitHub integration.
+
 ## Setting Environment Variables for Configuration Scripts
 
 For more information regarding where you can obtain these values see [APP-SETUP.md](./docs/APP-SETUP.md)
