@@ -70,7 +70,7 @@ To configure RHDH to use GitLab as the git repository source, you will need to f
 
 For more information regarding where you can obtain these values see [APP-SETUP.md](./docs/APP-SETUP.md)
 
-Configuration scripts can either take user input or can have environment variables set to skip manual input. To do this, follow the steps below:
+Configuration scripts can either take user input or can have environment variables set to skip manual input. If you opt to do the manual input, a `private.env` file will be created for you at the end for future use. To preset your `private.env` and avoid manual input via CLI, follow the steps below:
 
 1. Run `cp default-private.env private.env` to copy the starting point into a private environment variables file
 2. Set each of these environment variables to the private values needed for the configuration scripts, surround all multiline values with `''`
@@ -98,7 +98,10 @@ Configuration scripts can either take user input or can have environment variabl
         - Docker Config JSON File with Authentication Credentials for a given [Quay.io](https://quay.io) Account
     - `QUAY__API_TOKEN`
         - Quay Org API Token
-3. Run `source private.env` to set all set environment variables within `private.env`
+    - `RHDH_GITHUB_INTEGRATION`
+        - Toggle GitHub integration (login). Accepts `true` or `false`
+    - `RHDH_GITLAB_INTEGRATION`
+        - Toggle GitLab integration (login). Accepts `true` or `false`
 
 ## Setting Catalogs for Developer Hub Configuration
 
