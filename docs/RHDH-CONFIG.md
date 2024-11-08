@@ -4,8 +4,8 @@ As part of this section you will find information about the following configurat
 
 1. [Configuring Developer Hub with the configuration script after using our `ai-rhdh-installer`](#ai-rhdh-installer-script-configuration)
 2. [Configuring Developer Hub manually after using our `ai-rhdh-installer`](#ai-rhdh-installer-manual-configuration)
-3. [Configuring Developer Hub with the configuration script for a pre-existing Red Hat Developer Hub instance](#pre-existing-instance-script-configuration)
-4. [Configuring Developer Hub manually for a pre-existing Red Hat Developer Hub instance](#pre-existing-instance-manual-configuration)
+3. [**WIP:** Configuring Developer Hub with the configuration script for a pre-existing Red Hat Developer Hub instance](#wip-pre-existing-instance-script-configuration)
+4. [**WIP:** Configuring Developer Hub manually for a pre-existing Red Hat Developer Hub instance](#wip-pre-existing-instance-manual-configuration)
 
 ### Prerequisites
 
@@ -288,7 +288,7 @@ kubectl -n $NAMESPACE get backstage ai-rh-developer-hub -o yaml | \
 
 See [GitOps/ArgoCD Configuration](GITOPS-CONFIG.md#ai-rhdh-installer-manual-configuration) for information on creating the ArgoCD ConfigMap and Secret.
 
-### Pre-Existing Instance: Script Configuration
+### WIP: Pre-Existing Instance: Script Configuration
 
 For bringing a pre-existing instance to use with `configure-dh.sh`, ensure you gather the following information:
 1. Namespace of RHDH & ArgoCD instance
@@ -352,7 +352,7 @@ Once you have done the prior steps and have the information from the prior steps
 1. Run `export RHDH_INSTANCE_PROVIDED=true`
 2. Run `bash ./scripts/configure-dh.sh` and follow the prompts in the command line
 
-### Pre-Existing Instance: Manual Configuration
+### WIP: Pre-Existing Instance: Manual Configuration
 
 #### Step 1: Create Extra Environment Variables Secret
 
