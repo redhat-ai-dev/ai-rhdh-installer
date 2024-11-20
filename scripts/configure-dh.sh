@@ -280,6 +280,7 @@ fi
 if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
     EXTRA_APPCONFIG=$(echo "$EXTRA_APPCONFIG" | yq ".auth.providers.github.production.clientId = \"\${GITHUB__APP__CLIENT__ID}\" |
         .auth.providers.github.production.clientSecret = \"\${GITHUB__APP__CLIENT__SECRET}\" |
+        .signInPage = \"github\" |
         .integrations.github[0].host = \"github.com\" |
         .integrations.github[0].apps[0].appId = \"\${GITHUB__APP__ID}\" |
         .integrations.github[0].apps[0].clientId = \"\${GITHUB__APP__CLIENT__ID}\" |
@@ -292,6 +293,7 @@ fi
 if [[ $RHDH_GITLAB_INTEGRATION == "true" ]]; then
     EXTRA_APPCONFIG=$(echo "$EXTRA_APPCONFIG" | yq ".auth.providers.gitlab.production.clientId = \"\${GITLAB__APP__CLIENT__ID}\" |
         .auth.providers.gitlab.production.clientSecret = \"\${GITLAB__APP__CLIENT__SECRET}\" |
+        .signInPage = \"gitlab\" |
         .integrations.gitlab[0].host = \"gitlab.com\" |
         .integrations.gitlab[0].token = \"\${GITLAB__TOKEN}\"" -M -)
     echo -n "."
