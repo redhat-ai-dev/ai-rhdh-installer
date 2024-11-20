@@ -1,17 +1,9 @@
 # Red Hat Developer Hub Installer for AI Software Templates
-
+ 
 > [!IMPORTANT] 
-> Currently, only the **GitHub Authentication** is supported. **GitLab Authentication** is planned for future versions.
-
-This helm chart installs and configures the following operators:
-
-|       Product       |      Installation       |                                                                                                      Configuration                                                                                                       |
-| :-----------------: | :---------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-|  OpenShift GitOps   | Operator `Subscription` |                                    Controlled by the values YAML file. If a subscription already exists, the installation will not modify it. A new instance of ArgoCD will be created.                                     |
-| OpenShift Pipelines | Operator `Subscription` | Controlled by the values YAML file. If a subscription already exists, the installation will not modify it. In all cases, the TektonConfig will be modified to enable Tekton Chains and the signing secret will be setup. |
-| Red Hat Developer Hub | Operator `Subscription` | Controlled by the values YAML file. If a subscription already exists, the installation will not modify it. A new instance of RHDH will be created. |
-
-**Note**: If a subscription for an operator already exists, the installation will not tamper with it.
+> This repository contains both a Helm chart for installing OpenShift Operators, as well as configuration scripts for configuring those Operators to enable AI Software Templates in Red Hat Developer Hub.
+> 
+> Currently, only **GitHub Authentication** is supported. **GitLab Authentication** is planned for future versions.
 
 ## Requirements
 
@@ -21,26 +13,45 @@ This helm chart installs and configures the following operators:
 - GitHub or GitLab app created via [APP-SETUP.md](./docs/APP-SETUP.md).
 - [Quay](https://quay.io/) image registry (more information [here](./docs/APP-SETUP.md#quay-setup)).
 
+
+
+
 ## Helm Chart Installer
 
 > [!IMPORTANT]
 > It is recommended you run the Helm chart on a fresh cluster that does not have pre-existing GitOps/ArgoCD, Pipelines/Tekton and Developer Hub Operators.
 
+This Helm chart installs and configures the following operators:
+
+|       Product       |      Installation       |                                                                                                      Configuration                                                                                                       |
+| :-----------------: | :---------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|  OpenShift GitOps   | Operator `Subscription` |                                    Controlled by the values YAML file. If a subscription already exists, the installation will not modify it. A new instance of ArgoCD will be created.                                     |
+| OpenShift Pipelines | Operator `Subscription` | Controlled by the values YAML file. If a subscription already exists, the installation will not modify it. In all cases, the TektonConfig will be modified to enable Tekton Chains and the signing secret will be setup. |
+| Red Hat Developer Hub | Operator `Subscription` | Controlled by the values YAML file. If a subscription already exists, the installation will not modify it. A new instance of RHDH will be created. |
+
+**Note**: If a subscription for an operator already exists, the installation will not tamper with it.
+
 ### Install
 
-Run `helm upgrade --install <release-name> <path-to-chart> --namespace <namespace> --create-namespace` to deploy default installations of the necessary operators.
+>[!WARNING]
+> This installer is incompatible with the `default` namespace. Install and uninstall commands *must* include `--namespace <target-namespace>`, or the context namespace should e updated. E.g. `oc project <target-namespace>`.
 
-#### Example
+To deploy default installations of the above Operators, run:
+```
+helm upgrade --install <release-name> <path-to-chart> --namespace <namespace> --create-namespace
+```
 
-`helm upgrade --install ai-rhdh ./chart --namespace ai-rhdh --create-namespace`
+For example, to deploy this Helm chart to the `ai-rhdh` namespace you can run:
+```
+helm upgrade --install ai-rhdh ./chart --namespace ai-rhdh --create-namespace
+```
 
 ### Uninstall
 
-`helm uninstall <release-name> --namespace <namespace>`
-
-### Default Namespace
-
-This installer is incompatible with `default` namespace installations, install and uninstall commands must include `--namespace <target-namespace>` or the context namespace must be changed, e.g. `oc project <target-namespace>`.
+To uninstall the Operators, run:
+```
+helm uninstall <release-name> --namespace <namespace>
+```
 
 ## Configuration
 
@@ -51,9 +62,9 @@ This installer is incompatible with `default` namespace installations, install a
 >- [Pre-existing Developer Hub Instances](./docs/RHDH-CONFIG.md)
 
 For convenience you can configure your Red Hat Developer Hub, GitOps, and Pipelines Operators to enable the use of AI Software Templates by running the following from the root of this repository:
-
-`bash ./configure.sh`
-
+```
+bash ./configure.sh
+```
 **Note**: If you changed the installation namespace used by the installer you will first need to run `export NAMESPACE=<namespace used>` as the default value is `ai-rhdh`.
 
 See the following for further customization of the configuration:
@@ -72,7 +83,7 @@ The Lightspeed plugin is installed as part of the Developer Hub configuration sc
 
 ## Setting Environment Variables for Configuration Scripts
 
-For more information regarding where you can obtain these values see [APP-SETUP.md](./docs/APP-SETUP.md)
+For more information regarding where you can obtain these values see [APP-SETUP.md](./docs/APP-SETUP.md).
 
 Configuration scripts can either take user input or can have environment variables set to skip manual input. If you opt to do the manual input, a `private.env` file will be created for you at the end for future use. To preset your `private.env` and avoid manual input via CLI, follow the steps below:
 
