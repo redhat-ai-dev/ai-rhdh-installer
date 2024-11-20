@@ -130,3 +130,5 @@ catalogs:
 export CATALOGS_FILE=<path-to-your-catalogs-list-file>
 ```
 4. Now when you run `configure-dh.sh` it should use `<path-to-your-catalogs-list-file>` instead
+
+Alternatively, you can edit the existing [`catalogs.yaml`](catalogs.yaml) file with your updated url(s).
