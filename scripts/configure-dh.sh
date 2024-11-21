@@ -35,6 +35,8 @@ GITLAB__APP__CLIENT__SECRET=${GITLAB__APP__CLIENT__SECRET:-''}
 GITLAB__TOKEN=${GITLAB__TOKEN:-''}
 QUAY__DOCKERCONFIGJSON=${QUAY__DOCKERCONFIGJSON:-''}
 QUAY__API_TOKEN=${QUAY__API_TOKEN:-''}
+LIGHTSPEED_MODEL_URL=${LIGHTSPEED_MODEL_URL:-''}
+LIGHTSPEED_API_TOKEN=${LIGHTSPEED_API_TOKEN:-''}
 
 # Use existing variables if RHDH instance is provided
 if [[ $RHDH_INSTANCE_PROVIDED != "true" ]] && [[ $RHDH_INSTANCE_PROVIDED != "false" ]]; then
@@ -125,8 +127,36 @@ fi
 
 # Reads Quay API Token
 # Optional: If an API Token is not entered, there will be none provided to the developer hub app config
-if [ -z "${QUAY__API_TOKEN}" ]; then
+if [[ ! $BYPASS_OPTIONAL_INPUT =~ ",QUAY__API_TOKEN" ]] && [ -z "${QUAY__API_TOKEN}" ]; then
     read -p "Enter your Quay API Token (Optional): " QUAY__API_TOKEN
+fi
+
+echo "OK"
+
+# Reads secrets for lightspeed plugin if enabling lightspeed integration
+if [[ ${LIGHTSPEED_INTEGRATION} == "true" ]]; then
+    # Reads lightspeed model endpoint URL
+    until [ ! -z "${LIGHTSPEED_MODEL_URL}" ]; do
+        read -p "Enter your model URL for lightspeed: " LIGHTSPEED_MODEL_URL
+        if [ -z "${LIGHTSPEED_MODEL_URL}" ]; then
+            echo "No model URL for lightspeed entered, try again."
+        fi
+    done
+    
+    # Reads API token for lightspeed plugin
+    # Optional: If no token is entered, lightspeed plugin will not use authenticated communication
+    if [[ ! $BYPASS_OPTIONAL_INPUT =~ ",LIGHTSPEED_API_TOKEN" ]] && [ -z "${LIGHTSPEED_API_TOKEN}" ]; then
+        read -p "Enter API token for lightspeed (Optional): " LIGHTSPEED_API_TOKEN
+    fi
+
+    # Make sure the target url ends in /v1
+    if ! [[ $LIGHTSPEED_MODEL_URL =~ \/v1$ ]]; then
+        LIGHTSPEED_MODEL_URL="$LIGHTSPEED_MODEL_URL/v1"
+    fi
+
+    # Keep the plugin checksum up to date with the latest release
+    plugin_sha=$(npm view @janus-idp/backstage-plugin-lightspeed dist.integrity)
+    yq -i ".plugins.[0].integrity = \"${plugin_sha}\"" $BASE_DIR/optional-plugins/lightspeed-plugins.yaml
 fi
 
 echo "OK"
@@ -207,6 +237,11 @@ if [ ! -z "${QUAY__API_TOKEN}" ]; then
         ".data.QUAY__API_TOKEN = \"$(echo "${QUAY__API_TOKEN}" | base64)\""  -M -I=0 -o=json)
     echo -n "."
 fi
+if [ ! -z "${LIGHTSPEED_API_TOKEN}" ]; then
+    EXTRA_ENV_SECRET_PATCH=$(echo "$EXTRA_ENV_SECRET_PATCH" | yq \
+        ".data.LIGHTSPEED_API_TOKEN = \"$(echo "${LIGHTSPEED_API_TOKEN}" | base64)\""  -M -I=0 -o=json)
+    echo -n "."
+fi
 if [ -z "${RHDH_EXTRA_ENV_SECRET}" ]; then
     kubectl create secret generic $EXTRA_ENV_SECRET -n $NAMESPACE
     if [ $? -ne 0 ]; then
@@ -265,6 +300,14 @@ if [ ! -z "${QUAY__API_TOKEN}" ]; then
     EXTRA_APPCONFIG=$(echo "$EXTRA_APPCONFIG" | yq ".proxy.endpoints./quay/api.headers.Authorization = \"Bearer \${QUAY__API_TOKEN}\"" -M -)
     echo -n "."
 fi
+if [[ $LIGHTSPEED_INTEGRATION == "true" ]]; then
+    EXTRA_APPCONFIG=$(echo "$EXTRA_APPCONFIG" | yq ".proxy.endpoints./lightspeed/api.target = \"${LIGHTSPEED_MODEL_URL}\"" -M -)
+
+    if [ ! -z "${LIGHTSPEED_API_TOKEN}" ]; then
+        EXTRA_APPCONFIG=$(echo "$EXTRA_APPCONFIG" | yq ".proxy.endpoints./lightspeed/api.headers.Authorization = \"Bearer \${LIGHTSPEED_API_TOKEN}\"" -M -)
+    fi
+    echo -n "."
+fi
 EXTRA_APPCONFIG=$EXTRA_APPCONFIG yq ".data[\"app-config.extra.yaml\"] = strenv(EXTRA_APPCONFIG)" $BASE_DIR/resources/developer-hub-app-config.yaml | \
     kubectl -n $NAMESPACE apply -f - >/dev/null
 if [ $? -ne 0 ]; then
@@ -301,7 +344,12 @@ if [ -z "$(kubectl -n $NAMESPACE get configmap $RHDH_PLUGINS_CONFIGMAP -o name -
     echo "FAIL"
     exit 1
 fi
-for f in $BASE_DIR/dynamic-plugins/*.yaml; do
+
+plugins=$BASE_DIR/dynamic-plugins/*.yaml
+if [[ $LIGHTSPEED_INTEGRATION == "true" ]]; then
+    plugins="$plugins $BASE_DIR/optional-plugins/lightspeed-plugins.yaml"
+fi
+for f in $plugins; do
     echo -n "* Patching in $(basename $f .yaml) plugins: "
     # Grab configmap and parse out the defined yaml file inside of its data to a temp file
     kubectl get configmap $RHDH_PLUGINS_CONFIGMAP -n $NAMESPACE -o yaml | yq '.data["dynamic-plugins.yaml"]' > temp-dynamic-plugins.yaml

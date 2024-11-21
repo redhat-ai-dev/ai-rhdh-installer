@@ -96,7 +96,7 @@ fi
 
 # Reads Quay DockerConfig JSON
 # Optional: If left blank during user prompt, the namespace secret will not be created
-if [ -z "${QUAY__DOCKERCONFIGJSON}" ]; then
+if [[ ! $BYPASS_OPTIONAL_INPUT =~ ",QUAY__DOCKERCONFIGJSON" ]] && [ -z "${QUAY__DOCKERCONFIGJSON}" ]; then
     read -p "Enter your Quay DockerConfig JSON (Optional|Use CTRL-D when finished): " -d $'\04' QUAY__DOCKERCONFIGJSON
     echo ""
 fi

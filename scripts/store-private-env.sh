@@ -16,6 +16,9 @@ VARS=(
     "QUAY__API_TOKEN"
     "RHDH_GITLAB_INTEGRATION"
     "RHDH_GITHUB_INTEGRATION"
+    "LIGHTSPEED_INTEGRATION"
+    "LIGHTSPEED_MODEL_URL"
+    "LIGHTSPEED_API_TOKEN"
 )
 
 # Store a backup of the private.env file if it exists
