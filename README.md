@@ -106,11 +106,12 @@ Configuration scripts can either take user input or can have environment variabl
         - Toggle GitHub integration (login). Accepts `true` or `false`
     - `RHDH_GITLAB_INTEGRATION`
         - Toggle GitLab integration (login). Accepts `true` or `false`
+    - `LIGHTSPEED_INTEGRATION`
+        - Toggle installing the lightspeed plugin
     - `LIGHTSPEED_MODEL_URL`
         - Target model URL for lightspeed plugin
     - `LIGHTSPEED_API_TOKEN`
         - API token for lightspeed plugin model service
-3. Run `source private.env` to set all set environment variables within `private.env`
 
 ## Setting Catalogs for Developer Hub Configuration
 
