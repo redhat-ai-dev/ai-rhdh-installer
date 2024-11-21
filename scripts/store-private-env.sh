@@ -19,6 +19,7 @@ VARS=(
     "LIGHTSPEED_INTEGRATION"
     "LIGHTSPEED_MODEL_URL"
     "LIGHTSPEED_API_TOKEN"
+    "RHDH_SIGNIN_PROVIDER"
 )
 
 # Store a backup of the private.env file if it exists

@@ -15,6 +15,7 @@ fi
 export RHDH_GITHUB_INTEGRATION=${RHDH_GITHUB_INTEGRATION:-true}
 export RHDH_GITLAB_INTEGRATION=${RHDH_GITLAB_INTEGRATION:-false}
 export LIGHTSPEED_INTEGRATION=${LIGHTSPEED_INTEGRATION:-false}
+export RHDH_SIGNIN_PROVIDER=${RHDH_SIGNIN_PROVIDER:-''}
 
 # Secret variables
 export GITHUB__APP__ID=${GITHUB__APP__ID:-''}
@@ -35,8 +36,11 @@ export LIGHTSPEED_API_TOKEN=${LIGHTSPEED_API_TOKEN:-''}
 # Skipped optional variables
 export BYPASS_OPTIONAL_INPUT=''
 
+signin_provider=''
 # Reads GitHub secrets if enabling GitHub integration
 if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
+    signin_provider='github'
+
     # Reads GitHub Org App ID
     until [ ! -z "${GITHUB__APP__ID}" ]; do
         read -p "Enter your GitHub App ID: " GITHUB__APP__ID
@@ -112,6 +116,32 @@ if [[ $RHDH_GITLAB_INTEGRATION == "true" ]]; then
             echo "No GitLab Token entered, try again."
         fi
     done
+
+    # Choose which sign in provider to use
+    if [[ $RHDH_GITHUB_INTEGRATION == "true" ]] && [[ ! $RHDH_SIGNIN_PROVIDER =~ ^(github|gitlab)$ ]]; then
+        echo "Multiple authentication providers detected"
+        PS3='Select the desired sign in method: '
+        options=("github" "gitlab")
+        select opt in "${options[@]}"
+        do
+            case $opt in
+                "github")
+                    signin_provider='github'
+                    echo "github selected"
+                    break
+                    ;;
+                "gitlab")
+                    signin_provider='gitlab'
+                    echo "gitlab selected"
+                    break
+                    ;;
+            esac
+        done
+    fi
+fi
+
+if [[ ! $RHDH_SIGNIN_PROVIDER =~ ^(github|gitlab)$ ]]; then 
+    RHDH_SIGNIN_PROVIDER="${signin_provider}"
 fi
 
 # Reads secrets for lightspeed plugin if enabling lightspeed integration
