@@ -77,7 +77,7 @@ Once you have done the prior steps and have the information from the prior steps
 You will follow the same steps as [step 3 of the script configuration for a pre-existing instance](#step-3-configure-cosign).
 
 #### Step 2: Kubernetes API Service Account
-First you will need to create the [service account](../chart/templates/k8s-serviceaccount.yaml)
+First you will need to create the [service account](../../chart/templates/k8s-serviceaccount.yaml)
 that RHDH will need to interact with the cluster such as
 creating tekton pipeline runs.
 

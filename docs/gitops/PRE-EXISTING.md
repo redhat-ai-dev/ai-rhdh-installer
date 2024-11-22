@@ -51,7 +51,7 @@ You will need the following information on hand to properly configure an existin
 - Token
 
 #### Step 2: ConfigMaps and Secrets
-In your chosen namespace you should apply the `argocd-config` ConfigMap under [`argocd-config.yaml` ](../resources/argocd-config.yaml).
+In your chosen namespace you should apply the `argocd-config` ConfigMap under [`argocd-config.yaml` ](../../resources/argocd-config.yaml).
 
 You will also need to create a Secret in your chosen namespace with the following key:value pairs and information gathered in [step 1](#step-1-required-information):
 1. `ARGOCD_USER`

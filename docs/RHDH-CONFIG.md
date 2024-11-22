@@ -5,7 +5,7 @@
 
 ### AI-RHDH-Installer Provisioned Operator Configuration
 
-For information related to configuring your Red Hat Developer Hub Operator that was provisioned with the help of the [`ai-rhdh-installer`](../../README.md#helm-chart-installer), see [`rhdh/INSTALLER-PROVISIONED.md`](./rhdh/INSTALLER-PROVISIONED.md).
+For information related to configuring your Red Hat Developer Hub Operator that was provisioned with the help of the `ai-rhdh-installer`, see [`rhdh/INSTALLER-PROVISIONED.md`](./rhdh/INSTALLER-PROVISIONED.md).
 
 ### Pre-Existing Operator Configuration
 
