@@ -120,22 +120,17 @@ if [[ $RHDH_GITLAB_INTEGRATION == "true" ]]; then
     # Choose which sign in provider to use
     if [[ $RHDH_GITHUB_INTEGRATION == "true" ]] && [[ ! $RHDH_SIGNIN_PROVIDER =~ ^(github|gitlab)$ ]]; then
         echo "Multiple authentication providers detected"
-        PS3='Select the desired sign in method: '
+        PS3='Select the desired sign in method (type in number or name): '
         options=("github" "gitlab")
         select opt in "${options[@]}"
         do
-            case $opt in
-                "github")
-                    signin_provider='github'
-                    echo "github selected"
-                    break
-                    ;;
-                "gitlab")
-                    signin_provider='gitlab'
-                    echo "gitlab selected"
-                    break
-                    ;;
-            esac
+            if [[ -n $opt ]]; then
+                signin_provider=$opt
+                break
+            elif [[ "${options[*]}" == *"$REPLY"* ]]; then
+                signin_provider=$REPLY
+                break
+            fi
         done
     fi
 fi
