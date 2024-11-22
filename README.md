@@ -85,7 +85,7 @@ The Lightspeed plugin is installed as part of the Developer Hub configuration sc
 
 For more information regarding where you can obtain these values see [APP-SETUP.md](./docs/APP-SETUP.md).
 
-Configuration scripts can either take user input or can have environment variables set to skip manual input. If you opt to do the manual input, a `private.env` file will be created for you at the end for future use. To preset your `private.env` and avoid manual input via CLI, follow the steps below:
+By running `configure.sh` you have the option of giving your input via CLI or by setting the environment variables listed below. If you opt for manual input, a `private.env` file will be created for you at the end for future use. To preset your `private.env` and avoid manual input via CLI, follow the steps below:
 
 1. Run `cp default-private.env private.env` to copy the starting point into a private environment variables file
 2. Set each of these environment variables to the private values needed for the configuration scripts, surround all multiline values with `''`
