@@ -12,9 +12,8 @@
 - Helm CLI (more information [here](https://helm.sh/docs/intro/install/)).
 - GitHub or GitLab app created via [APP-SETUP.md](./docs/APP-SETUP.md).
 - [Quay](https://quay.io/) image registry (more information [here](./docs/APP-SETUP.md#quay-setup)).
-
-
-
+- [yq](https://github.com/mikefarah/yq/) version 4.0+
+- [kubectl](https://github.com/kubernetes/kubectl) or [oc](https://docs.openshift.com/container-platform/4.16/cli_reference/openshift_cli/getting-started-cli.html) version compatible with your target cluster
 
 ## Helm Chart Installer
 

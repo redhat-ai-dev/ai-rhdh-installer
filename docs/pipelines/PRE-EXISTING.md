@@ -3,11 +3,6 @@
 > [!IMPORTANT] 
 > Currently support for pre-existing Pipelines/Tekton instances is a work-in-progress (WIP)
 
-### Prerequisites
-
-- [yq](https://github.com/mikefarah/yq/) version 4.0+
-- [kubectl](https://github.com/kubernetes/kubectl) or [oc](https://docs.openshift.com/container-platform/4.16/cli_reference/openshift_cli/getting-started-cli.html) version compatible with your target cluster
-
 ### Script Configuration
 
 #### Step 1: Required Information

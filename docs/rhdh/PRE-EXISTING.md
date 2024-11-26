@@ -6,8 +6,6 @@
 ### Prerequisites
 
 - Performed steps under both [GitOps/ArgoCD Configuration](../GITOPS-CONFIG.md) and [Pipelines/Tekton Configuration](../PIPELINES-CONFIG.md)
-- [yq](https://github.com/mikefarah/yq/) version 4.0+
-- [kubectl](https://github.com/kubernetes/kubectl) or [oc](https://docs.openshift.com/container-platform/4.16/cli_reference/openshift_cli/getting-started-cli.html) version compatible with your target cluster
 
 ### Script Configuration
 

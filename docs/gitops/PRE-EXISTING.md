@@ -5,11 +5,6 @@
 
 This document covers the configuration of a pre-existing OpenShift GitOps/ArgoCD Operator. This means the Operator was already present in the cluster, and in some cases, may be in use by other consumers.
 
-### Prerequisites
-
-- [yq](https://github.com/mikefarah/yq/) version 4.0+
-- [kubectl](https://github.com/kubernetes/kubectl) or [oc](https://docs.openshift.com/container-platform/4.16/cli_reference/openshift_cli/getting-started-cli.html) version compatible with your target cluster
-
 ### Script Configuration
 
 If you have your own GitOps/ArgoCD instance created, you can configure it to work with RHDH with the use of our config script. You will need the following information on hand:
