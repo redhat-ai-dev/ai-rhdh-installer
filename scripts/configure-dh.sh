@@ -21,6 +21,7 @@ RHDH_PLUGINS=${RHDH_PLUGINS:-''}
 RHDH_INSTANCE_PROVIDED=${RHDH_INSTANCE_PROVIDED:-false}
 RHDH_GITHUB_INTEGRATION=${RHDH_GITHUB_INTEGRATION:-true}
 RHDH_GITLAB_INTEGRATION=${RHDH_GITLAB_INTEGRATION:-false}
+RHDH_SIGNIN_PROVIDER=${RHDH_SIGNIN_PROVIDER:-''}
 
 # Secret variables
 GITHUB__APP__ID=${GITHUB__APP__ID:-''}
@@ -38,6 +39,7 @@ QUAY__API_TOKEN=${QUAY__API_TOKEN:-''}
 LIGHTSPEED_MODEL_URL=${LIGHTSPEED_MODEL_URL:-''}
 LIGHTSPEED_API_TOKEN=${LIGHTSPEED_API_TOKEN:-''}
 
+signin_provider=''
 # Use existing variables if RHDH instance is provided
 if [[ $RHDH_INSTANCE_PROVIDED != "true" ]] && [[ $RHDH_INSTANCE_PROVIDED != "false" ]]; then
     echo -n "RHDH_INSTANCE_PROVIDED needs to be set to either 'true' or 'false'"
@@ -56,6 +58,8 @@ echo -n "* Reading secrets: "
 
 # Reads GitHub secrets if enabling GitHub integration
 if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
+    signin_provider='github'
+
     # Reads GitHub Org App ID
     until [ ! -z "${GITHUB__APP__ID}" ]; do
         read -p "Enter your GitHub App ID: " GITHUB__APP__ID
@@ -123,6 +127,27 @@ if [[ $RHDH_GITLAB_INTEGRATION == "true" ]]; then
             echo "No GitLab Token entered, try again."
         fi
     done
+
+    # Choose which sign in provider to use
+    if [[ $RHDH_GITHUB_INTEGRATION == "true" ]] && [[ ! $RHDH_SIGNIN_PROVIDER =~ ^(github|gitlab)$ ]]; then
+        echo "Multiple authentication providers detected"
+        PS3='Select the desired sign in method (type in number or name): '
+        options=("github" "gitlab")
+        select opt in "${options[@]}"
+        do
+            if [[ -n $opt ]]; then
+                signin_provider=$opt
+                break
+            elif [[ "${options[*]}" == *"$REPLY"* ]]; then
+                signin_provider=$REPLY
+                break
+            fi
+        done
+    fi
+fi
+
+if [[ ! $RHDH_SIGNIN_PROVIDER =~ ^(github|gitlab)$ ]]; then 
+    RHDH_SIGNIN_PROVIDER="${signin_provider}"
 fi
 
 # Reads Quay API Token
@@ -292,8 +317,13 @@ fi
 if [[ $RHDH_GITLAB_INTEGRATION == "true" ]]; then
     EXTRA_APPCONFIG=$(echo "$EXTRA_APPCONFIG" | yq ".auth.providers.gitlab.production.clientId = \"\${GITLAB__APP__CLIENT__ID}\" |
         .auth.providers.gitlab.production.clientSecret = \"\${GITLAB__APP__CLIENT__SECRET}\" |
+        .signInPage = \"gitlab\" |
         .integrations.gitlab[0].host = \"gitlab.com\" |
         .integrations.gitlab[0].token = \"\${GITLAB__TOKEN}\"" -M -)
+    echo -n "."
+fi
+if [ ! -z "${RHDH_SIGNIN_PROVIDER}" ]; then
+    EXTRA_APPCONFIG=$(echo "$EXTRA_APPCONFIG" | yq ".signInPage = env(RHDH_SIGNIN_PROVIDER)" -M)
     echo -n "."
 fi
 if [ ! -z "${QUAY__API_TOKEN}" ]; then

@@ -2,8 +2,6 @@
  
 > [!IMPORTANT] 
 > This repository contains both a Helm chart for installing OpenShift Operators, as well as configuration scripts for configuring those Operators to enable AI Software Templates in Red Hat Developer Hub.
-> 
-> Currently, only **GitHub Authentication** is supported. **GitLab Authentication** is planned for future versions.
 
 ## Requirements
 
