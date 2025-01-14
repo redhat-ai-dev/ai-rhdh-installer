@@ -6,6 +6,7 @@ data:
   app-config.extra.yaml: |
     auth:
       environment: production
+    dangerouslyAllowSignInWithoutUserInCatalog: false
     catalog:
       rules:
         - allow:
