@@ -52,6 +52,7 @@
 5. In the `Developer Settings` of your newly created GitHub App, navigate to `Install App` and install it to your Organization.
 
 **Note:** It is helpful as part of this step to store the following information somewhere safe:
+- GitHub Organization Name
 - GitHub App ID
 - Client ID
 - Client secret

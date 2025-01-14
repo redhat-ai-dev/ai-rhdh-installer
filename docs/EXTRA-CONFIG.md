@@ -28,6 +28,8 @@ By running `configure.sh` you have the option of giving your input via CLI or by
         - User set GitHub App Webhook Secret
     - `GITHUB__APP__PRIVATE_KEY`
         - GitHub App Private Key
+    - `GITHUB_ORGANIZATION`
+        - Name of the tied GitHub organization
     - `GITOPS__GIT_TOKEN`
         - Git Personal Access Token (alternative to `GITLAB__TOKEN`)
     - `GITLAB__APP__CLIENT__ID`
