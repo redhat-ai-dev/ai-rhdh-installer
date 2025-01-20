@@ -90,6 +90,32 @@ The starting point of this app config is contained within [developer-hub-app-con
 
 ##### Step 2.1: GitHub Integration
 
+For enabling GitHub catalog for provisioning users and resources you will need to add the following under `.catalog` within the app config:
+
+```yaml
+providers:
+  github:
+    providerId:
+      organization: ${GITHUB_ORGANIZATION}
+      schedule:
+        frequency:
+          minutes: 30
+        initialDelay:
+          seconds: 15
+        timeout:
+          minutes: 15
+  githubOrg:
+    githubUrl: https://github.com
+    orgs: [ "${GITHUB_ORGANIZATION}" ]
+    schedule:
+      frequency:
+        minutes: 30
+      initialDelay:
+        seconds: 15
+      timeout:
+        minutes: 15
+```
+
 For enabling GitHub for authentication you will need to add the following under `.auth` within the app config:
 
 ```yaml
