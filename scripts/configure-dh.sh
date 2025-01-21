@@ -33,7 +33,7 @@ GITHUB__APP__CLIENT__SECRET=${GITHUB__APP__CLIENT__SECRET:-''}
 GITHUB__APP__WEBHOOK__URL=${GITHUB__APP__WEBHOOK__URL:-''}
 GITHUB__APP__WEBHOOK__SECRET=${GITHUB__APP__WEBHOOK__SECRET:-''}
 GITHUB__APP__PRIVATE_KEY=${GITHUB__APP__PRIVATE_KEY:-''}
-GITHUB_ORGANIZATION=${GITHUB_ORGANIZATION:-''}
+GITHUB__ORG__NAME=${GITHUB__ORG__NAME:-''}
 GITOPS__GIT_TOKEN=${GITOPS__GIT_TOKEN:-''}
 GITLAB__APP__CLIENT__ID=${GITLAB__APP__CLIENT__ID:-''}
 GITLAB__APP__CLIENT__SECRET=${GITLAB__APP__CLIENT__SECRET:-''}
@@ -106,9 +106,9 @@ if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
     done
 
     # Reads GitHub Org Name
-    until [ ! -z "${GITHUB_ORGANIZATION}" ]; do
-        read -p "Enter your GitHub Org Name: " GITHUB_ORGANIZATION
-        if [ -z "${GITHUB_ORGANIZATION}" ]; then
+    until [ ! -z "${GITHUB__ORG__NAME}" ]; do
+        read -p "Enter your GitHub Org Name: " GITHUB__ORG__NAME
+        if [ -z "${GITHUB__ORG__NAME}" ]; then
             echo "No GitHub Org Name entered, try again."
         fi
     done
@@ -260,7 +260,7 @@ if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
         .data.GITHUB__APP__WEBHOOK__URL = \"$(echo "${GITHUB__APP__WEBHOOK__URL}" | base64)\" |
         .data.GITHUB__APP__WEBHOOK__SECRET = \"$(echo "${GITHUB__APP__WEBHOOK__SECRET}" | base64)\" |
         .data.GITHUB__APP__PRIVATE_KEY = \"$(echo "${GITHUB__APP__PRIVATE_KEY}" | base64)\" |
-        .data.GITHUB_ORGANIZATION = \"$(echo "${GITHUB_ORGANIZATION}" | base64)\""  -M -I=0 -o=json)
+        .data.GITHUB__ORG__NAME = \"$(echo "${GITHUB__ORG__NAME}" | base64)\""  -M -I=0 -o=json)
     echo -n "."
 fi
 if [[ $RHDH_GITLAB_INTEGRATION == "true" ]]; then
@@ -318,12 +318,12 @@ fi
 if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
     EXTRA_APPCONFIG=$(echo "$EXTRA_APPCONFIG" | yq ".auth.providers.github.production.clientId = \"\${GITHUB__APP__CLIENT__ID}\" |
         .auth.providers.github.production.clientSecret = \"\${GITHUB__APP__CLIENT__SECRET}\" |
-        .catalog.providers.github.providerId.organization = \"\${GITHUB_ORGANIZATION}\" |
+        .catalog.providers.github.providerId.organization = \"\${GITHUB__ORG__NAME}\" |
         .catalog.providers.github.providerId.schedule.frequency.minutes = ${CATALOG_GITHUB_SCHEDULE_FREQUENCY_MINUTES} |
         .catalog.providers.github.providerId.schedule.initialDelay.seconds = ${CATALOG_GITHUB_SCHEDULE_INITIALDELAY_SECONDS} |
         .catalog.providers.github.providerId.schedule.timeout.minutes = ${CATALOG_GITHUB_SCHEDULE_TIMEOUT_MINUTES} |
         .catalog.providers.githubOrg.githubUrl = \"https://github.com\" |
-        .catalog.providers.githubOrg.orgs = [\"\${GITHUB_ORGANIZATION}\"] |
+        .catalog.providers.githubOrg.orgs = [\"\${GITHUB__ORG__NAME}\"] |
         .catalog.providers.githubOrg.schedule.frequency.minutes = ${CATALOG_GITHUB_SCHEDULE_FREQUENCY_MINUTES} |
         .catalog.providers.githubOrg.schedule.initialDelay.seconds = ${CATALOG_GITHUB_SCHEDULE_INITIALDELAY_SECONDS} |
         .catalog.providers.githubOrg.schedule.timeout.minutes = ${CATALOG_GITHUB_SCHEDULE_TIMEOUT_MINUTES} |

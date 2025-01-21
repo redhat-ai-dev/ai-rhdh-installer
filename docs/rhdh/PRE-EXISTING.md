@@ -95,7 +95,7 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=GITHUB__APP__WEBHOOK__URL=$(echo '<github_app_webhook_url>' | base64) \
     --from-literal=GITHUB__APP__WEBHOOK__SECRET=$(echo '<github_app_webhook_secret>' | base64) \
     --from-file=GITHUB__APP__PRIVATE_KEY='<path-to-app-pk>' \
-    --from-literal=GITHUB_ORGANIZATION=$(echo '<github_org_name>' | base64) \
+    --from-literal=GITHUB__ORG__NAME=$(echo '<github_org_name>' | base64) \
     --from-literal=GITOPS__GIT_TOKEN=$(echo '<git_pat>' | base64)
 ```
 
@@ -126,7 +126,7 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=GITHUB__APP__WEBHOOK__URL=$(echo '<github_app_webhook_url>' | base64) \
     --from-literal=GITHUB__APP__WEBHOOK__SECRET=$(echo '<github_app_webhook_secret>' | base64) \
     --from-file=GITHUB__APP__PRIVATE_KEY='<path-to-app-pk>' \
-    --from-literal=GITHUB_ORGANIZATION=$(echo '<github_org_name>' | base64) \
+    --from-literal=GITHUB__ORG__NAME=$(echo '<github_org_name>' | base64) \
     --from-literal=GITOPS__GIT_TOKEN=$(echo '<git_pat>' | base64) \
     --from-literal=GITLAB__APP__CLIENT__ID=$(echo '<gitlab_app_client_id>' | base64) \
     --from-literal=GITLAB__APP__CLIENT__SECRET=$(echo '<gitlab_app_client_secret>' | base64) \

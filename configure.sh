@@ -24,7 +24,7 @@ export GITHUB__APP__CLIENT__SECRET=${GITHUB__APP__CLIENT__SECRET:-''}
 export GITHUB__APP__WEBHOOK__URL=${GITHUB__APP__WEBHOOK__URL:-''}
 export GITHUB__APP__WEBHOOK__SECRET=${GITHUB__APP__WEBHOOK__SECRET:-''}
 export GITHUB__APP__PRIVATE_KEY=${GITHUB__APP__PRIVATE_KEY:-''}
-export GITHUB_ORGANIZATION=${GITHUB_ORGANIZATION:-''}
+export GITHUB__ORG__NAME=${GITHUB__ORG__NAME:-''}
 export GITOPS__GIT_TOKEN=${GITOPS__GIT_TOKEN:-''}
 export GITLAB__APP__CLIENT__ID=${GITLAB__APP__CLIENT__ID:-''}
 export GITLAB__APP__CLIENT__SECRET=${GITLAB__APP__CLIENT__SECRET:-''}
@@ -84,9 +84,9 @@ if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
     done
 
     # Reads GitHub Org Name
-    until [ ! -z "${GITHUB_ORGANIZATION}" ]; do
-        read -p "Enter your GitHub Org Name: " GITHUB_ORGANIZATION
-        if [ -z "${GITHUB_ORGANIZATION}" ]; then
+    until [ ! -z "${GITHUB__ORG__NAME}" ]; do
+        read -p "Enter your GitHub Org Name: " GITHUB__ORG__NAME
+        if [ -z "${GITHUB__ORG__NAME}" ]; then
             echo "No GitHub Org Name entered, try again."
         fi
     done

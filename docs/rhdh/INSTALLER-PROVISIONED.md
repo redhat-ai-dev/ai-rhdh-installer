@@ -50,7 +50,7 @@ kubectl -n $NAMESPACE patch secret ai-rh-developer-hub-env \
     \"GITHUB__APP__WEBHOOK__URL\": \"$(echo '<github_app_webhook_url>' | base64)\",
     \"GITHUB__APP__WEBHOOK__SECRET\": \"$(echo '<github_app_webhook_secret>' | base64)\",
     \"GITHUB__APP__PRIVATE_KEY\": \"$(base64 '</path/to/app/pk>')\",
-    \"GITHUB_ORGANIZATION\": \"$(echo '<github_org_name>' | base64)\",
+    \"GITHUB__ORG__NAME\": \"$(echo '<github_org_name>' | base64)\",
     \"GITOPS__GIT_TOKEN\": \"$(echo '<git_pat>' | base64)\"}}"
 ```
 
@@ -75,7 +75,7 @@ kubectl -n $NAMESPACE patch secret ai-rh-developer-hub-env \
     \"GITHUB__APP__WEBHOOK__URL\": \"$(echo '<github_app_webhook_url>' | base64)\",
     \"GITHUB__APP__WEBHOOK__SECRET\": \"$(echo '<github_app_webhook_secret>' | base64)\",
     \"GITHUB__APP__PRIVATE_KEY\": \"$(base64 '</path/to/app/pk>')\",
-    \"GITHUB_ORGANIZATION\": \"$(echo '<github_org_name>' | base64)\",
+    \"GITHUB__ORG__NAME\": \"$(echo '<github_org_name>' | base64)\",
     \"GITOPS__GIT_TOKEN\": \"$(echo '<git_pat>' | base64)\",
     \"GITLAB__APP__CLIENT__ID\": \"$(echo '<gitlab_app_client_id>' | base64)\",
     \"GITLAB__APP__CLIENT__SECRET\": \"$(echo '<gitlab_app_client_secret>' | base64)\",
@@ -96,7 +96,7 @@ To enable the GitHub catalog for provisioning users and resources you will need 
 providers:
   github:
     providerId:
-      organization: ${GITHUB_ORGANIZATION}
+      organization: ${GITHUB__ORG__NAME}
       schedule:
         frequency:
           minutes: 30
@@ -106,7 +106,7 @@ providers:
           minutes: 15
   githubOrg:
     githubUrl: https://github.com
-    orgs: [ "${GITHUB_ORGANIZATION}" ]
+    orgs: [ "${GITHUB__ORG__NAME}" ]
     schedule:
       frequency:
         minutes: 30
