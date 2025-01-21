@@ -90,7 +90,7 @@ The starting point of this app config is contained within [developer-hub-app-con
 
 ##### Step 2.1: GitHub Integration
 
-For enabling GitHub catalog for provisioning users and resources you will need to add the following under `.catalog` within the app config:
+To enable the GitHub catalog for provisioning users and resources you will need to add the following under `.catalog` within the app config:
 
 ```yaml
 providers:
