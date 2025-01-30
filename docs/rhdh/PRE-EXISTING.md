@@ -99,6 +99,25 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=GITOPS__GIT_TOKEN=$(echo '<git_pat>' | base64)
 ```
 
+**GitHub Enterprise**
+
+```sh
+K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token- | cut -d/ -f2 | head -1)
+K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
+kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
+    --from-literal=NODE_TLS_REJECT_UNAUTHORIZED=$(echo "0" | base64) \
+    --from-literal=K8S_SA_TOKEN=${K8S_SA_TOKEN} \
+    --from-literal=GITHUB__APP__ID=$(echo '<github_app_id>' | base64) \
+    --from-literal=GITHUB__APP__CLIENT__ID=$(echo '<github_app_client_id>' | base64) \
+    --from-literal=GITHUB__APP__CLIENT__SECRET=$(echo '<github_app_client_secret>' | base64) \
+    --from-literal=GITHUB__APP__WEBHOOK__URL=$(echo '<github_app_webhook_url>' | base64) \
+    --from-literal=GITHUB__APP__WEBHOOK__SECRET=$(echo '<github_app_webhook_secret>' | base64) \
+    --from-file=GITHUB__APP__PRIVATE_KEY='<path-to-app-pk>' \
+    --from-literal=GITHUB__HOST=$(echo '<github_hostname>' | base64) \
+    --from-literal=GITHUB__ORG__NAME=$(echo '<github_org_name>' | base64) \
+    --from-literal=GITOPS__GIT_TOKEN=$(echo '<git_pat>' | base64)
+```
+
 **GitLab**
 
 ```sh
@@ -112,7 +131,21 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=GITLAB__TOKEN=$(echo '<gitlab_pat>' | base64)
 ```
 
-**Both**
+**GitLab Self-hosted**
+
+```sh
+K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token- | cut -d/ -f2 | head -1)
+K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
+kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
+    --from-literal=NODE_TLS_REJECT_UNAUTHORIZED=$(echo "0" | base64) \
+    --from-literal=K8S_SA_TOKEN=${K8S_SA_TOKEN} \
+    --from-literal=GITLAB__APP__CLIENT__ID=$(echo '<gitlab_app_client_id>' | base64) \
+    --from-literal=GITLAB__APP__CLIENT__SECRET=$(echo '<gitlab_app_client_secret>' | base64) \
+    --from-literal=GITLAB__TOKEN=$(echo '<gitlab_pat>' | base64) \
+    --from-literal=GITLAB__HOST=$(echo '<gitlab_hostname>' | base64)
+```
+
+**GitHub & GitLab**
 
 ```sh
 K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token- | cut -d/ -f2 | head -1)

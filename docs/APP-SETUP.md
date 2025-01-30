@@ -58,6 +58,7 @@
 - Client secret
 - Webhook secret
 - Private key
+- GitHub hostname (if GitHub Enterprise instance)
 
 ### App Permissions
 
@@ -116,6 +117,7 @@ Helpful reading can be found [here](https://backstage.io/docs/integrations/githu
    - `openid`
    - `profile`
    - `email`
+- Keep note of your GitLab hostname (if Self-hosted)
 
 **Note:** Store your `Application ID` and `Secret` somewhere safe.
 

@@ -33,11 +33,13 @@ GITHUB__APP__CLIENT__SECRET=${GITHUB__APP__CLIENT__SECRET:-''}
 GITHUB__APP__WEBHOOK__URL=${GITHUB__APP__WEBHOOK__URL:-''}
 GITHUB__APP__WEBHOOK__SECRET=${GITHUB__APP__WEBHOOK__SECRET:-''}
 GITHUB__APP__PRIVATE_KEY=${GITHUB__APP__PRIVATE_KEY:-''}
+GITHUB__HOST=${GITHUB__HOST:-'github.com'}
 GITHUB__ORG__NAME=${GITHUB__ORG__NAME:-''}
 GITOPS__GIT_TOKEN=${GITOPS__GIT_TOKEN:-''}
 GITLAB__APP__CLIENT__ID=${GITLAB__APP__CLIENT__ID:-''}
 GITLAB__APP__CLIENT__SECRET=${GITLAB__APP__CLIENT__SECRET:-''}
 GITLAB__TOKEN=${GITLAB__TOKEN:-''}
+GITLAB__HOST=${GITLAB__HOST:-'gitlab.com'}
 QUAY__DOCKERCONFIGJSON=${QUAY__DOCKERCONFIGJSON:-''}
 QUAY__API_TOKEN=${QUAY__API_TOKEN:-''}
 LIGHTSPEED_MODEL_URL=${LIGHTSPEED_MODEL_URL:-''}
@@ -260,6 +262,7 @@ if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
         .data.GITHUB__APP__WEBHOOK__URL = \"$(echo "${GITHUB__APP__WEBHOOK__URL}" | base64)\" |
         .data.GITHUB__APP__WEBHOOK__SECRET = \"$(echo "${GITHUB__APP__WEBHOOK__SECRET}" | base64)\" |
         .data.GITHUB__APP__PRIVATE_KEY = \"$(echo "${GITHUB__APP__PRIVATE_KEY}" | base64)\" |
+        .data.GITHUB__HOST = \"$(echo "${GITLAB__HOST}" | base64)\" |
         .data.GITHUB__ORG__NAME = \"$(echo "${GITHUB__ORG__NAME}" | base64)\""  -M -I=0 -o=json)
     echo -n "."
 fi
@@ -267,7 +270,8 @@ if [[ $RHDH_GITLAB_INTEGRATION == "true" ]]; then
     EXTRA_ENV_SECRET_PATCH=$(echo "$EXTRA_ENV_SECRET_PATCH" | yq \
         ".data.GITLAB__APP__CLIENT__ID = \"$(echo "${GITLAB__APP__CLIENT__ID}" | base64)\" |
         .data.GITLAB__APP__CLIENT__SECRET = \"$(echo "${GITLAB__APP__CLIENT__SECRET}" | base64)\" |
-        .data.GITLAB__TOKEN = \"$(echo "${GITLAB__TOKEN}" | base64)\""  -M -I=0 -o=json)
+        .data.GITLAB__TOKEN = \"$(echo "${GITLAB__TOKEN}" | base64)\" |
+        .data.GITLAB__HOST = \"$(echo "${GITLAB__HOST}" | base64)\""  -M -I=0 -o=json)
     echo -n "."
 fi
 if [ ! -z "${QUAY__API_TOKEN}" ]; then
@@ -322,12 +326,12 @@ if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
         .catalog.providers.github.providerId.schedule.frequency.minutes = ${CATALOG_GITHUB_SCHEDULE_FREQUENCY_MINUTES} |
         .catalog.providers.github.providerId.schedule.initialDelay.seconds = ${CATALOG_GITHUB_SCHEDULE_INITIALDELAY_SECONDS} |
         .catalog.providers.github.providerId.schedule.timeout.minutes = ${CATALOG_GITHUB_SCHEDULE_TIMEOUT_MINUTES} |
-        .catalog.providers.githubOrg.githubUrl = \"https://github.com\" |
+        .catalog.providers.githubOrg.githubUrl = \"https://\${GITHUB__HOST}\" |
         .catalog.providers.githubOrg.orgs = [\"\${GITHUB__ORG__NAME}\"] |
         .catalog.providers.githubOrg.schedule.frequency.minutes = ${CATALOG_GITHUB_SCHEDULE_FREQUENCY_MINUTES} |
         .catalog.providers.githubOrg.schedule.initialDelay.seconds = ${CATALOG_GITHUB_SCHEDULE_INITIALDELAY_SECONDS} |
         .catalog.providers.githubOrg.schedule.timeout.minutes = ${CATALOG_GITHUB_SCHEDULE_TIMEOUT_MINUTES} |
-        .integrations.github[0].host = \"github.com\" |
+        .integrations.github[0].host = \"\${GITHUB__HOST}\" |
         .integrations.github[0].apps[0].appId = \"\${GITHUB__APP__ID}\" |
         .integrations.github[0].apps[0].clientId = \"\${GITHUB__APP__CLIENT__ID}\" |
         .integrations.github[0].apps[0].clientSecret = \"\${GITHUB__APP__CLIENT__SECRET}\" |
@@ -340,7 +344,7 @@ if [[ $RHDH_GITLAB_INTEGRATION == "true" ]]; then
     EXTRA_APPCONFIG=$(echo "$EXTRA_APPCONFIG" | yq ".auth.providers.gitlab.production.clientId = \"\${GITLAB__APP__CLIENT__ID}\" |
         .auth.providers.gitlab.production.clientSecret = \"\${GITLAB__APP__CLIENT__SECRET}\" |
         .signInPage = \"gitlab\" |
-        .integrations.gitlab[0].host = \"gitlab.com\" |
+        .integrations.gitlab[0].host = \"\${GITLAB__HOST}\" |
         .integrations.gitlab[0].token = \"\${GITLAB__TOKEN}\"" -M -)
     echo -n "."
 fi
