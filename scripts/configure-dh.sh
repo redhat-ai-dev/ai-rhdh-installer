@@ -262,7 +262,7 @@ if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
         .data.GITHUB__APP__WEBHOOK__URL = \"$(echo "${GITHUB__APP__WEBHOOK__URL}" | base64)\" |
         .data.GITHUB__APP__WEBHOOK__SECRET = \"$(echo "${GITHUB__APP__WEBHOOK__SECRET}" | base64)\" |
         .data.GITHUB__APP__PRIVATE_KEY = \"$(echo "${GITHUB__APP__PRIVATE_KEY}" | base64)\" |
-        .data.GITHUB__HOST = \"$(echo "${GITLAB__HOST}" | base64)\" |
+        .data.GITHUB__HOST = \"$(echo "${GITHUB__HOST}" | base64)\" |
         .data.GITHUB__ORG__NAME = \"$(echo "${GITHUB__ORG__NAME}" | base64)\""  -M -I=0 -o=json)
     echo -n "."
 fi
