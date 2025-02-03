@@ -52,11 +52,13 @@
 5. In the `Developer Settings` of your newly created GitHub App, navigate to `Install App` and install it to your Organization.
 
 **Note:** It is helpful as part of this step to store the following information somewhere safe:
+- GitHub Organization Name
 - GitHub App ID
 - Client ID
 - Client secret
 - Webhook secret
 - Private key
+- GitHub hostname (if GitHub Enterprise instance)
 
 ### App Permissions
 
@@ -115,6 +117,7 @@ Helpful reading can be found [here](https://backstage.io/docs/integrations/githu
    - `openid`
    - `profile`
    - `email`
+- Keep note of your GitLab hostname (if Self-hosted)
 
 **Note:** Store your `Application ID` and `Secret` somewhere safe.
 

@@ -24,10 +24,13 @@ export GITHUB__APP__CLIENT__SECRET=${GITHUB__APP__CLIENT__SECRET:-''}
 export GITHUB__APP__WEBHOOK__URL=${GITHUB__APP__WEBHOOK__URL:-''}
 export GITHUB__APP__WEBHOOK__SECRET=${GITHUB__APP__WEBHOOK__SECRET:-''}
 export GITHUB__APP__PRIVATE_KEY=${GITHUB__APP__PRIVATE_KEY:-''}
+export GITHUB__HOST=${GITHUB__HOST:-'github.com'}
+export GITHUB__ORG__NAME=${GITHUB__ORG__NAME:-''}
 export GITOPS__GIT_TOKEN=${GITOPS__GIT_TOKEN:-''}
 export GITLAB__APP__CLIENT__ID=${GITLAB__APP__CLIENT__ID:-''}
 export GITLAB__APP__CLIENT__SECRET=${GITLAB__APP__CLIENT__SECRET:-''}
 export GITLAB__TOKEN=${GITLAB__TOKEN:-''}
+export GITLAB__HOST=${GITLAB__HOST:-'gitlab.com'}
 export QUAY__DOCKERCONFIGJSON=${QUAY__DOCKERCONFIGJSON:-''}
 export QUAY__API_TOKEN=${QUAY__API_TOKEN:-''}
 export LIGHTSPEED_MODEL_URL=${LIGHTSPEED_MODEL_URL:-''}
@@ -79,6 +82,14 @@ if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
         echo ""
         if [ -z "${GITHUB__APP__PRIVATE_KEY}" ]; then
             echo "No GitHub App Private Key entered, try again."
+        fi
+    done
+
+    # Reads GitHub Org Name
+    until [ ! -z "${GITHUB__ORG__NAME}" ]; do
+        read -p "Enter your GitHub Org Name: " GITHUB__ORG__NAME
+        if [ -z "${GITHUB__ORG__NAME}" ]; then
+            echo "No GitHub Org Name entered, try again."
         fi
     done
 

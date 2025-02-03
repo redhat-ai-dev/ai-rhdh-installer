@@ -28,6 +28,10 @@ By running `configure.sh` you have the option of giving your input via CLI or by
         - User set GitHub App Webhook Secret
     - `GITHUB__APP__PRIVATE_KEY`
         - GitHub App Private Key
+    - `GITHUB__HOST`
+        - Hostname to GitHub service (defaults to `github.com`, alternative to `GITLAB__HOST`)
+    - `GITHUB__ORG__NAME`
+        - Name of the tied GitHub organization
     - `GITOPS__GIT_TOKEN`
         - Git Personal Access Token (alternative to `GITLAB__TOKEN`)
     - `GITLAB__APP__CLIENT__ID`
@@ -36,6 +40,8 @@ By running `configure.sh` you have the option of giving your input via CLI or by
         - GitLab App Client Secret (alternative to `GITHUB__APP__CLIENT__SECRET`)
     - `GITLAB__TOKEN`
         - GitLab Personal Access Token (alternative to `GITOP__GIT_TOKEN`)
+    - `GITLAB__HOST`
+        - Hostname to GitLab service (defaults to `gitlab.com`, alternative to `GITHUB__HOST`)
     - `QUAY__DOCKERCONFIGJSON`
         - Docker Config JSON File with Authentication Credentials for a given [Quay.io](https://quay.io) Account
     - `QUAY__API_TOKEN`

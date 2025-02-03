@@ -50,6 +50,23 @@ kubectl -n $NAMESPACE patch secret ai-rh-developer-hub-env \
     \"GITHUB__APP__WEBHOOK__URL\": \"$(echo '<github_app_webhook_url>' | base64)\",
     \"GITHUB__APP__WEBHOOK__SECRET\": \"$(echo '<github_app_webhook_secret>' | base64)\",
     \"GITHUB__APP__PRIVATE_KEY\": \"$(base64 '</path/to/app/pk>')\",
+    \"GITHUB__ORG__NAME\": \"$(echo '<github_org_name>' | base64)\",
+    \"GITOPS__GIT_TOKEN\": \"$(echo '<git_pat>' | base64)\"}}"
+```
+
+**GitHub Enterprise**
+
+```sh
+kubectl -n $NAMESPACE patch secret ai-rh-developer-hub-env \
+    --type 'merge' \
+    -p="{\"data\": {\"GITHUB__APP__ID\": \"$(echo '<github_app_id>' | base64)\",
+    \"GITHUB__APP__CLIENT__ID\": \"$(echo '<github_app_client_id>' | base64)\",
+    \"GITHUB__APP__CLIENT__SECRET\": \"$(echo '<github_app_client_secret>' | base64)\",
+    \"GITHUB__APP__WEBHOOK__URL\": \"$(echo '<github_app_webhook_url>' | base64)\",
+    \"GITHUB__APP__WEBHOOK__SECRET\": \"$(echo '<github_app_webhook_secret>' | base64)\",
+    \"GITHUB__APP__PRIVATE_KEY\": \"$(base64 '</path/to/app/pk>')\",
+    \"GITHUB__HOST\": \"$(echo '<github_hostname>' | base64)\",
+    \"GITHUB__ORG__NAME\": \"$(echo '<github_org_name>' | base64)\",
     \"GITOPS__GIT_TOKEN\": \"$(echo '<git_pat>' | base64)\"}}"
 ```
 
@@ -63,7 +80,18 @@ kubectl -n $NAMESPACE patch secret ai-rh-developer-hub-env \
     \"GITLAB__TOKEN\": \"$(echo '<gitlab_pat>' | base64)\"}}"
 ```
 
-**Both**
+**GitLab Self-hosted**
+
+```sh
+kubectl -n $NAMESPACE patch secret ai-rh-developer-hub-env \
+    --type 'merge' \
+    -p="{\"data\": {\"GITLAB__APP__CLIENT__ID\": \"$(echo '<gitlab_app_client_id>' | base64)\",
+    \"GITLAB__APP__CLIENT__SECRET\": \"$(echo '<gitlab_app_client_secret>' | base64)\",
+    \"GITLAB__TOKEN\": \"$(echo '<gitlab_pat>' | base64)\",
+    \"GITLAB__HOST\": \"$(echo '<gitlab_hostname>' | base64)\"}}"
+```
+
+**GitHub & GitLab**
 
 ```sh
 kubectl -n $NAMESPACE patch secret ai-rh-developer-hub-env \
@@ -74,6 +102,7 @@ kubectl -n $NAMESPACE patch secret ai-rh-developer-hub-env \
     \"GITHUB__APP__WEBHOOK__URL\": \"$(echo '<github_app_webhook_url>' | base64)\",
     \"GITHUB__APP__WEBHOOK__SECRET\": \"$(echo '<github_app_webhook_secret>' | base64)\",
     \"GITHUB__APP__PRIVATE_KEY\": \"$(base64 '</path/to/app/pk>')\",
+    \"GITHUB__ORG__NAME\": \"$(echo '<github_org_name>' | base64)\",
     \"GITOPS__GIT_TOKEN\": \"$(echo '<git_pat>' | base64)\",
     \"GITLAB__APP__CLIENT__ID\": \"$(echo '<gitlab_app_client_id>' | base64)\",
     \"GITLAB__APP__CLIENT__SECRET\": \"$(echo '<gitlab_app_client_secret>' | base64)\",
@@ -87,6 +116,32 @@ The base app config only contains what is needed to run Developer Hub at a worka
 The starting point of this app config is contained within [developer-hub-app-config.yaml](../../resources/developer-hub-app-config.yaml), this will be customized below depending on the desired integration.
 
 ##### Step 2.1: GitHub Integration
+
+To enable the GitHub catalog for provisioning users and resources you will need to add the following under `.catalog` within the app config:
+
+```yaml
+providers:
+  github:
+    providerId:
+      organization: ${GITHUB__ORG__NAME}
+      schedule:
+        frequency:
+          minutes: 30
+        initialDelay:
+          seconds: 15
+        timeout:
+          minutes: 15
+  githubOrg:
+    githubUrl: https://${GITHUB__HOST}
+    orgs: [ "${GITHUB__ORG__NAME}" ]
+    schedule:
+      frequency:
+        minutes: 30
+      initialDelay:
+        seconds: 15
+      timeout:
+        minutes: 15
+```
 
 For enabling GitHub for authentication you will need to add the following under `.auth` within the app config:
 
@@ -103,7 +158,7 @@ For enabling GitHub integration you will need to add the following under the roo
 ```yaml
 integrations:
   github:
-    - host: github.com
+    - host: ${GITHUB__HOST}
       apps:
         - appId: ${GITHUB__APP__ID}
           clientId: ${GITHUB__APP__CLIENT__ID}
@@ -136,7 +191,7 @@ For enabling GitLab integration you will need to add the following under the roo
 ```yaml
 integrations:
   gitlab:
-    - host: github.com
+    - host: ${GITLAB__HOST}
       token: ${GITLAB__TOKEN}
 ```
 
