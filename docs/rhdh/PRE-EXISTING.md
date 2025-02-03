@@ -134,8 +134,11 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=K8S_SA_TOKEN=${K8S_SA_TOKEN} \
     --from-literal=GITLAB__APP__CLIENT__ID=$(echo '<gitlab_app_client_id>' | base64) \
     --from-literal=GITLAB__APP__CLIENT__SECRET=$(echo '<gitlab_app_client_secret>' | base64) \
-    --from-literal=GITLAB__TOKEN=$(echo '<gitlab_pat>' | base64)
+    --from-literal=GITLAB__TOKEN=$(echo '<gitlab_pat>' | base64) \
+    --from-literal=GITLAB__GROUP__NAME=$(echo '<gitlab_group_name>' | base64)
 ```
+
+**Note:** When targeting the community hosted GitLab (gitlab.com), the `GITLAB__ORG__ENABLED` variable will be ignored as gitlab.com has organizations enabled always as specified in the [backstage docs](https://backstage.io/docs/integrations/gitlab/org#users).
 
 **GitLab Self-hosted**
 
@@ -148,7 +151,9 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=GITLAB__APP__CLIENT__ID=$(echo '<gitlab_app_client_id>' | base64) \
     --from-literal=GITLAB__APP__CLIENT__SECRET=$(echo '<gitlab_app_client_secret>' | base64) \
     --from-literal=GITLAB__TOKEN=$(echo '<gitlab_pat>' | base64) \
-    --from-literal=GITLAB__HOST=$(echo '<gitlab_hostname>' | base64)
+    --from-literal=GITLAB__HOST=$(echo '<gitlab_hostname>' | base64) \
+    --from-literal=GITLAB__GROUP__NAME=$(echo '<gitlab_group_name>' | base64) \
+    --from-literal=GITLAB__ORG__ENABLED=$(echo '<true|false>' | base64)
 ```
 
 **GitHub & GitLab**
@@ -169,7 +174,8 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=GITOPS__GIT_TOKEN=$(echo '<git_pat>' | base64) \
     --from-literal=GITLAB__APP__CLIENT__ID=$(echo '<gitlab_app_client_id>' | base64) \
     --from-literal=GITLAB__APP__CLIENT__SECRET=$(echo '<gitlab_app_client_secret>' | base64) \
-    --from-literal=GITLAB__TOKEN=$(echo '<gitlab_pat>' | base64)
+    --from-literal=GITLAB__TOKEN=$(echo '<gitlab_pat>' | base64) \
+    --from-literal=GITLAB__GROUP__NAME=$(echo '<gitlab_group_name>' | base64)
 ```
 
 Notice that `K8S_SA_TOKEN` does not need encoding as the other literal sets, this is because when the value is fetched from the Service Account Token Secret it comes back already encoded.

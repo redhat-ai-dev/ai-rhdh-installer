@@ -77,8 +77,11 @@ kubectl -n $NAMESPACE patch secret ai-rh-developer-hub-env \
     --type 'merge' \
     -p="{\"data\": {\"GITLAB__APP__CLIENT__ID\": \"$(echo '<gitlab_app_client_id>' | base64)\",
     \"GITLAB__APP__CLIENT__SECRET\": \"$(echo '<gitlab_app_client_secret>' | base64)\",
-    \"GITLAB__TOKEN\": \"$(echo '<gitlab_pat>' | base64)\"}}"
+    \"GITLAB__TOKEN\": \"$(echo '<gitlab_pat>' | base64)\",
+    \"GITLAB__GROUP__NAME\": \"$(echo '<gitlab_group_name>' | base64)\"}}"
 ```
+
+**Note:** When targeting the community hosted GitLab (gitlab.com), the `GITLAB__ORG__ENABLED` variable will be ignored as gitlab.com has organizations enabled always as specified in the [backstage docs](https://backstage.io/docs/integrations/gitlab/org#users). 
 
 **GitLab Self-hosted**
 
@@ -88,7 +91,9 @@ kubectl -n $NAMESPACE patch secret ai-rh-developer-hub-env \
     -p="{\"data\": {\"GITLAB__APP__CLIENT__ID\": \"$(echo '<gitlab_app_client_id>' | base64)\",
     \"GITLAB__APP__CLIENT__SECRET\": \"$(echo '<gitlab_app_client_secret>' | base64)\",
     \"GITLAB__TOKEN\": \"$(echo '<gitlab_pat>' | base64)\",
-    \"GITLAB__HOST\": \"$(echo '<gitlab_hostname>' | base64)\"}}"
+    \"GITLAB__HOST\": \"$(echo '<gitlab_hostname>' | base64)\",
+    \"GITLAB__GROUP__NAME\": \"$(echo '<gitlab_group_name>' | base64)\",
+    \"GITLAB__ORG__ENABLED\": \"$(echo '<true|false>' | base64)\"}}"
 ```
 
 **GitHub & GitLab**
@@ -106,7 +111,8 @@ kubectl -n $NAMESPACE patch secret ai-rh-developer-hub-env \
     \"GITOPS__GIT_TOKEN\": \"$(echo '<git_pat>' | base64)\",
     \"GITLAB__APP__CLIENT__ID\": \"$(echo '<gitlab_app_client_id>' | base64)\",
     \"GITLAB__APP__CLIENT__SECRET\": \"$(echo '<gitlab_app_client_secret>' | base64)\",
-    \"GITLAB__TOKEN\": \"$(echo '<gitlab_pat>' | base64)\"}}""
+    \"GITLAB__TOKEN\": \"$(echo '<gitlab_pat>' | base64)\",
+    \"GITLAB__GROUP__NAME\": \"$(echo '<gitlab_group_name>' | base64)\"}}"
 ```
 
 #### Step 2: Create the Extra App Config ConfigMap
@@ -175,6 +181,24 @@ kubectl -n $NAMESPACE apply -f resources/developer-hub-app-config.yaml
 ```
 
 ##### Step 2.2: GitLab Integration
+
+To enable the GitLab catalog for provisioning users and resources you will need to add the following under `.catalog` within the app config:
+
+```yaml
+providers:
+  github:
+    providerId:
+      host: ${GITLAB__HOST}
+      group: ${GITLAB__GROUP_NAME}
+      orgEnabled: ${GITLAB__ORG__ENABLED}
+      schedule:
+        frequency:
+          minutes: 30
+        initialDelay:
+          seconds: 15
+        timeout:
+          minutes: 15
+```
 
 For enabling GitLab for authentication you will need to add the following under `.auth` within the app config:
 
