@@ -8,6 +8,9 @@ EXTRA_ENV_SECRET="ai-rh-developer-hub-env" # secret created by rhdh installer to
 CATALOG_GITHUB_SCHEDULE_FREQUENCY_MINUTES="30"
 CATALOG_GITHUB_SCHEDULE_INITIALDELAY_SECONDS="15"
 CATALOG_GITHUB_SCHEDULE_TIMEOUT_MINUTES="15"
+CATALOG_GITLAB_SCHEDULE_FREQUENCY_MINUTES="30"
+CATALOG_GITLAB_SCHEDULE_INITIALDELAY_SECONDS="15"
+CATALOG_GITLAB_SCHEDULE_TIMEOUT_MINUTES="15"
 
 # Variables
 BASE_DIR="$(realpath $(dirname ${BASH_SOURCE[0]}))/.."
@@ -40,6 +43,8 @@ GITLAB__APP__CLIENT__ID=${GITLAB__APP__CLIENT__ID:-''}
 GITLAB__APP__CLIENT__SECRET=${GITLAB__APP__CLIENT__SECRET:-''}
 GITLAB__TOKEN=${GITLAB__TOKEN:-''}
 GITLAB__HOST=${GITLAB__HOST:-'gitlab.com'}
+GITLAB__GROUP__NAME=${GITLAB__GROUP__NAME:-''}
+GITLAB__ORG__ENABLED=${GITLAB__ORG__ENABLED:-''}
 QUAY__DOCKERCONFIGJSON=${QUAY__DOCKERCONFIGJSON:-''}
 QUAY__API_TOKEN=${QUAY__API_TOKEN:-''}
 LIGHTSPEED_MODEL_URL=${LIGHTSPEED_MODEL_URL:-''}
@@ -143,6 +148,38 @@ if [[ $RHDH_GITLAB_INTEGRATION == "true" ]]; then
             echo "No GitLab Token entered, try again."
         fi
     done
+
+    # Reads GitLab Group Name
+    until [ ! -z "${GITLAB__GROUP__NAME}" ]; do
+        read -p "Enter your GitLab Group Name: " GITLAB__GROUP__NAME
+        if [ -z "${GITLAB__GROUP__NAME}" ]; then
+            echo "No GitLab Group Name entered, try again."
+        fi
+    done
+
+    # Reads GitLab Org Enabled
+    if  [[ $RHDH_GITLAB_INTEGRATION == "true" ]] && [ -z "${GITLAB__ORG__ENABLED}" ] && [[ $GITLAB__HOST == "gitlab.com" ]]
+    then
+        GITLAB__ORG__ENABLED='true' # required for gitlab.com, see https://backstage.io/docs/integrations/gitlab/org#users
+    elif [[ $RHDH_GITLAB_INTEGRATION == "true" ]] && [ -z "${GITLAB__ORG__ENABLED}" ]
+    then
+        prompt=''
+        until [[ "${GITLAB__ORG__ENABLED}" == "true" ]] || [[ "${GITLAB__ORG__ENABLED}" == "false" ]]; do
+            read -p "Is GitLab Organizations enabled? (y/n): " prompt
+
+            case "$prompt" in
+                y)
+                    GITLAB__ORG__ENABLED='true'
+                    ;;
+                n)
+                    GITLAB__ORG__ENABLED='false'
+                    ;;
+                *)
+                    echo 'Please enter "y" or "n", try again.'
+                    ;;
+            esac
+        done
+    fi
 
     # Choose which sign in provider to use
     if [[ $RHDH_GITHUB_INTEGRATION == "true" ]] && [[ ! $RHDH_SIGNIN_PROVIDER =~ ^(github|gitlab)$ ]]; then
@@ -273,7 +310,9 @@ if [[ $RHDH_GITLAB_INTEGRATION == "true" ]]; then
         ".data.GITLAB__APP__CLIENT__ID = \"$(echo "${GITLAB__APP__CLIENT__ID}" | base64)\" |
         .data.GITLAB__APP__CLIENT__SECRET = \"$(echo "${GITLAB__APP__CLIENT__SECRET}" | base64)\" |
         .data.GITLAB__TOKEN = \"$(echo "${GITLAB__TOKEN}" | base64)\" |
-        .data.GITLAB__HOST = \"$(echo "${GITLAB__HOST}" | base64)\""  -M -I=0 -o=json)
+        .data.GITLAB__HOST = \"$(echo "${GITLAB__HOST}" | base64)\" |
+        .data.GITLAB__GROUP__NAME = \"$(echo "${GITLAB__GROUP__NAME}" | base64)\" |
+        .data.GITLAB__ORG__ENABLED = \"$(echo "${GITLAB__ORG__ENABLED}" | base64)\""  -M -I=0 -o=json)
     echo -n "."
 fi
 if [ ! -z "${QUAY__API_TOKEN}" ]; then
@@ -343,9 +382,17 @@ if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
     echo -n "."
 fi
 if [[ $RHDH_GITLAB_INTEGRATION == "true" ]]; then
+
     EXTRA_APPCONFIG=$(echo "$EXTRA_APPCONFIG" | yq ".auth.providers.gitlab.production.clientId = \"\${GITLAB__APP__CLIENT__ID}\" |
         .auth.providers.gitlab.production.clientSecret = \"\${GITLAB__APP__CLIENT__SECRET}\" |
         .signInPage = \"gitlab\" |
+        .catalog.providers.gitlab.providerId.host = \"\${GITLAB__HOST}\" |
+        .catalog.providers.gitlab.providerId.group = \"\${GITLAB__GROUP__NAME}\" |
+        .catalog.providers.gitlab.providerId.orgEnabled = \"\${GITLAB__ORG__ENABLED}\" |
+        .catalog.providers.gitlab.providerId.schedule.frequency.minutes = ${CATALOG_GITLAB_SCHEDULE_FREQUENCY_MINUTES} |
+        .catalog.providers.gitlab.providerId.schedule.initialDelay.seconds = ${CATALOG_GITLAB_SCHEDULE_INITIALDELAY_SECONDS} |
+        .catalog.providers.gitlab.providerId.schedule.timeout.minutes = ${CATALOG_GITLAB_SCHEDULE_TIMEOUT_MINUTES} |
+
         .integrations.gitlab[0].host = \"\${GITLAB__HOST}\" |
         .integrations.gitlab[0].token = \"\${GITLAB__TOKEN}\"" -M -)
     echo -n "."
