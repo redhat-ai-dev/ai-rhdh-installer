@@ -17,6 +17,8 @@ openshift-gitops:
         requests:
           cpu: "1"
           memory: 3Gi
+  # TLS check can cause unexpected hanging during login: https://argo-cd.readthedocs.io/en/stable/user-guide/commands/argocd_login/#options
+  skip-tls: true
 openshift-pipelines:
   enabled: true
   channel: pipelines-1.14
