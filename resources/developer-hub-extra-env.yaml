@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    labels:
+        rhdh.redhat.com/ext-config-sync: "true"
+    name: ai-rh-developer-hub-extra-env
+    annotations:
+        rhdhpai.redhat.com/rhdh-resource: "extra-envs"
+type: Opaque
+data: {}

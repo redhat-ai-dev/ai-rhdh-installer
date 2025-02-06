@@ -29,21 +29,15 @@
       NAMESPACE="{{.Release.Namespace}}"
       APPCONFIG_CONFIGMAP="developer-hub-base-app-config"
 
-      echo -n "* Creating RHDH Extra Variables Secret: "
+      echo -n "* Creating RHDH Base Variables Secret: "
       cat <<EOF | kubectl apply -f - >/dev/null
-      {{ include "rhdh.include.extra-env" . | indent 6 }}
+      {{ include "rhdh.include.env" . | indent 6 }}
       EOF
       echo "OK"
 
       echo -n "* Creating RHDH Base App Config: "
       cat <<EOF | kubectl apply -f - >/dev/null
       {{ include "rhdh.include.appconfig" . | indent 6 }}
-      EOF
-      echo "OK"
-
-      echo -n "* Creating RHDH Dynamic Plugins Config: "
-      cat <<EOF | kubectl apply -f - >/dev/null
-      {{ include "rhdh.include.plugins" . | indent 6 }}
       EOF
       echo "OK"
 
