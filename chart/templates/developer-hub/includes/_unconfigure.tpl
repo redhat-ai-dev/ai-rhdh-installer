@@ -22,21 +22,15 @@
       EOF
       echo "OK"
 
-      echo -n "* Deleting RHDH Dynamic Plugins Config: "
-      cat <<EOF | kubectl delete -f - >/dev/null
-      {{ include "rhdh.include.plugins" . | indent 6 }}
-      EOF
-      echo "OK"
-
       echo -n "* Deleting RHDH Base App Config: "
       cat <<EOF | kubectl delete -f - >/dev/null
       {{ include "rhdh.include.appconfig" . | indent 6 }}
       EOF
       echo "OK"
 
-      echo -n "* Deleting RHDH Extra Variables Secret: "
+      echo -n "* Deleting RHDH Variables Secret: "
       cat <<EOF | kubectl delete -f - >/dev/null
-      {{ include "rhdh.include.extra-env" . | indent 6 }}
+      {{ include "rhdh.include.env" . | indent 6 }}
       EOF
       echo "OK"
 {{ end }}

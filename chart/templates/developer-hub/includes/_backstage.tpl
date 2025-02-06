@@ -15,7 +15,6 @@ spec:
     appConfig:
       configMaps:
         - name: developer-hub-base-app-config
-    dynamicPluginsConfigMapName: dynamic-plugins
   database:
     enableLocalDb: true
   deployment:

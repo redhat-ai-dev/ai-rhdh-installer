@@ -2,6 +2,8 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   name: developer-hub-app-config
+  annotations:
+    rhdhpai.redhat.com/rhdh-resource: "app-config"
 data:
   app-config.extra.yaml: |
     auth:
