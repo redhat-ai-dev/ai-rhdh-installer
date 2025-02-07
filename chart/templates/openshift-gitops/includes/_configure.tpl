@@ -59,7 +59,7 @@
           ARGOCD_PASSWORD="$(kubectl get secret -n "$NAMESPACE" "ai-$RHDH_ARGOCD_INSTANCE-cluster" -o jsonpath="{.data.admin\.password}" | base64 --decode)"
           echo -n "."
           RETRY=0
-          while ! ./argocd login "$ARGOCD_HOSTNAME" --grpc-web --insecure --http-retry-max 5 --username admin --password "$ARGOCD_PASSWORD"{{- if index .Values "openshift-gitops" "skip-tls" }} --skip-test-tls{{- end }}>/dev/null; do
+          while ! ./argocd login "$ARGOCD_HOSTNAME" --grpc-web --insecure --http-retry-max 5 --username admin --password "$ARGOCD_PASSWORD"{{- if eq (index .Values "openshift-gitops" "skip-test-tls") "true" }} --skip-test-tls{{- end }}>/dev/null; do
             if [ "$RETRY" = "20" ]; then
               echo "FAIL"
               echo "[ERROR] Could not login to ArgoCD" >&2

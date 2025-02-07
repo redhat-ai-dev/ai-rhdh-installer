@@ -30,7 +30,7 @@ This Helm chart installs and configures the following operators:
 
 ### Helm Troubleshooting
 
-If you find the `ArgoCD Operator` is installed but the configuration is failing due to `context exceeded`, please ensure that `skip-tls` is set to `true` in your [values.yaml](./chart/values.yaml) file.
+If you find the `ArgoCD Operator` is installed but the configuration is failing due to `context exceeded`, please ensure that `skip-test-tls` is set to `true` in your [values.yaml](./chart/values.yaml) file.
 
 ### Install
 
