@@ -33,7 +33,7 @@ cat resources/tekton-config.yaml | kubectl patch tektonconfig config --type 'mer
 
 #### Step 2: RHDH Kubernetes Plugin Service Account
 
-As part of the `ai-rhdh-installer` a service account with a token secret was created in your desired namespace with the name `rhdh-kubernetes-plugin`, token secret should have a name pattern `rhdh-kubernetes-plugin-token-*`, keep note of this Secret.
+As part of the `ai-rhdh-installer` a service account with a token secret was created in your desired namespace with the name `rhdh-kubernetes-plugin`, token secret should have the name `rhdh-kubernetes-plugin-token`, keep note of this Secret.
 
 #### Step 3: Create App Namespace Setup Task
 

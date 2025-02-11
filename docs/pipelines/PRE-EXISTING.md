@@ -76,7 +76,7 @@ First you will need to create the [service account](../../chart/templates/k8s-se
 that RHDH will need to interact with the cluster such as
 creating tekton pipeline runs.
 
-Once the service account is created there will be a tied secret which stores the service account token, e.g. if a service account `rhdh-kubernetes-plugin` is created then a secret with the name pattern `rhdh-kubernetes-plugin-token-*` is also created.
+Once the service account is created there will be a tied secret which stores the service account token, e.g. if a service account `rhdh-kubernetes-plugin` is created then a secret with the name `rhdh-kubernetes-plugin-token` is also created.
 
 Keep note of the name of this secret.
 
