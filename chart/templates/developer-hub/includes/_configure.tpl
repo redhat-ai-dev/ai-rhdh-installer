@@ -63,6 +63,13 @@
       done
       echo "OK"
 
+      echo -n "* Waiting for RHDH deployment: "
+      until [[ "$(kubectl -n ai-rhdh get deployment "backstage-${BACKSTAGE_CR_NAME}" -o=jsonpath='{.status.conditions[?(@.type=="Progressing")].reason}' --ignore-not-found)" == "NewReplicaSetAvailable" ]]; do
+        echo -n "_"
+        sleep 2
+      done
+      echo "OK"
+
       echo -n "* Patching RHDH Default App Config: "
       APPCONFIG_DATA=$(mktemp)
       RHDH_URL="https://$(kubectl get route -n "$NAMESPACE" "backstage-${BACKSTAGE_CR_NAME}" --ignore-not-found -o jsonpath={.spec.host})"
@@ -74,6 +81,13 @@
       echo -n "."
       kubectl patch configmap $APPCONFIG_CONFIGMAP -n $NAMESPACE --type='merge' -p="{\"data\":{\"app-config.base.yaml\":\"$(echo "$(cat ${APPCONFIG_DATA})" | sed 's/"/\\"/g' | sed 's/$/\\n/g' | tr -d '\n')\"}}"
 
+      echo "OK"
+
+      echo -n "* Waiting for RHDH deployment patch: "
+      until [[ "$(kubectl -n ai-rhdh get deployment "backstage-${BACKSTAGE_CR_NAME}" -o=jsonpath='{.status.conditions[?(@.type=="Progressing")].reason}' --ignore-not-found)" == "NewReplicaSetAvailable" ]]; do
+        echo -n "_"
+        sleep 2
+      done
       echo "OK"
 
       # Clean up temporary files
