@@ -67,7 +67,13 @@ Once you have done the prior steps and have the information from the prior steps
 
 ### Manual Configuration
 
-#### Step 1: Create Extra Environment Variables Secret
+#### Step 1: Create Kubernetes Service Account and Token
+
+You can skip this step if these resources are already present in your desired namespace.
+
+For information related to creating these resources see [`KUBERNETES_SERVICEACCOUNT.md`](../pipelines/KUBERNETES_SERVICEACCOUNT.md).
+
+#### Step 2: Create Extra Environment Variables Secret
 
 You will need to create a Secret to store all the private environment variables for RHDH. This can be done one of the following ways:
 
