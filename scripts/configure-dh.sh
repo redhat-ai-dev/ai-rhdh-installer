@@ -452,7 +452,7 @@ fi
 
 # Add Tekton information and plugin to backstage deployment data
 echo -n "* Adding Tekton information and plugin to backstage deployment data: "
-K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token- | cut -d/ -f2 | head -1)
+K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token | cut -d/ -f2 | head -1)
 if [ $? -ne 0 ]; then
     echo "FAIL"
     exit 1

@@ -72,13 +72,9 @@ Once you have done the prior steps and have the information from the prior steps
 You will follow the same steps as [step 3 of the script configuration for a pre-existing instance](#step-3-configure-cosign).
 
 #### Step 2: Kubernetes API Service Account
-First you will need to create the [service account](../../chart/templates/k8s-serviceaccount.yaml)
-that RHDH will need to interact with the cluster such as
-creating tekton pipeline runs.
+You will first need to create a Kubernetes Service Account. You can reference [`KUBERNETES_SERVICEACCOUNT.md`](./KUBERNETES_SERVICEACCOUNT.md) for more information on how to create these resources.
 
-Once the service account is created there will be a tied secret which stores the service account token, e.g. if a service account `rhdh-kubernetes-plugin` is created then a secret with the name pattern `rhdh-kubernetes-plugin-token-*` is also created.
-
-Keep note of the name of this secret.
+It is important to keep in mind the name of both the Service Account and the Token Secret.
 
 #### Step 3: Create App Namespace Setup Task
 

@@ -312,7 +312,7 @@ Now you will need to make sure that all of the ArgoCD and Tekton tied resources 
 Run the following to patch in the Kubernetes Service Account Token that is needed for use under the Kubernetes dynamic plugin:
 
 ```sh
-K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token- | cut -d/ -f2 | head -1)
+K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token | cut -d/ -f2 | head -1)
 K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
 kubectl -n $NAMESPACE patch secret ai-rh-developer-hub-env \
     --type 'merge' \
