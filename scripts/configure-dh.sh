@@ -364,6 +364,12 @@ if [[ $LIGHTSPEED_INTEGRATION == "true" ]]; then
     fi
     echo -n "."
 fi
+# Only use for running end-to-end tests in CI, keep away from production
+if [[ $CI_DISABLE_AUTH == "true" ]]; then
+    EXTRA_APPCONFIG=$(echo "$EXTRA_APPCONFIG" | yq ".backend.auth.dangerouslyDisableDefaultAuthPolicy = true" -M -)
+    echo -n "."
+fi
+
 EXTRA_APPCONFIG=$EXTRA_APPCONFIG yq ".data[\"app-config.extra.yaml\"] = strenv(EXTRA_APPCONFIG)" $BASE_DIR/resources/developer-hub-app-config.yaml | \
     kubectl -n $NAMESPACE apply -f - >/dev/null
 if [ $? -ne 0 ]; then
