@@ -59,6 +59,8 @@ You can pass the `skip-test-tls` value as a flag in your Helm upgrade command as
 helm upgrade --install ai-rhdh ./chart --namespace ai-rhdh --create-namespace --set openshift-gitops.skip-test-tls=true
 ```
 
+**Note:** If you have `skip-test-tls` set to `false` and the install script encounters the `context deadline exceeded` error **5** times it will automatically try to skip the TLS check.
+
 ## Configuration
 
 > [!IMPORTANT] 
