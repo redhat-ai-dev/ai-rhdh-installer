@@ -56,6 +56,8 @@ By running `configure.sh` you have the option of giving your input via CLI or by
         - Target model URL for lightspeed plugin
     - `LIGHTSPEED_API_TOKEN`
         - API token for lightspeed plugin model service
+    - `RHDH_DISABLE_AUTH_POLICY`
+        - Disable API request authentication for RHDH. Useful for testing/automation purposes. **Do not use in production**. Accepts `true` or `false`.
 
 ## Setting Catalogs for Developer Hub Configuration
 
