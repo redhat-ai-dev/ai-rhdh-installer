@@ -25,6 +25,7 @@ RHDH_INSTANCE_PROVIDED=${RHDH_INSTANCE_PROVIDED:-false}
 RHDH_GITHUB_INTEGRATION=${RHDH_GITHUB_INTEGRATION:-true}
 RHDH_GITLAB_INTEGRATION=${RHDH_GITLAB_INTEGRATION:-false}
 RHDH_SIGNIN_PROVIDER=${RHDH_SIGNIN_PROVIDER:-''}
+RHDH_DISABLE_AUTH_POLICY=${RHDH_DISABLE_AUTH_POLICY:-false}
 
 # Secret variables
 GITHUB__APP__ID=${GITHUB__APP__ID:-''}
@@ -364,6 +365,12 @@ if [[ $LIGHTSPEED_INTEGRATION == "true" ]]; then
     fi
     echo -n "."
 fi
+# Only use for testing purposes, etc. Keep away from production
+if [[ $RHDH_DISABLE_AUTH_POLICY == "true" ]]; then
+    EXTRA_APPCONFIG=$(echo "$EXTRA_APPCONFIG" | yq ".backend.auth.dangerouslyDisableDefaultAuthPolicy = true" -M -)
+    echo -n "."
+fi
+
 EXTRA_APPCONFIG=$EXTRA_APPCONFIG yq ".data[\"app-config.extra.yaml\"] = strenv(EXTRA_APPCONFIG)" $BASE_DIR/resources/developer-hub-app-config.yaml | \
     kubectl -n $NAMESPACE apply -f - >/dev/null
 if [ $? -ne 0 ]; then
