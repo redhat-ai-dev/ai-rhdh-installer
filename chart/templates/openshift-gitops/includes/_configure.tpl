@@ -71,7 +71,7 @@
 
           echo "* Logging Into ArgoCD *"
           while (( RETRY < MAX_RETRY )); do
-            attempt_result=$(./argocd login "$ARGOCD_HOSTNAME" --grpc-web --insecure --http-retry-max 10 --username admin --password "$ARGOCD_PASSWORD"{{- if eq (index .Values "openshift-gitops" "skip-test-tls") true }} --skip-test-tls{{- end }} 2>&1)
+            attempt_result=$(./argocd login "$ARGOCD_HOSTNAME" --grpc-web --insecure --http-retry-max 10 --username admin --password "$ARGOCD_PASSWORD" 2>&1)
             exit_code=$?
 
             if [[ $exit_code -eq 0 ]]; then
@@ -79,17 +79,19 @@
               break
             fi
 
+            {{- if eq (index .Values "openshift-gitops" "skip-test-tls") true }}
             if echo "$attempt_result" | grep -q "context deadline exceeded"; then
               deadline_exceeded_tries=$((deadline_exceeded_tries + 1))
               if (( deadline_exceeded_tries == max_deadline_exceeded_tries )); then
                 deadline_exceeded_thrown=1
                 break
               fi
-              echo "Context deadline exceeded thrown $deadline_exceeded_tries time(s). Retrying .." 
-            else
-              echo -n "."
+              echo "Context deadline exceeded thrown $deadline_exceeded_tries time(s). Retrying .."
+              continue
             fi
-
+            {{- end }}
+             
+            echo -n "."
             RETRY=$((RETRY + 1))
             sleep 5
           done
