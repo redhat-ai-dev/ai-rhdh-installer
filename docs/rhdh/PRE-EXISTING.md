@@ -71,16 +71,25 @@ Once you have done the prior steps and have the information from the prior steps
 
 You can skip this step if these resources are already present in your desired namespace.
 
+**Note:** If the resources are already present in your desired namespace, you will need to ensure that `$KUBERNETES_SA` and `$KUBERNETES_SA_TOKEN_SECRET` environment variables are set to the correct values.
+
+```
+export KUBERNETES_SA=<your-sa-name>
+export KUBERNETES_SA_TOKEN_SECRET=<your-secret-name>
+```
+
 For information related to creating these resources see [`KUBERNETES_SERVICEACCOUNT.md`](../pipelines/KUBERNETES_SERVICEACCOUNT.md).
 
 #### Step 2: Create Extra Environment Variables Secret
+
+**Note:** The following commands assume that `export KUBERNETES_SA_TOKEN_SECRET=<your-secret-name>` and `export KUBERNETES_SA=<your-sa-name>` were run.
 
 You will need to create a Secret to store all the private environment variables for RHDH. This can be done one of the following ways:
 
 **No Integration**
 
 ```sh
-K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token | cut -d/ -f2 | head -1)
+K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep "$KUBERNETES_SA_TOKEN_SECRET" | cut -d/ -f2 | head -1)
 K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
 kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=NODE_TLS_REJECT_UNAUTHORIZED=$(echo "0" | base64) \
@@ -90,7 +99,7 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
 **GitHub**
 
 ```sh
-K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token | cut -d/ -f2 | head -1)
+K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep "$KUBERNETES_SA_TOKEN_SECRET" | cut -d/ -f2 | head -1)
 K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
 kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=NODE_TLS_REJECT_UNAUTHORIZED=$(echo "0" | base64) \
@@ -108,7 +117,7 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
 **GitHub Enterprise**
 
 ```sh
-K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token | cut -d/ -f2 | head -1)
+K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep "$KUBERNETES_SA_TOKEN_SECRET" | cut -d/ -f2 | head -1)
 K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
 kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=NODE_TLS_REJECT_UNAUTHORIZED=$(echo "0" | base64) \
@@ -127,7 +136,7 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
 **GitLab**
 
 ```sh
-K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token | cut -d/ -f2 | head -1)
+K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep "$KUBERNETES_SA_TOKEN_SECRET" | cut -d/ -f2 | head -1)
 K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
 kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=NODE_TLS_REJECT_UNAUTHORIZED=$(echo "0" | base64) \
@@ -140,7 +149,7 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
 **GitLab Self-hosted**
 
 ```sh
-K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token | cut -d/ -f2 | head -1)
+K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep "$KUBERNETES_SA_TOKEN_SECRET" | cut -d/ -f2 | head -1)
 K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
 kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=NODE_TLS_REJECT_UNAUTHORIZED=$(echo "0" | base64) \
@@ -154,7 +163,7 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
 **GitHub & GitLab**
 
 ```sh
-K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token | cut -d/ -f2 | head -1)
+K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep "$KUBERNETES_SA_TOKEN_SECRET" | cut -d/ -f2 | head -1)
 K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
 kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=NODE_TLS_REJECT_UNAUTHORIZED=$(echo "0" | base64) \
