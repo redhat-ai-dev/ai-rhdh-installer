@@ -50,6 +50,15 @@ To uninstall the Operators, run:
 helm uninstall <release-name> --namespace <namespace>
 ```
 
+### Helm Troubleshooting
+
+If you find the `ArgoCD Operator` is installed but the configuration is failing due to `context exceeded`, please ensure that `skip-test-tls` is set to `true` in your [values.yaml](./chart/values.yaml) file.
+
+You can pass the `skip-test-tls` value as a flag in your Helm upgrade command as well if you prefer:
+```
+helm upgrade --install ai-rhdh ./chart --namespace ai-rhdh --create-namespace --set openshift-gitops.skip-test-tls=true
+```
+
 ## Configuration
 
 > [!IMPORTANT] 
