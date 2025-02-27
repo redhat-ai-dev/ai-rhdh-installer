@@ -467,8 +467,8 @@ if [[ $RHDH_INSTANCE_PROVIDED == "true" ]]; then
         kubectl apply -f - >/dev/null
 else
     K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET -o yaml | yq '.data.token' -M -I=0)
-    
-    kubectl -n $NAMESPACE get secret $RHDH_EXTRA_ENV_SECRET -o yaml | yq ".data.K8S_SA = \"${KUBERNETES_SA}\"" | yq ".data.K8S_SA_TOKEN = \"${K8S_SA_TOKEN}\"" -M -I=0 | \
+    KUBERNETES_SA_ENCODED=$(echo -n "$KUBERNETES_SA" | base64 -w 0)
+    kubectl -n $NAMESPACE get secret $RHDH_EXTRA_ENV_SECRET -o yaml | yq ".data.K8S_SA = \"${KUBERNETES_SA_ENCODED}\" | .data.K8S_SA_TOKEN = \"${K8S_SA_TOKEN}\"" -M -I=0 | \
         kubectl apply -n $NAMESPACE -f - >/dev/null
 fi
 if [ $? -ne 0 ]; then
