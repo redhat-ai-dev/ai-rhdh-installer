@@ -1,4 +1,4 @@
-{{ define "rhdh.include.extra-env" }}
+{{ define "rhdh.include.env" }}
 apiVersion: v1
 kind: Secret
 metadata:
