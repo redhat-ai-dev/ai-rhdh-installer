@@ -91,9 +91,11 @@ You will need to create a Secret to store all the private environment variables 
 ```sh
 K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep "$KUBERNETES_SA_TOKEN_SECRET" | cut -d/ -f2 | head -1)
 K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
+KUBERNETES_SA_ENCODED=$(echo -n "$KUBERNETES_SA" | base64 -w 0)
 kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=NODE_TLS_REJECT_UNAUTHORIZED=$(echo "0" | base64) \
-    --from-literal=K8S_SA_TOKEN=${K8S_SA_TOKEN}
+    --from-literal=K8S_SA_TOKEN=${K8S_SA_TOKEN} \
+    --from-literal=K8S_SA=${KUBERNETES_SA_ENCODED}
 ```
 
 **GitHub**
@@ -101,6 +103,7 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
 ```sh
 K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep "$KUBERNETES_SA_TOKEN_SECRET" | cut -d/ -f2 | head -1)
 K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
+KUBERNETES_SA_ENCODED=$(echo -n "$KUBERNETES_SA" | base64 -w 0)
 kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=NODE_TLS_REJECT_UNAUTHORIZED=$(echo "0" | base64) \
     --from-literal=K8S_SA_TOKEN=${K8S_SA_TOKEN} \
@@ -111,7 +114,8 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=GITHUB__APP__WEBHOOK__SECRET=$(echo '<github_app_webhook_secret>' | base64) \
     --from-file=GITHUB__APP__PRIVATE_KEY='<path-to-app-pk>' \
     --from-literal=GITHUB__ORG__NAME=$(echo '<github_org_name>' | base64) \
-    --from-literal=GITOPS__GIT_TOKEN=$(echo '<git_pat>' | base64)
+    --from-literal=GITOPS__GIT_TOKEN=$(echo '<git_pat>' | base64) \
+    --from-literal=K8S_SA=${KUBERNETES_SA_ENCODED}
 ```
 
 **GitHub Enterprise**
@@ -119,6 +123,7 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
 ```sh
 K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep "$KUBERNETES_SA_TOKEN_SECRET" | cut -d/ -f2 | head -1)
 K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
+KUBERNETES_SA_ENCODED=$(echo -n "$KUBERNETES_SA" | base64 -w 0)
 kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=NODE_TLS_REJECT_UNAUTHORIZED=$(echo "0" | base64) \
     --from-literal=K8S_SA_TOKEN=${K8S_SA_TOKEN} \
@@ -130,7 +135,8 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-file=GITHUB__APP__PRIVATE_KEY='<path-to-app-pk>' \
     --from-literal=GITHUB__HOST=$(echo '<github_hostname>' | base64) \
     --from-literal=GITHUB__ORG__NAME=$(echo '<github_org_name>' | base64) \
-    --from-literal=GITOPS__GIT_TOKEN=$(echo '<git_pat>' | base64)
+    --from-literal=GITOPS__GIT_TOKEN=$(echo '<git_pat>' | base64) \
+    --from-literal=K8S_SA=${KUBERNETES_SA_ENCODED}
 ```
 
 **GitLab**
@@ -138,12 +144,14 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
 ```sh
 K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep "$KUBERNETES_SA_TOKEN_SECRET" | cut -d/ -f2 | head -1)
 K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
+KUBERNETES_SA_ENCODED=$(echo -n "$KUBERNETES_SA" | base64 -w 0)
 kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=NODE_TLS_REJECT_UNAUTHORIZED=$(echo "0" | base64) \
     --from-literal=K8S_SA_TOKEN=${K8S_SA_TOKEN} \
     --from-literal=GITLAB__APP__CLIENT__ID=$(echo '<gitlab_app_client_id>' | base64) \
     --from-literal=GITLAB__APP__CLIENT__SECRET=$(echo '<gitlab_app_client_secret>' | base64) \
-    --from-literal=GITLAB__TOKEN=$(echo '<gitlab_pat>' | base64)
+    --from-literal=GITLAB__TOKEN=$(echo '<gitlab_pat>' | base64) \
+    --from-literal=K8S_SA=${KUBERNETES_SA_ENCODED}
 ```
 
 **GitLab Self-hosted**
@@ -151,13 +159,15 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
 ```sh
 K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep "$KUBERNETES_SA_TOKEN_SECRET" | cut -d/ -f2 | head -1)
 K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
+KUBERNETES_SA_ENCODED=$(echo -n "$KUBERNETES_SA" | base64 -w 0)
 kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=NODE_TLS_REJECT_UNAUTHORIZED=$(echo "0" | base64) \
     --from-literal=K8S_SA_TOKEN=${K8S_SA_TOKEN} \
     --from-literal=GITLAB__APP__CLIENT__ID=$(echo '<gitlab_app_client_id>' | base64) \
     --from-literal=GITLAB__APP__CLIENT__SECRET=$(echo '<gitlab_app_client_secret>' | base64) \
     --from-literal=GITLAB__TOKEN=$(echo '<gitlab_pat>' | base64) \
-    --from-literal=GITLAB__HOST=$(echo '<gitlab_hostname>' | base64)
+    --from-literal=GITLAB__HOST=$(echo '<gitlab_hostname>' | base64) \
+    --from-literal=K8S_SA=${KUBERNETES_SA_ENCODED}
 ```
 
 **GitHub & GitLab**
@@ -165,6 +175,7 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
 ```sh
 K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep "$KUBERNETES_SA_TOKEN_SECRET" | cut -d/ -f2 | head -1)
 K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
+KUBERNETES_SA_ENCODED=$(echo -n "$KUBERNETES_SA" | base64 -w 0)
 kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=NODE_TLS_REJECT_UNAUTHORIZED=$(echo "0" | base64) \
     --from-literal=K8S_SA_TOKEN=${K8S_SA_TOKEN} \
@@ -178,7 +189,8 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=GITOPS__GIT_TOKEN=$(echo '<git_pat>' | base64) \
     --from-literal=GITLAB__APP__CLIENT__ID=$(echo '<gitlab_app_client_id>' | base64) \
     --from-literal=GITLAB__APP__CLIENT__SECRET=$(echo '<gitlab_app_client_secret>' | base64) \
-    --from-literal=GITLAB__TOKEN=$(echo '<gitlab_pat>' | base64)
+    --from-literal=GITLAB__TOKEN=$(echo '<gitlab_pat>' | base64) \
+    --from-literal=K8S_SA=${KUBERNETES_SA_ENCODED}
 ```
 
 Notice that `K8S_SA_TOKEN` does not need encoding as the other literal sets, this is because when the value is fetched from the Service Account Token Secret it comes back already encoded.
