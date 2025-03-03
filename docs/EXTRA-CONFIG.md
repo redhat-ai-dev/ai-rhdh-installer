@@ -45,7 +45,7 @@ By running `configure.sh` you have the option of giving your input via CLI or by
     - `GITLAB__GROUP__NAME`
         - Name of the tied GitLab group (alternative to `GITHUB__ORG__NAME`)
     - `GITLAB__ORG__ENABLED`
-        - Indicates whether target GitLab instance has organizations enabled or not
+        - Indicates whether target GitLab instance has organizations enabled or not - `true` or `false`
     - `QUAY__DOCKERCONFIGJSON`
         - Docker Config JSON File with Authentication Credentials for a given [Quay.io](https://quay.io) Account
     - `QUAY__API_TOKEN`
