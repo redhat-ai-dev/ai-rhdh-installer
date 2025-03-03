@@ -33,8 +33,7 @@ QUAY__DOCKERCONFIGJSON=${QUAY__DOCKERCONFIGJSON:-''}
 
 # Use existing variables if RHDH instance is provided
 if [[ $RHDH_INSTANCE_PROVIDED != "true" ]] && [[ $RHDH_INSTANCE_PROVIDED != "false" ]]; then
-    echo -n "RHDH_INSTANCE_PROVIDED needs to be set to either 'true' or 'false'"
-    echo "FAIL"
+    echo "[FAIL] RHDH_INSTANCE_PROVIDED needs to be set to either 'true' or 'false'"
     exit 1
 elif [[ $RHDH_INSTANCE_PROVIDED == "true" ]]; then
     NAMESPACE="${EXISTING_NAMESPACE}"
@@ -146,8 +145,7 @@ if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
                 echo "FAIL"
                 exit 1
             fi
-            echo -n "Extra environment variable secret '${RHDH_EXTRA_ENV_SECRET}' not found!"
-            echo "FAIL"
+            echo "[FAIL] Extra environment variable secret '${RHDH_EXTRA_ENV_SECRET}' not found!"
             exit 1
         elif [[ "$(kubectl -n ${NAMESPACE} get secret ${RHDH_EXTRA_ENV_SECRET} -o yaml | yq '.data.GITHUB__APP__WEBHOOK__URL')" == "null" ]]; then
             if [ $? -ne 0 ]; then

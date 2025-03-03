@@ -73,8 +73,7 @@ if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
                 echo "FAIL"
                 exit 1
             fi
-            echo -n "Extra environment variable secret '${RHDH_EXTRA_ENV_SECRET}' not found!"
-            echo "FAIL"
+            echo "[FAIL] Extra environment variable secret '${RHDH_EXTRA_ENV_SECRET}' not found!"
             exit 1
         elif [[ "$(kubectl -n ${NAMESPACE} get secret ${RHDH_EXTRA_ENV_SECRET} -o yaml | yq '.data.GITHUB__APP__WEBHOOK__URL')" == "null" ]]; then
             if [ $? -ne 0 ]; then
@@ -101,8 +100,7 @@ if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
                 echo "FAIL"
                 exit 1
             fi
-            echo -n "Extra environment variable secret '${RHDH_EXTRA_ENV_SECRET}' not found!"
-            echo "FAIL"
+            echo "[FAIL] Extra environment variable secret '${RHDH_EXTRA_ENV_SECRET}' not found!"
             exit 1
         elif [ ! -z "${RHDH_EXTRA_ENV_SECRET}" ] && \
             [[ "$(kubectl -n ${NAMESPACE} get secret ${RHDH_EXTRA_ENV_SECRET} -o yaml | yq '.data.GITHUB__APP__WEBHOOK__SECRET')" != "null" ]]; then

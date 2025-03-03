@@ -79,8 +79,7 @@ fetch_gh_webhook() {
 configure_dh() {
     # Use existing variables if RHDH instance is provided
     if [[ $RHDH_INSTANCE_PROVIDED != "true" ]] && [[ $RHDH_INSTANCE_PROVIDED != "false" ]]; then
-        echo -n "RHDH_INSTANCE_PROVIDED needs to be set to either 'true' or 'false'"
-        echo "FAIL"
+        echo "[FAIL] RHDH_INSTANCE_PROVIDED needs to be set to either 'true' or 'false'"
         return 1
     elif [[ $RHDH_INSTANCE_PROVIDED == "true" ]]; then
         NAMESPACE="${EXISTING_NAMESPACE}"
@@ -413,8 +412,7 @@ configure_dh() {
 
     # Dynamic Plugins ConfigMap should exist now
     if [ -z "$(kubectl -n $NAMESPACE get configmap $RHDH_PLUGINS_CONFIGMAP -o name --ignore-not-found)" ]; then
-        echo -n "Plugins configmap '${RHDH_PLUGINS_CONFIGMAP}' not found!"
-        echo "FAIL"
+        echo "[FAIL] Plugins configmap '${RHDH_PLUGINS_CONFIGMAP}' not found!"
         return 1
     fi
 
@@ -450,8 +448,7 @@ configure_dh() {
 
     # Adds extra env secret to RHDH deployment
     if [ -z "$(kubectl -n $NAMESPACE get secret $RHDH_EXTRA_ENV_SECRET -o name --ignore-not-found)" ]; then
-        echo -n "Extra env secret '${RHDH_EXTRA_ENV_SECRET}' not found!"
-        echo "FAIL"
+        echo "[FAIL] Extra env secret '${RHDH_EXTRA_ENV_SECRET}' not found!"
         return 1
     fi
     if [[ "$(is_extra_envs_attached "${RHDH_EXTRA_ENV_SECRET}" "${RHDH_DEPLOYMENT}" "${NAMESPACE}")" == "false" ]]; then
@@ -496,13 +493,11 @@ configure_dh() {
     # Add ArgoCD information to backstage deployment data
     echo -n "* Adding ArgoCD information to backstage deployment data: "
     if [ -z "$(kubectl -n $NAMESPACE get configmap "argocd-config" -o name --ignore-not-found)" ]; then
-        echo -n "ArgoCD config 'argocd-config' not found!"
-        echo "FAIL"
+        echo "[FAIL] ArgoCD config 'argocd-config' not found!"
         return 1
     fi
     if [ -z "$(kubectl -n $NAMESPACE get secret "rhdh-argocd-secret" -o name --ignore-not-found)" ]; then
-        echo -n "ArgoCD secret 'rhdh-argocd-secret' not found!"
-        echo "FAIL"
+        echo "[FAIL] ArgoCD secret 'rhdh-argocd-secret' not found!"
         return 1
     fi
     if [[ $RHDH_INSTANCE_PROVIDED == "true" ]]; then
