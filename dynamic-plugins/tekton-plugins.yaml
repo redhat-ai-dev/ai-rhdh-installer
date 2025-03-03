@@ -26,7 +26,7 @@ plugins:
         clusterLocatorMethods:
           - clusters:
               - authProvider: serviceAccount
-                name: rhdh-kubernetes-plugin
+                name: ${K8S_SA}
                 serviceAccountToken: ${K8S_SA_TOKEN}
                 skipTLSVerify: true
                 url: https://kubernetes.default.svc

@@ -44,6 +44,8 @@ QUAY__DOCKERCONFIGJSON=${QUAY__DOCKERCONFIGJSON:-''}
 QUAY__API_TOKEN=${QUAY__API_TOKEN:-''}
 LIGHTSPEED_MODEL_URL=${LIGHTSPEED_MODEL_URL:-''}
 LIGHTSPEED_API_TOKEN=${LIGHTSPEED_API_TOKEN:-''}
+KUBERNETES_SA=${KUBERNETES_SA:-'rhdh-kubernetes-plugin'}
+KUBERNETES_SA_TOKEN_SECRET=${KUBERNETES_SA_TOKEN_SECRET:-'rhdh-kubernetes-plugin-token'}
 
 signin_provider=''
 # Use existing variables if RHDH instance is provided
@@ -452,20 +454,21 @@ fi
 
 # Add Tekton information and plugin to backstage deployment data
 echo -n "* Adding Tekton information and plugin to backstage deployment data: "
-K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token | cut -d/ -f2 | head -1)
+K8S_SA_SECRET=$(kubectl get secrets -n "$NAMESPACE" -o name | grep "$KUBERNETES_SA_TOKEN_SECRET" | cut -d/ -f2 | head -1)
 if [ $? -ne 0 ]; then
     echo "FAIL"
     exit 1
 fi
 if [[ $RHDH_INSTANCE_PROVIDED == "true" ]]; then
     kubectl get deploy $RHDH_DEPLOYMENT -n $NAMESPACE -o yaml | \
-        yq ".spec.template.spec.containers[0].env += {\"name\": \"K8S_SA_TOKEN\", \"valueFrom\": {\"secretKeyRef\": {\"name\": \"${K8S_SA_SECRET_NAME}\", \"key\": \"token\"}}} | 
+        yq ".spec.template.spec.containers[0].env += {\"name\": \"K8S_SA_TOKEN\", \"valueFrom\": {\"secretKeyRef\": {\"name\": \"${K8S_SA_SECRET}\", \"key\": \"token\"}}} | 
+        .spec.template.spec.containers[0].env += {\"name\": \"K8S_SA\", \"valueFrom\": {\"secretKeyRef\": {\"name\": \"${KUBERNETES_SA}\", \"key\": \"token\"}}} |
         .spec.template.spec.containers[0].env |= unique_by(.name)" | \
         kubectl apply -f - >/dev/null
 else
-    K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
-    
-    kubectl -n $NAMESPACE get secret $RHDH_EXTRA_ENV_SECRET -o yaml | yq ".data.K8S_SA_TOKEN = \"${K8S_SA_TOKEN}\"" -M -I=0 | \
+    K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET -o yaml | yq '.data.token' -M -I=0)
+    KUBERNETES_SA_ENCODED=$(echo -n "$KUBERNETES_SA" | base64 -w 0)
+    kubectl -n $NAMESPACE get secret $RHDH_EXTRA_ENV_SECRET -o yaml | yq ".data.K8S_SA = \"${KUBERNETES_SA_ENCODED}\" | .data.K8S_SA_TOKEN = \"${K8S_SA_TOKEN}\"" -M -I=0 | \
         kubectl apply -n $NAMESPACE -f - >/dev/null
 fi
 if [ $? -ne 0 ]; then
