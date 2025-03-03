@@ -193,10 +193,10 @@ configure_dh() {
         done
 
         # Reads GitLab Org Enabled
-        if  [[ $RHDH_GITLAB_INTEGRATION == "true" ]] && [ -z "${GITLAB__ORG__ENABLED}" ] && [[ $GITLAB__HOST == "gitlab.com" ]]
+        if [ -z "${GITLAB__ORG__ENABLED}" ] && [[ $GITLAB__HOST == "gitlab.com" ]]
         then
             GITLAB__ORG__ENABLED='true' # required for gitlab.com, see https://backstage.io/docs/integrations/gitlab/org#users
-        elif [[ $RHDH_GITLAB_INTEGRATION == "true" ]] && [ -z "${GITLAB__ORG__ENABLED}" ]
+        elif [ -z "${GITLAB__ORG__ENABLED}" ]
         then
             prompt=''
             until [[ "${GITLAB__ORG__ENABLED}" == "true" ]] || [[ "${GITLAB__ORG__ENABLED}" == "false" ]]; do
