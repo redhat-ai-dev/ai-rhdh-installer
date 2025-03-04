@@ -1,7 +1,7 @@
 {{ define "rhdh.developer-hub.configure" }}
 {{ if (index .Values "developer-hub") }}
 - name: configure-developer-hub
-  image: "registry.redhat.io/openshift4/ose-tools-rhel8:latest"
+  image: "registry.redhat.io/openshift4/ose-tools-rhel9:v4.18.0-202502260503.p0.geb9bc9b.assembly.stream.el9"
   workingDir: /tmp
   command:
     - /bin/sh
