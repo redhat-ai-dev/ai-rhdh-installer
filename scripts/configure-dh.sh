@@ -72,7 +72,7 @@ fetch_gh_webhook() {
 }
 
 # Includes
-. ${INCLUDES_DIR}/fetch-installer-resources # Getter functions for installer resources
+. ${INCLUDES_DIR}/installer-resources # Getter functions for installer resources
 . ${INCLUDES_DIR}/configure-envs # Extra environment variable secret functions
 . ${INCLUDES_DIR}/configure-appconfig # AppConfig configmap functions
 . ${INCLUDES_DIR}/configure-plugins # Dynamic plugins configmap functions
