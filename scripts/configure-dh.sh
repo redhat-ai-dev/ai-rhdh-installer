@@ -55,23 +55,8 @@ KUBERNETES_SA_TOKEN_SECRET=${KUBERNETES_SA_TOKEN_SECRET:-'rhdh-kubernetes-plugin
 
 signin_provider=''
 
-# Fetches GitHub webhook url
-fetch_gh_webhook() {
-    local pipelines_namespace="${1}"
-    local namespace="${2}"
-    local extra_env_secret="${3}"
-
-    if [ -z "${extra_env_secret}" ]; then
-        kubectl get routes -n "${pipelines_namespace}" pipelines-as-code-controller -o jsonpath="https://{.spec.host}"
-    elif [ ! -z "$(kubectl get secret -n ${namespace} ${extra_env_secret} --ignore-not-found -o name)" ] && [[ "$(kubectl -n ${namespace} get secret ${extra_env_secret} -o yaml | yq '.data.GITHUB__APP__WEBHOOK__URL')" != "null" ]]; then
-        if [ $? -ne 0 ]; then return 1; fi
-        kubectl -n ${namespace} get secret ${extra_env_secret} -o yaml | yq '.data.GITHUB__APP__WEBHOOK__URL' | base64 -d
-    else
-        kubectl get routes -n "${pipelines_namespace}" pipelines-as-code-controller -o jsonpath="https://{.spec.host}"
-    fi
-}
-
 # Includes
+. ${INCLUDES_DIR}/webhooks # Include fetch function for getting webhook url
 . ${INCLUDES_DIR}/installer-resources # Getter functions for installer resources
 . ${INCLUDES_DIR}/configure-envs # Extra environment variable secret functions
 . ${INCLUDES_DIR}/configure-appconfig # AppConfig configmap functions
