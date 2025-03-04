@@ -14,6 +14,7 @@ CATALOG_GITLAB_SCHEDULE_TIMEOUT_MINUTES="15"
 
 # Variables
 BASE_DIR="$(realpath $(dirname ${BASH_SOURCE[0]}))/.."
+INCLUDES_DIR="$(realpath $(dirname ${BASH_SOURCE[0]}))/includes"
 CATALOGS_FILE=${CATALOGS_FILE:-"${BASE_DIR}/catalogs.yaml"}
 RHDH_DEPLOYMENT="${DEFAULT_RHDH_DEPLOYMENT}"
 RHDH_EXTRA_ENV_SECRET="${RHDH_DEPLOYMENT}-${EXTRA_ENV_SECRET}"
@@ -71,10 +72,10 @@ fetch_gh_webhook() {
 }
 
 # Includes
-. includes/fetch-installer-resources # Getter functions for installer resources
-. includes/configure-envs # Extra environment variable secret functions
-. includes/configure-appconfig # AppConfig configmap functions
-. includes/configure-plugins # Dynamic plugins configmap functions
+. ${INCLUDES_DIR}/fetch-installer-resources # Getter functions for installer resources
+. ${INCLUDES_DIR}/configure-envs # Extra environment variable secret functions
+. ${INCLUDES_DIR}/configure-appconfig # AppConfig configmap functions
+. ${INCLUDES_DIR}/configure-plugins # Dynamic plugins configmap functions
 
 configure_dh() {
     # Use existing variables if RHDH instance is provided
