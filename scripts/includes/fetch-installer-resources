@@ -11,15 +11,12 @@ get_installer_resource() {
 
     case "${rhdh_resource}" in
         extra-envs)
-            resource_type='secret'
-            ;;
+            resource_type='secret';;
         dynamic-plugins|appconfig)
-            resource_type='configmap'
-            ;;
+            resource_type='configmap';;
         *)
             echo "unknown rhdh resource type '${rhdh_resource}'"
-            return 1
-            ;;
+            return 1;;
     esac
 
     resource_name="$(kubectl get ${resource_type} -n ${namespace} -o=json --ignore-not-found | yq ".items[] | select(${filter}) | .metadata.name" -M)"

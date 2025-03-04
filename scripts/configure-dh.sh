@@ -204,14 +204,11 @@ configure_dh() {
 
                 case "$prompt" in
                     y)
-                        GITLAB__ORG__ENABLED='true'
-                        ;;
+                        GITLAB__ORG__ENABLED='true';;
                     n)
-                        GITLAB__ORG__ENABLED='false'
-                        ;;
+                        GITLAB__ORG__ENABLED='false';;
                     *)
-                        echo 'Please enter "y" or "n", try again.'
-                        ;;
+                        echo 'Please enter "y" or "n", try again.';;
                 esac
             done
         fi
