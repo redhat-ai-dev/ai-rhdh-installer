@@ -144,13 +144,15 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
 ```sh
 K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep "$KUBERNETES_SA_TOKEN_SECRET" | cut -d/ -f2 | head -1)
 K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
+KUBERNETES_SA_ENCODED=$(echo -n "$KUBERNETES_SA" | base64 -w 0)
 kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=NODE_TLS_REJECT_UNAUTHORIZED=$(echo "0" | base64) \
     --from-literal=K8S_SA_TOKEN=${K8S_SA_TOKEN} \
     --from-literal=GITLAB__APP__CLIENT__ID=$(echo '<gitlab_app_client_id>' | base64) \
     --from-literal=GITLAB__APP__CLIENT__SECRET=$(echo '<gitlab_app_client_secret>' | base64) \
     --from-literal=GITLAB__TOKEN=$(echo '<gitlab_pat>' | base64) \
-    --from-literal=GITLAB__GROUP__NAME=$(echo '<gitlab_group_name>' | base64)
+    --from-literal=GITLAB__GROUP__NAME=$(echo '<gitlab_group_name>' | base64) \
+    --from-literal=K8S_SA=${KUBERNETES_SA_ENCODED}
 ```
 
 **Note:** When targeting the community hosted GitLab (gitlab.com), the `GITLAB__ORG__ENABLED` variable will be ignored as gitlab.com has organizations enabled always as specified in the [backstage docs](https://backstage.io/docs/integrations/gitlab/org#users).
