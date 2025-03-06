@@ -21,9 +21,14 @@
       PIPELINES_NAMESPACE="openshift-pipelines"
 
       echo -n "* Waiting for pipelines operator deployment: "
-      until kubectl get namespace "$PIPELINES_NAMESPACE" >/dev/null 2>&1; do
-        echo -n "."
-        sleep 3
+      while true; do
+        kubectl wait --for=jsonpath='{.status.phase}'=Active namespace "$PIPELINES_NAMESPACE" > /dev/null 2>&1
+        if [ $? -ne 0 ]; then
+          echo -n "." && sleep 3
+        else
+          echo "OK"
+          break
+        fi
       done
       until kubectl get route -n "$PIPELINES_NAMESPACE" pipelines-as-code-controller >/dev/null 2>&1; do
         echo -n "."

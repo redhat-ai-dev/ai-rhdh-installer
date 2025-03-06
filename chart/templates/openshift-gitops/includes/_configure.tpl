@@ -31,26 +31,33 @@
       RHDH_ARGOCD_INSTANCE="$CHART-argocd"
 
       echo "* Waiting for Gitops Operator Deployment *"
-      until kubectl get argocds.argoproj.io -n openshift-gitops openshift-gitops -o jsonpath={.status.phase} | grep -q "^Available$"; do
-        echo -n "."
-        sleep 2
+      while true; do
+        kubectl wait --for=jsonpath='{.status.phase}'=Available argocds.argoproj.io -n openshift-gitops openshift-gitops > /dev/null 2>&1
+        if [ $? -ne 0 ]; then
+          echo -n "." && sleep 3
+        else
+          echo "OK"
+          break
+        fi
       done
-      echo "OK"
 
       echo "* Creating ArgoCD Instance *"
       cat <<EOF | kubectl apply -n "$NAMESPACE" -f - >/dev/null
       {{ include "rhdh.include.argocd" . | indent 6 }}
       EOF
       echo "... Waiting for ArgoCD Instance"
-      until kubectl get argocds.argoproj.io -n "$NAMESPACE" "ai-$RHDH_ARGOCD_INSTANCE" --ignore-not-found -o jsonpath={.status.phase} | grep -q "^Available$"; do
-        echo -n "."
-        sleep 2
+      while true; do
+        kubectl wait --for=jsonpath='{.status.phase}'=Available argocds.argoproj.io -n "$NAMESPACE" "ai-$RHDH_ARGOCD_INSTANCE" > /dev/null 2>&1
+        if [ $? -ne 0 ]; then
+          echo -n "." && sleep 3
+        else
+          echo "OK"
+          break
+        fi
       done
-      echo "OK"
       echo "... Fetching ArgoCD Instance Route"
       until kubectl get route -n "$NAMESPACE" "ai-$RHDH_ARGOCD_INSTANCE-server" >/dev/null 2>&1; do
-        echo -n "."
-        sleep 2
+        echo -n "." && sleep 3
       done
       echo "OK"
 
