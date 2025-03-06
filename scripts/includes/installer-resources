@@ -1,0 +1,96 @@
+#!/bin/bash
+
+# Gets RHDH installer configured resource name by RHDH resource type, deployment name, and namespace
+get_installer_resource() {
+    local rhdh_resource=$1
+    local deployment_name=$2
+    local namespace=$3
+    local filter=".metadata.annotations.\"rhdhpai.redhat.com/rhdh-installer-instance\" == \"${deployment_name}\" and .metadata.annotations.\"rhdhpai.redhat.com/rhdh-resource\" == \"${rhdh_resource}\""
+    local resource_type
+    local resource_name
+
+    case "${rhdh_resource}" in
+        extra-envs)
+            resource_type='secret';;
+        dynamic-plugins|appconfig)
+            resource_type='configmap';;
+        *)
+            echo "unknown rhdh resource type '${rhdh_resource}'"
+            return 1;;
+    esac
+
+    resource_name="$(kubectl get ${resource_type} -n ${namespace} -o=json --ignore-not-found | yq ".items[] | select(${filter}) | .metadata.name" -M)"
+    if [ -z "${resource_name}" ]; then
+        echo "error: not found"
+        return 1
+    fi
+
+    echo "${resource_name}"
+    return 0
+}
+
+# Gets RHDH installer configured extra environment variable secret name by deployment name and namespace
+get_extra_envs_secret() {
+    local deployment_name=$1
+    local namespace=$2
+    
+    get_installer_resource extra-envs $deployment_name $namespace
+    return $?
+}
+
+# Gets RHDH installer configured dynamic plugins configmap name by deployment name and namespace
+get_plugins_configmap() {
+    local deployment_name=$1
+    local namespace=$2
+    
+    get_installer_resource dynamic-plugins $deployment_name $namespace
+    return $?
+}
+
+# Gets RHDH installer configured app config configmap name by deployment name and namespace
+get_appconfig_configmap() {
+    local deployment_name=$1
+    local namespace=$2
+    
+    get_installer_resource app-config $deployment_name $namespace
+    return $?
+}
+
+# Checks if extra envs resource exists
+attached_extra_envs_exists() {
+    local deployment_name=$1
+    local namespace=$2
+    
+    get_extra_envs_secret $deployment_name $namespace > /dev/null
+    if [ $? -eq 0 ]; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}
+
+# Checks if dynamic plugins resource exists
+attached_plugins_exists() {
+    local deployment_name=$1
+    local namespace=$2
+    
+    get_plugins_configmap $deployment_name $namespace > /dev/null
+    if [ $? -eq 0 ]; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}
+
+# Checks if app config resource exists
+attached_appconfig_exists() {
+    local deployment_name=$1
+    local namespace=$2
+    
+    get_appconfig_configmap $deployment_name $namespace > /dev/null
+    if [ $? -eq 0 ]; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}

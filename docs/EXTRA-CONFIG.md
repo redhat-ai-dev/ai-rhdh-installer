@@ -31,7 +31,7 @@ By running `configure.sh` you have the option of giving your input via CLI or by
     - `GITHUB__HOST`
         - Hostname to GitHub service (defaults to `github.com`, alternative to `GITLAB__HOST`)
     - `GITHUB__ORG__NAME`
-        - Name of the tied GitHub organization
+        - Name of the tied GitHub organization (alternative to `GITLAB__GROUP__NAME`)
     - `GITOPS__GIT_TOKEN`
         - Git Personal Access Token (alternative to `GITLAB__TOKEN`)
     - `GITLAB__APP__CLIENT__ID`
@@ -42,6 +42,10 @@ By running `configure.sh` you have the option of giving your input via CLI or by
         - GitLab Personal Access Token (alternative to `GITOP__GIT_TOKEN`)
     - `GITLAB__HOST`
         - Hostname to GitLab service (defaults to `gitlab.com`, alternative to `GITHUB__HOST`)
+    - `GITLAB__GROUP__NAME`
+        - Name of the tied GitLab group (alternative to `GITHUB__ORG__NAME`)
+    - `GITLAB__ORG__ENABLED`
+        - Indicates whether target GitLab instance has organizations enabled or not - `true` or `false`
     - `QUAY__DOCKERCONFIGJSON`
         - Docker Config JSON File with Authentication Credentials for a given [Quay.io](https://quay.io) Account
     - `QUAY__API_TOKEN`

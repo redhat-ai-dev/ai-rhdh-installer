@@ -1,0 +1,128 @@
+#!/bin/bash
+
+# Returns true if the extra env secret should be patched and false if it should be created
+is_extra_envs_patch() {
+    local existing_extra_env_secret=$1
+    local deployment_name=$2
+    local namespace=$3
+    local extra_env_secret_exists="$(attached_extra_envs_exists "${deployment_name}" "${namespace}")"
+    
+    if [[ "${extra_env_secret_exists}" == "true" ]] && [[ $RHDH_INSTANCE_PROVIDED != "true" ]]; then
+        echo "true"
+    elif [[ $RHDH_INSTANCE_PROVIDED == "true" ]] && [ ! -z "${existing_extra_env_secret}" ]; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}
+
+# Builds extra envs secret data for GitHub integration
+build_gh_envs_secret_data() {
+    local env_secret_data="${1:-"$(yq -n -M -I=0 -o=json)"}"
+
+    echo "$env_secret_data" | yq \
+        ".data.GITHUB__APP__ID = \"$(echo "${GITHUB__APP__ID}" | base64)\" | 
+        .data.GITHUB__APP__CLIENT__ID = \"$(echo "${GITHUB__APP__CLIENT__ID}" | base64)\" |
+        .data.GITHUB__APP__CLIENT__SECRET = \"$(echo "${GITHUB__APP__CLIENT__SECRET}" | base64)\" |
+        .data.GITHUB__APP__WEBHOOK__URL = \"$(echo "${GITHUB__APP__WEBHOOK__URL}" | base64)\" |
+        .data.GITHUB__APP__WEBHOOK__SECRET = \"$(echo "${GITHUB__APP__WEBHOOK__SECRET}" | base64)\" |
+        .data.GITHUB__APP__PRIVATE_KEY = \"$(echo "${GITHUB__APP__PRIVATE_KEY}" | base64)\" |
+        .data.GITHUB__HOST = \"$(echo "${GITHUB__HOST}" | base64)\" |
+        .data.GITHUB__ORG__NAME = \"$(echo "${GITHUB__ORG__NAME}" | base64)\""  -M -I=0 -o=json
+}
+
+# Builds extra envs secret data for GitLab integration
+build_gl_envs_secret_data() {
+    local env_secret_data="${1:-"$(yq -n -M -I=0 -o=json)"}"
+
+    echo "$env_secret_data" | yq \
+        ".data.GITLAB__APP__CLIENT__ID = \"$(echo "${GITLAB__APP__CLIENT__ID}" | base64)\" |
+        .data.GITLAB__APP__CLIENT__SECRET = \"$(echo "${GITLAB__APP__CLIENT__SECRET}" | base64)\" |
+        .data.GITLAB__TOKEN = \"$(echo "${GITLAB__TOKEN}" | base64)\" |
+        .data.GITLAB__HOST = \"$(echo "${GITLAB__HOST}" | base64)\" |
+        .data.GITLAB__GROUP__NAME = \"$(echo "${GITLAB__GROUP__NAME}" | base64)\" |
+        .data.GITLAB__ORG__ENABLED = \"$(echo "${GITLAB__ORG__ENABLED}" | base64)\""  -M -I=0 -o=json
+}
+
+# Builds extra envs secret data for Quay integration
+build_quay_envs_secret_data() {
+    local env_secret_data="${1:-"$(yq -n -M -I=0 -o=json)"}"
+
+    echo "$env_secret_data" | yq ".data.QUAY__API_TOKEN = \"$(echo "${QUAY__API_TOKEN}" | base64)\""  -M -I=0 -o=json        
+}
+
+# Builds extra envs secret data for LightSpeed integration
+build_ls_envs_secret_data() {
+    local env_secret_data="${1:-"$(yq -n -M -I=0 -o=json)"}"
+
+    echo "$env_secret_data" | yq ".data.LIGHTSPEED_API_TOKEN = \"$(echo "${LIGHTSPEED_API_TOKEN}" | base64)\""  -M -I=0 -o=json
+}
+
+# Creates a secret to use to store the extra env vars for RHDH
+create_extra_env_secret() {
+    local extra_env_secret_name=$1
+    local deployment_name=$2
+    local namespace=$3
+    local env_secret_data="${4:-"$(yq -n -M -I=0 -o=json)"}"
+
+    if [[ $RHDH_INSTANCE_PROVIDED == "true" ]]; then
+        yq ".metadata.name = \"${extra_env_secret_name}\" |
+            .metadata.annotations.\"rhdhpai.redhat.com/rhdh-installer-instance\" = \"${deployment_name}\" |
+            .data = $(yq '.data' <<< $env_secret_data)" \
+            $BASE_DIR/resources/developer-hub-extra-env.yaml | kubectl -n $namespace apply -f -
+    else
+        yq ".metadata.name = \"${extra_env_secret_name}\" |
+            .metadata.annotations.\"rhdhpai.redhat.com/rhdh-installer-instance\" = \"${deployment_name}\" |
+            .metadata.annotations.\"rhdh.redhat.com/backstage-name\" = \"${BACKSTAGE_CR_NAME}\" |
+            .data = $(yq '.data' <<< $env_secret_data)" \
+            $BASE_DIR/resources/developer-hub-extra-env.yaml | kubectl -n $namespace apply -f -
+    fi
+
+    return $?
+}
+
+# Return true if there is an existing configured extra environment variable secret attached to the target RHDH deployment
+is_extra_envs_attached() {
+    local extra_envs_secret=$1
+    local deployment_name=$2
+    local namespace=$3
+    local extra_envs="$(kubectl get deployment $deployment_name -n $namespace -o=jsonpath='{.spec.template.spec}' --ignore-not-found |
+        yq ".containers[].envFrom[] | select(.secretRef.name == \"${extra_envs_secret}\") | .secretRef.name" -M)"
+    local extra_env_secret_exists="$(attached_extra_envs_exists "${deployment_name}" "${namespace}")"
+    
+    if [ -z "${extra_envs}" ]; then
+        echo "false"
+    elif [[ "${RHDH_INSTANCE_PROVIDED}" == "false" ]] && [[ "${extra_env_secret_exists}" == "false" ]]; then
+        echo "false"
+    else
+        echo "true"
+    fi
+}
+
+# Attach given extra environment variable secret to target deployment
+attach_extra_envs_to_deployment() {
+    local extra_envs_secret=$1
+    local deployment=$2
+    local namespace=$3
+
+    kubectl get deploy $deployment -n $namespace -o yaml | \
+        yq ".spec.template.spec.containers[0].envFrom += [{\"secretRef\": {\"name\": \"${extra_envs_secret}\"}}] |
+            .spec.template.spec.containers[0].envFrom |= unique_by(.secretRef.name)" | \
+        kubectl apply -f - >/dev/null
+
+    return $?
+}
+
+# Attach given extra environment variable secret to target Backstage CR
+attach_extra_envs_to_cr() {
+    local extra_envs_secret=$1
+    local cr_name=$2
+    local namespace=$3
+
+    kubectl -n $namespace get backstage $cr_name -o yaml | \
+        yq ".spec.application.extraEnvs.secrets += [{\"name\": \"${extra_envs_secret}\"}] | 
+            .spec.application.extraEnvs.secrets |= unique_by(.name)" -M | \
+        kubectl apply -n $namespace -f - >/dev/null
+
+    return $?
+}

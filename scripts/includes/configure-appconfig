@@ -1,0 +1,137 @@
+#!/bin/bash
+
+# Builds appconfig data for template catalog
+build_catalog_appconfig() {
+    local catalogs_file=$1
+    local appconfig_data="${2:-"$(yq -n -M)"}"
+    local catalog_locations=$(yq '.catalogs | map({"type": "url", "target": .})' $catalogs_file -M -I=0 -o=json)
+    
+    echo "${appconfig_data}" | yq ".catalog.locations = ${catalog_locations}" -M -
+}
+
+# Builds appconfig data for GitHub integration
+build_gh_appconfig() {
+    local appconfig_data="${1:-"$(yq -n -M)"}"
+
+    echo "${appconfig_data}" | yq ".auth.providers.github.production.clientId = \"\${GITHUB__APP__CLIENT__ID}\" |
+        .auth.providers.github.production.clientSecret = \"\${GITHUB__APP__CLIENT__SECRET}\" |
+        .catalog.providers.github.providerId.organization = \"\${GITHUB__ORG__NAME}\" |
+        .catalog.providers.github.providerId.schedule.frequency.minutes = ${CATALOG_GITHUB_SCHEDULE_FREQUENCY_MINUTES} |
+        .catalog.providers.github.providerId.schedule.initialDelay.seconds = ${CATALOG_GITHUB_SCHEDULE_INITIALDELAY_SECONDS} |
+        .catalog.providers.github.providerId.schedule.timeout.minutes = ${CATALOG_GITHUB_SCHEDULE_TIMEOUT_MINUTES} |
+        .catalog.providers.githubOrg.githubUrl = \"https://\${GITHUB__HOST}\" |
+        .catalog.providers.githubOrg.orgs = [\"\${GITHUB__ORG__NAME}\"] |
+        .catalog.providers.githubOrg.schedule.frequency.minutes = ${CATALOG_GITHUB_SCHEDULE_FREQUENCY_MINUTES} |
+        .catalog.providers.githubOrg.schedule.initialDelay.seconds = ${CATALOG_GITHUB_SCHEDULE_INITIALDELAY_SECONDS} |
+        .catalog.providers.githubOrg.schedule.timeout.minutes = ${CATALOG_GITHUB_SCHEDULE_TIMEOUT_MINUTES} |
+        .integrations.github[0].host = \"\${GITHUB__HOST}\" |
+        .integrations.github[0].apps[0].appId = \"\${GITHUB__APP__ID}\" |
+        .integrations.github[0].apps[0].clientId = \"\${GITHUB__APP__CLIENT__ID}\" |
+        .integrations.github[0].apps[0].clientSecret = \"\${GITHUB__APP__CLIENT__SECRET}\" |
+        .integrations.github[0].apps[0].webhookUrl = \"\${GITHUB__APP__WEBHOOK__URL}\" |
+        .integrations.github[0].apps[0].webhookSecret = \"\${GITHUB__APP__WEBHOOK__SECRET}\" |
+        .integrations.github[0].apps[0].privateKey = \"\${GITHUB__APP__PRIVATE_KEY}\"" -M -
+}
+
+# Builds appconfig data for GitLab integration
+build_gl_appconfig() {
+    local appconfig_data="${1:-"$(yq -n -M)"}"
+
+    echo "${appconfig_data}" | yq ".auth.providers.gitlab.production.clientId = \"\${GITLAB__APP__CLIENT__ID}\" |
+        .auth.providers.gitlab.production.clientSecret = \"\${GITLAB__APP__CLIENT__SECRET}\" |
+        .signInPage = \"gitlab\" |
+        .catalog.providers.gitlab.providerId.host = \"\${GITLAB__HOST}\" |
+        .catalog.providers.gitlab.providerId.group = \"\${GITLAB__GROUP__NAME}\" |
+        .catalog.providers.gitlab.providerId.orgEnabled = \"\${GITLAB__ORG__ENABLED}\" |
+        .catalog.providers.gitlab.providerId.schedule.frequency.minutes = ${CATALOG_GITLAB_SCHEDULE_FREQUENCY_MINUTES} |
+        .catalog.providers.gitlab.providerId.schedule.initialDelay.seconds = ${CATALOG_GITLAB_SCHEDULE_INITIALDELAY_SECONDS} |
+        .catalog.providers.gitlab.providerId.schedule.timeout.minutes = ${CATALOG_GITLAB_SCHEDULE_TIMEOUT_MINUTES} |
+
+        .integrations.gitlab[0].host = \"\${GITLAB__HOST}\" |
+        .integrations.gitlab[0].token = \"\${GITLAB__TOKEN}\"" -M -
+}
+
+# Builds appconfig data for sign in provider
+build_signin_appconfig() {
+    local appconfig_data="${1:-"$(yq -n -M)"}"
+
+    echo "${appconfig_data}" | yq ".signInPage = env(RHDH_SIGNIN_PROVIDER)" -M
+}
+
+# Builds appconfig data for Quay integration
+build_quay_appconfig() {
+    local appconfig_data="${1:-"$(yq -n -M)"}"
+
+    echo "${appconfig_data}" | yq ".proxy.endpoints./quay/api.headers.Authorization = \"Bearer \${QUAY__API_TOKEN}\"" -M -
+}
+
+# Builds appconfig data for LightSpeed integration
+build_ls_appconfig() {
+    local positional_args=()
+    local use_lightspeed_token="false"
+
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -t|--token)
+                use_lightspeed_token="true"
+                shift;;
+            -*|--*)
+                echo "Unknown option $1"
+                return 1;;
+            *)
+                positional_args+=("$1") # save positional arg
+                shift;; # past argument
+        esac
+    done
+
+    set -- "${positional_args[@]}" # restore positional parameters
+    local appconfig_data="${1:-"$(yq -n -M)"}"
+
+    appconfig_data=$(echo "${appconfig_data}" | yq ".proxy.endpoints./lightspeed/api.target = \"${LIGHTSPEED_MODEL_URL}\"" -M -)
+    if [[ "${use_lightspeed_token}" == "true" ]]; then
+        echo "${appconfig_data}" | yq ".proxy.endpoints./lightspeed/api.headers.Authorization = \"Bearer \${LIGHTSPEED_API_TOKEN}\"" -M -
+    else
+        echo "${appconfig_data}"
+    fi
+}
+
+# Creates the appconfig configmap for RHDH
+create_appconfig() {
+    local namespace=$1
+    local appconfig_data="${2:-"$(yq -n -M)"}"
+    local configmap_file=${3:-"${BASE_DIR}/resources/developer-hub-app-config.yaml"}
+
+    APPCONFIG_DATA=$appconfig_data yq ".data[\"app-config.extra.yaml\"] = strenv(APPCONFIG_DATA)" ${configmap_file} | \
+        kubectl -n $namespace apply -f - >/dev/null
+
+    return $?
+}
+
+# Patches given deployment under a given namespace to mount the appconfig configmap
+attach_appconfig_to_deployment() {
+    local appconfig_name=$1
+    local deployment=$2
+    local namespace=$3
+
+    kubectl get deploy $deployment -n $namespace -o yaml | \
+        yq ".spec.template.spec.volumes += {\"name\": \"${appconfig_name}\", \"configMap\": {\"name\": \"${appconfig_name}\", \"defaultMode\": 420, \"optional\": false}} | 
+            .spec.template.spec.containers[0].volumeMounts += {\"name\": \"${appconfig_name}\", \"readOnly\": true, \"mountPath\": \"/opt/app-root/src/app-config.extra.yaml\", \"subPath\": \"app-config.extra.yaml\"} |
+            .spec.template.spec.containers[0].args += [\"--config\", \"/opt/app-root/src/app-config.extra.yaml\"]" | \
+        kubectl apply -f - >/dev/null
+
+    return $?
+}
+
+# Patches given Backstage CR under a given namespace to mount the appconfig configmap
+attach_appconfig_to_cr() {
+    local appconfig_name=$1
+    local cr_name=$2
+    local namespace=$3
+
+    kubectl -n $namespace get backstage $cr_name -o yaml | \
+        yq ".spec.application.appConfig.configMaps += [{\"name\": \"${appconfig_name}\"}] | 
+            .spec.application.appConfig.configMaps |= unique_by(.name)" -M -I=0 -o=json | \
+        kubectl apply -n $namespace -f - >/dev/null
+    
+    return $?
+}

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backstage-ai-rh-developer-hub-dynamic-plugins
+  annotations:
+    rhdhpai.redhat.com/rhdh-resource: "dynamic-plugins"
+data:
+  dynamic-plugins.yaml: |
+    includes:
+      - dynamic-plugins.default.yaml
+    plugins: []

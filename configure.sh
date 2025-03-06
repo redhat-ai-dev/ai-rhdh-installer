@@ -31,6 +31,8 @@ export GITLAB__APP__CLIENT__ID=${GITLAB__APP__CLIENT__ID:-''}
 export GITLAB__APP__CLIENT__SECRET=${GITLAB__APP__CLIENT__SECRET:-''}
 export GITLAB__TOKEN=${GITLAB__TOKEN:-''}
 export GITLAB__HOST=${GITLAB__HOST:-'gitlab.com'}
+export GITLAB__GROUP__NAME=${GITLAB__GROUP__NAME:-''}
+export GITLAB__ORG__ENABLED=${GITLAB__ORG__ENABLED:-''}
 export QUAY__DOCKERCONFIGJSON=${QUAY__DOCKERCONFIGJSON:-''}
 export QUAY__API_TOKEN=${QUAY__API_TOKEN:-''}
 export LIGHTSPEED_MODEL_URL=${LIGHTSPEED_MODEL_URL:-''}
@@ -127,6 +129,35 @@ if [[ $RHDH_GITLAB_INTEGRATION == "true" ]]; then
             echo "No GitLab Token entered, try again."
         fi
     done
+
+    # Reads GitLab Group Name
+    until [ ! -z "${GITLAB__GROUP__NAME}" ]; do
+        read -p "Enter your GitLab Group Name: " GITLAB__GROUP__NAME
+        if [ -z "${GITLAB__GROUP__NAME}" ]; then
+            echo "No GitLab Group Name entered, try again."
+        fi
+    done
+
+    # Reads GitLab Org Enabled
+    if  [[ $RHDH_GITLAB_INTEGRATION == "true" ]] && [ -z "${GITLAB__ORG__ENABLED}" ] && [[ $GITLAB__HOST == "gitlab.com" ]]
+    then
+        GITLAB__ORG__ENABLED='true' # required for gitlab.com, see https://backstage.io/docs/integrations/gitlab/org#users
+    elif [[ $RHDH_GITLAB_INTEGRATION == "true" ]] && [ -z "${GITLAB__ORG__ENABLED}" ]
+    then
+        prompt=''
+        until [[ "${GITLAB__ORG__ENABLED}" == "true" ]] || [[ "${GITLAB__ORG__ENABLED}" == "false" ]]; do
+            read -p "Is GitLab Organizations enabled? (y/n): " prompt
+
+            case "$prompt" in
+                y)
+                    GITLAB__ORG__ENABLED='true';;
+                n)
+                    GITLAB__ORG__ENABLED='false';;
+                *)
+                    echo 'Please enter "y" or "n", try again.';;
+            esac
+        done
+    fi
 
     # Choose which sign in provider to use
     if [[ $RHDH_GITHUB_INTEGRATION == "true" ]] && [[ ! $RHDH_SIGNIN_PROVIDER =~ ^(github|gitlab)$ ]]; then
