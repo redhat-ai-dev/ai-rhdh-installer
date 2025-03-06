@@ -31,8 +31,7 @@
         fi
       done
       until kubectl get route -n "$PIPELINES_NAMESPACE" pipelines-as-code-controller >/dev/null 2>&1; do
-        echo -n "."
-        sleep 3
+        echo -n "." && sleep 3
       done
       echo "OK"
 

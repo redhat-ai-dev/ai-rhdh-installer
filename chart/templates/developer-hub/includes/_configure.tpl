@@ -18,8 +18,7 @@
       CRD="backstages"
       echo -n "* Waiting for '$CRD' CRD: "
       while [ $(kubectl api-resources | grep -c "^$CRD ") = "0" ] ; do
-        echo -n "_"
-        sleep 3
+        echo -n "." && sleep 3
       done
       echo "OK"
 
@@ -52,8 +51,7 @@
       echo -n "* Waiting for RHDH route: "
       BACKSTAGE_CR_NAME="$(yq '.metadata.name' $BACKSTAGE_CR_DATA)"
       until kubectl get route -n "$NAMESPACE" "backstage-${BACKSTAGE_CR_NAME}" >/dev/null 2>&1; do
-        echo -n "_"
-        sleep 2
+        echo -n "." && sleep 3
       done
       echo "OK"
 

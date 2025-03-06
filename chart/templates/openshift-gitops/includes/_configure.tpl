@@ -18,8 +18,7 @@
       CRD="argocds"
       echo "* Waiting for '$CRD' CRD *"
       while [ $(kubectl api-resources | grep -c "^$CRD ") = "0" ] ; do
-        echo -n "."
-        sleep 3
+        echo -n "." && sleep 3
       done
       echo "OK"
 
@@ -98,9 +97,8 @@
             fi
             {{- end }}
              
-            echo -n "."
             RETRY=$((RETRY + 1))
-            sleep 5
+            echo -n "." && sleep 5
           done
 
           if [[ "$RETRY" -eq "$MAX_RETRY" ]]; then
@@ -121,9 +119,8 @@
                 break
               fi
 
-              echo -n "."
               deadline_exceeded_tries=$((deadline_exceeded_tries + 1))
-              sleep 5
+              echo -n "." && sleep 5
             done
           fi
 
