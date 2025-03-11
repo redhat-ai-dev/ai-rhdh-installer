@@ -18,12 +18,12 @@
       RHDH_ARGOCD_INSTANCE="$CHART-argocd"
 
       echo -n "* Deleting ArgoCD instance: "
-      cat <<EOF | kubectl delete -n "$NAMESPACE" -f - >/dev/null
+      cat <<EOF | kubectl delete -n "$NAMESPACE" --ignore-not-found -f - >/dev/null
       {{ include "rhdh.include.argocd" . | indent 6 }}
       EOF
       echo "OK"
 
       echo -n "* Deleting ArgoCD secret: "
-      kubectl delete secret "$RHDH_ARGOCD_INSTANCE-secret" >/dev/null
+      kubectl delete secret "$RHDH_ARGOCD_INSTANCE-secret" --ignore-not-found >/dev/null
       echo "OK"
 {{ end }}

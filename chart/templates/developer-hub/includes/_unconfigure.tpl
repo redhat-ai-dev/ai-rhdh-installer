@@ -17,13 +17,13 @@
       NAMESPACE="{{.Release.Namespace}}"
 
       echo -n "* Deleting RHDH instance: "
-      cat <<EOF | kubectl delete -n "$NAMESPACE" -f - >/dev/null
+      cat <<EOF | kubectl delete -n "$NAMESPACE" --ignore-not-found -f - >/dev/null
       {{ include "rhdh.include.backstage" . | indent 6 }}
       EOF
       echo "OK"
 
       echo -n "* Deleting RHDH Base App Config: "
-      cat <<EOF | kubectl delete -f - >/dev/null
+      cat <<EOF | kubectl delete --ignore-not-found -f - >/dev/null
       {{ include "rhdh.include.appconfig" . | indent 6 }}
       EOF
       echo "OK"
