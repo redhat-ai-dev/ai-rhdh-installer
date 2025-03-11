@@ -1,6 +1,6 @@
 {{ define "rhdh.gitops.configure" }}
 - name: configure-gitops
-  image: "registry.redhat.io/openshift4/ose-tools-rhel8:latest"
+  image: "registry.redhat.io/openshift4/ose-tools-rhel9:v4.18.0-202502260503.p0.geb9bc9b.assembly.stream.el9"
   workingDir: /tmp
   command:
     - /bin/sh
@@ -18,8 +18,7 @@
       CRD="argocds"
       echo "* Waiting for '$CRD' CRD *"
       while [ $(kubectl api-resources | grep -c "^$CRD ") = "0" ] ; do
-        echo -n "."
-        sleep 3
+        echo -n "." && sleep 3
       done
       echo "OK"
 
@@ -31,26 +30,33 @@
       RHDH_ARGOCD_INSTANCE="$CHART-argocd"
 
       echo "* Waiting for Gitops Operator Deployment *"
-      until kubectl get argocds.argoproj.io -n openshift-gitops openshift-gitops -o jsonpath={.status.phase} | grep -q "^Available$"; do
-        echo -n "."
-        sleep 2
+      while true; do
+        kubectl wait --for=jsonpath='{.status.phase}'=Available argocds.argoproj.io -n openshift-gitops openshift-gitops > /dev/null 2>&1
+        if [ $? -ne 0 ]; then
+          echo -n "." && sleep 3
+        else
+          echo "OK"
+          break
+        fi
       done
-      echo "OK"
 
       echo "* Creating ArgoCD Instance *"
       cat <<EOF | kubectl apply -n "$NAMESPACE" -f - >/dev/null
       {{ include "rhdh.include.argocd" . | indent 6 }}
       EOF
       echo "... Waiting for ArgoCD Instance"
-      until kubectl get argocds.argoproj.io -n "$NAMESPACE" "ai-$RHDH_ARGOCD_INSTANCE" --ignore-not-found -o jsonpath={.status.phase} | grep -q "^Available$"; do
-        echo -n "."
-        sleep 2
+      while true; do
+        kubectl wait --for=jsonpath='{.status.phase}'=Available argocds.argoproj.io -n "$NAMESPACE" "ai-$RHDH_ARGOCD_INSTANCE" > /dev/null 2>&1
+        if [ $? -ne 0 ]; then
+          echo -n "." && sleep 3
+        else
+          echo "OK"
+          break
+        fi
       done
-      echo "OK"
       echo "... Fetching ArgoCD Instance Route"
       until kubectl get route -n "$NAMESPACE" "ai-$RHDH_ARGOCD_INSTANCE-server" >/dev/null 2>&1; do
-        echo -n "."
-        sleep 2
+        echo -n "." && sleep 3
       done
       echo "OK"
 
@@ -91,9 +97,8 @@
             fi
             {{- end }}
              
-            echo -n "."
             RETRY=$((RETRY + 1))
-            sleep 5
+            echo -n "." && sleep 5
           done
 
           if [[ "$RETRY" -eq "$MAX_RETRY" ]]; then
@@ -114,9 +119,8 @@
                 break
               fi
 
-              echo -n "."
               deadline_exceeded_tries=$((deadline_exceeded_tries + 1))
-              sleep 5
+              echo -n "." && sleep 5
             done
           fi
 
