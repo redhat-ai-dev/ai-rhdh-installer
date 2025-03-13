@@ -1,13 +1,12 @@
 {{ define "rhdh.include.backstage" }}
 ---
-apiVersion: rhdh.redhat.com/v1alpha1
+apiVersion: rhdh.redhat.com/v1alpha2
 kind: Backstage
 metadata:
   name: ai-rh-developer-hub
   namespace: {{ .Release.Namespace }}
 spec:
   application:
-    replicas: 1
     route:
       enabled: true
     extraEnvs:
@@ -16,7 +15,10 @@ spec:
     appConfig:
       configMaps:
         - name: developer-hub-base-app-config
-    dynamicPluginsConfigMapName: dynamic-plugins
   database:
     enableLocalDb: true
+  deployment:
+    patch:
+      spec: 
+        replicas: 1
 {{ end }}

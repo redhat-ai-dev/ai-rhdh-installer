@@ -67,25 +67,43 @@ Once you have done the prior steps and have the information from the prior steps
 
 ### Manual Configuration
 
-#### Step 1: Create Extra Environment Variables Secret
+#### Step 1: Create Kubernetes Service Account and Token
+
+You can skip this step if these resources are already present in your desired namespace.
+
+**Note:** If the resources are already present in your desired namespace, you will need to ensure that `$KUBERNETES_SA` and `$KUBERNETES_SA_TOKEN_SECRET` environment variables are set to the correct values.
+
+```
+export KUBERNETES_SA=<your-sa-name>
+export KUBERNETES_SA_TOKEN_SECRET=<your-secret-name>
+```
+
+For information related to creating these resources see [`KUBERNETES_SERVICEACCOUNT.md`](../pipelines/KUBERNETES_SERVICEACCOUNT.md).
+
+#### Step 2: Create Extra Environment Variables Secret
+
+**Note:** The following commands assume that `export KUBERNETES_SA_TOKEN_SECRET=<your-secret-name>` and `export KUBERNETES_SA=<your-sa-name>` were run.
 
 You will need to create a Secret to store all the private environment variables for RHDH. This can be done one of the following ways:
 
 **No Integration**
 
 ```sh
-K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token- | cut -d/ -f2 | head -1)
+K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep "$KUBERNETES_SA_TOKEN_SECRET" | cut -d/ -f2 | head -1)
 K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
+KUBERNETES_SA_ENCODED=$(echo -n "$KUBERNETES_SA" | base64 -w 0)
 kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=NODE_TLS_REJECT_UNAUTHORIZED=$(echo "0" | base64) \
-    --from-literal=K8S_SA_TOKEN=${K8S_SA_TOKEN}
+    --from-literal=K8S_SA_TOKEN=${K8S_SA_TOKEN} \
+    --from-literal=K8S_SA=${KUBERNETES_SA_ENCODED}
 ```
 
 **GitHub**
 
 ```sh
-K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token- | cut -d/ -f2 | head -1)
+K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep "$KUBERNETES_SA_TOKEN_SECRET" | cut -d/ -f2 | head -1)
 K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
+KUBERNETES_SA_ENCODED=$(echo -n "$KUBERNETES_SA" | base64 -w 0)
 kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=NODE_TLS_REJECT_UNAUTHORIZED=$(echo "0" | base64) \
     --from-literal=K8S_SA_TOKEN=${K8S_SA_TOKEN} \
@@ -96,14 +114,16 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=GITHUB__APP__WEBHOOK__SECRET=$(echo '<github_app_webhook_secret>' | base64) \
     --from-file=GITHUB__APP__PRIVATE_KEY='<path-to-app-pk>' \
     --from-literal=GITHUB__ORG__NAME=$(echo '<github_org_name>' | base64) \
-    --from-literal=GITOPS__GIT_TOKEN=$(echo '<git_pat>' | base64)
+    --from-literal=GITOPS__GIT_TOKEN=$(echo '<git_pat>' | base64) \
+    --from-literal=K8S_SA=${KUBERNETES_SA_ENCODED}
 ```
 
 **GitHub Enterprise**
 
 ```sh
-K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token- | cut -d/ -f2 | head -1)
+K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep "$KUBERNETES_SA_TOKEN_SECRET" | cut -d/ -f2 | head -1)
 K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
+KUBERNETES_SA_ENCODED=$(echo -n "$KUBERNETES_SA" | base64 -w 0)
 kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=NODE_TLS_REJECT_UNAUTHORIZED=$(echo "0" | base64) \
     --from-literal=K8S_SA_TOKEN=${K8S_SA_TOKEN} \
@@ -115,41 +135,53 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-file=GITHUB__APP__PRIVATE_KEY='<path-to-app-pk>' \
     --from-literal=GITHUB__HOST=$(echo '<github_hostname>' | base64) \
     --from-literal=GITHUB__ORG__NAME=$(echo '<github_org_name>' | base64) \
-    --from-literal=GITOPS__GIT_TOKEN=$(echo '<git_pat>' | base64)
+    --from-literal=GITOPS__GIT_TOKEN=$(echo '<git_pat>' | base64) \
+    --from-literal=K8S_SA=${KUBERNETES_SA_ENCODED}
 ```
 
 **GitLab**
 
 ```sh
-K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token- | cut -d/ -f2 | head -1)
+K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep "$KUBERNETES_SA_TOKEN_SECRET" | cut -d/ -f2 | head -1)
 K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
-kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
-    --from-literal=NODE_TLS_REJECT_UNAUTHORIZED=$(echo "0" | base64) \
-    --from-literal=K8S_SA_TOKEN=${K8S_SA_TOKEN} \
-    --from-literal=GITLAB__APP__CLIENT__ID=$(echo '<gitlab_app_client_id>' | base64) \
-    --from-literal=GITLAB__APP__CLIENT__SECRET=$(echo '<gitlab_app_client_secret>' | base64) \
-    --from-literal=GITLAB__TOKEN=$(echo '<gitlab_pat>' | base64)
-```
-
-**GitLab Self-hosted**
-
-```sh
-K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token- | cut -d/ -f2 | head -1)
-K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
+KUBERNETES_SA_ENCODED=$(echo -n "$KUBERNETES_SA" | base64 -w 0)
 kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=NODE_TLS_REJECT_UNAUTHORIZED=$(echo "0" | base64) \
     --from-literal=K8S_SA_TOKEN=${K8S_SA_TOKEN} \
     --from-literal=GITLAB__APP__CLIENT__ID=$(echo '<gitlab_app_client_id>' | base64) \
     --from-literal=GITLAB__APP__CLIENT__SECRET=$(echo '<gitlab_app_client_secret>' | base64) \
     --from-literal=GITLAB__TOKEN=$(echo '<gitlab_pat>' | base64) \
-    --from-literal=GITLAB__HOST=$(echo '<gitlab_hostname>' | base64)
+    --from-literal=GITLAB__GROUP__NAME=$(echo '<gitlab_group_name>' | base64) \
+    --from-literal=K8S_SA=${KUBERNETES_SA_ENCODED}
+```
+
+**Note:** When targeting the community hosted GitLab (gitlab.com), the `GITLAB__ORG__ENABLED` variable will be ignored as gitlab.com has organizations enabled always as specified in the [backstage docs](https://backstage.io/docs/integrations/gitlab/org#users).
+
+**GitLab Self-hosted**
+
+```sh
+K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep "$KUBERNETES_SA_TOKEN_SECRET" | cut -d/ -f2 | head -1)
+K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
+KUBERNETES_SA_ENCODED=$(echo -n "$KUBERNETES_SA" | base64 -w 0)
+kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
+    --from-literal=NODE_TLS_REJECT_UNAUTHORIZED=$(echo "0" | base64) \
+    --from-literal=K8S_SA_TOKEN=${K8S_SA_TOKEN} \
+    --from-literal=GITLAB__APP__CLIENT__ID=$(echo '<gitlab_app_client_id>' | base64) \
+    --from-literal=GITLAB__APP__CLIENT__SECRET=$(echo '<gitlab_app_client_secret>' | base64) \
+    --from-literal=GITLAB__TOKEN=$(echo '<gitlab_pat>' | base64) \
+    --from-literal=GITLAB__HOST=$(echo '<gitlab_hostname>' | base64) \
+    --from-literal=GITLAB__HOST=$(echo '<gitlab_hostname>' | base64) \
+    --from-literal=GITLAB__GROUP__NAME=$(echo '<gitlab_group_name>' | base64) \
+    --from-literal=GITLAB__ORG__ENABLED=$(echo '<true|false>' | base64) \
+    --from-literal=K8S_SA=${KUBERNETES_SA_ENCODED}
 ```
 
 **GitHub & GitLab**
 
 ```sh
-K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep rhdh-kubernetes-plugin-token- | cut -d/ -f2 | head -1)
+K8S_SA_SECRET_NAME=$(kubectl get secrets -n "$NAMESPACE" -o name | grep "$KUBERNETES_SA_TOKEN_SECRET" | cut -d/ -f2 | head -1)
 K8S_SA_TOKEN=$(kubectl -n $NAMESPACE get secret $K8S_SA_SECRET_NAME -o yaml | yq '.data.token' -M -I=0)
+KUBERNETES_SA_ENCODED=$(echo -n "$KUBERNETES_SA" | base64 -w 0)
 kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=NODE_TLS_REJECT_UNAUTHORIZED=$(echo "0" | base64) \
     --from-literal=K8S_SA_TOKEN=${K8S_SA_TOKEN} \
@@ -163,12 +195,14 @@ kubectl -n $NAMESPACE create secret generic ai-rh-developer-hub-env \
     --from-literal=GITOPS__GIT_TOKEN=$(echo '<git_pat>' | base64) \
     --from-literal=GITLAB__APP__CLIENT__ID=$(echo '<gitlab_app_client_id>' | base64) \
     --from-literal=GITLAB__APP__CLIENT__SECRET=$(echo '<gitlab_app_client_secret>' | base64) \
-    --from-literal=GITLAB__TOKEN=$(echo '<gitlab_pat>' | base64)
+    --from-literal=GITLAB__TOKEN=$(echo '<gitlab_pat>' | base64) \
+    --from-literal=GITLAB__GROUP__NAME=$(echo '<gitlab_group_name>' | base64) \
+    --from-literal=K8S_SA=${KUBERNETES_SA_ENCODED}
 ```
 
 Notice that `K8S_SA_TOKEN` does not need encoding as the other literal sets, this is because when the value is fetched from the Service Account Token Secret it comes back already encoded.
 
-#### Step 2: Setting the Extra Environment Variables Secret to Developer Hub
+#### Step 3: Setting the Extra Environment Variables Secret to Developer Hub
 
 You will need to set up your Developer Hub instance to use the Extra Environment Variables Secret you created. To do this you will need to patch the Secret into the deployment by doing either of the following:
 
@@ -190,13 +224,13 @@ kubectl get deploy <rhdh-deployment-name> -n $NAMESPACE -o yaml | \
   kubectl apply -f -
 ```
 
-#### Step 3: Create the Extra App Config ConfigMap
+#### Step 4: Create the Extra App Config ConfigMap
 
-Follow the same steps under [step 2 for the ai-rhdh-installer](./INSTALLER-PROVISIONED.md#step-2-create-the-extra-app-config-configmap).
+Follow the same steps under [step 3 for the ai-rhdh-installer](./INSTALLER-PROVISIONED.md#step-3-create-the-extra-app-config-configmap).
 
-#### Step 4: Setting the Extra App Config to Developer Hub
+#### Step 5: Setting the Extra App Config to Developer Hub
 
-Similar to [step 3 for the ai-rhdh-installer](./INSTALLER-PROVISIONED.md#step-3-setting-the-extra-app-config-to-developer-hub), you will need to set up your Developer Hub instance to use the Extra App Config you created. To do this you will need to patch the app config into the deployment spec:
+Similar to [step 4 for the ai-rhdh-installer](./INSTALLER-PROVISIONED.md#step-4-setting-the-extra-app-config-to-developer-hub), you will need to set up your Developer Hub instance to use the Extra App Config you created. To do this you will need to patch the app config into the deployment spec:
 
 ```sh
 kubectl get deploy <rhdh-deployment-name> -n $NAMESPACE -o yaml | \
@@ -208,19 +242,19 @@ kubectl get deploy <rhdh-deployment-name> -n $NAMESPACE -o yaml | \
 
 **Note**: If you are bringing your own [RHDH Operator](https://github.com/redhat-developer/rhdh-operator) instance, you can follow [step 3 for the ai-rhdh-installer](./INSTALLER-PROVISIONED.md#step-3-setting-the-extra-app-config-to-developer-hub) instead.
 
-#### Step 5: Updating ArgoCD Plugins
+#### Step 6: Updating ArgoCD Plugins
 
-Follow the same steps under either [step 4.1](./INSTALLER-PROVISIONED.md#step-41-updating-argocd-plugins-via-web-console) or [step 4.2](./INSTALLER-PROVISIONED.md#step-42-updating-argocd-plugins-via-cli) for the ai-rhdh-installer.
+Follow the same steps under either [step 6.1](./INSTALLER-PROVISIONED.md#step-61-updating-argocd-plugins-via-web-console) or [step 6.2](./INSTALLER-PROVISIONED.md#step-62-updating-argocd-plugins-via-cli) for the ai-rhdh-installer.
 
-#### Step 6: Updating Tekton Plugins
+#### Step 7: Updating Tekton Plugins
 
-Follow the same steps under either [step 5.1](./INSTALLER-PROVISIONED.md#step-51-updating-tekton-plugins-via-web-console) or [step 5.2](./INSTALLER-PROVISIONED.md#step-52-updating-tekton-plugins-via-cli) for the ai-rhdh-installer.
+Follow the same steps under either [step 7.1](./INSTALLER-PROVISIONED.md#step-71-updating-tekton-plugins-via-web-console) or [step 7.2](./INSTALLER-PROVISIONED.md#step-72-updating-tekton-plugins-via-cli) for the ai-rhdh-installer.
 
-#### Step 7: Updating Developer Hub Plugins
+#### Step 8: Updating Developer Hub Plugins
 
-Follow the same steps under either [step 6.1](./INSTALLER-PROVISIONED.md#step-61-updating-developer-hub-plugins-via-web-console) or [step 6.2](./INSTALLER-PROVISIONED.md#step-62-updating-developer-hub-plugins-via-cli) for the ai-rhdh-installer.
+Follow the same steps under either [step 8.1](./INSTALLER-PROVISIONED.md#step-81-updating-developer-hub-plugins-via-web-console) or [step 8.2](./INSTALLER-PROVISIONED.md#step-82-updating-developer-hub-plugins-via-cli) for the ai-rhdh-installer.
 
-#### Step 8: Updating RHDH Deployment with ArgoCD Resources
+#### Step 9: Updating RHDH Deployment with ArgoCD Resources
 
 Now you will need to make sure that all of the ArgoCD tied resources are setup with the Developer Hub deployment. Run the following to attach the ArgoCD ConfigMap and Secret:
 
@@ -233,4 +267,4 @@ kubectl get deploy <rhdh-deployment-name> -n $NAMESPACE -o yaml | \
   kubectl apply -f -
 ```
 
-**Note**: If you are bringing your own [RHDH Operator](https://github.com/redhat-developer/rhdh-operator) instance, you can follow [step 7.2 for the ai-rhdh-installer](./INSTALLER-PROVISIONED.md#step-72-argocd-config-and-secret) instead.
+**Note**: If you are bringing your own [RHDH Operator](https://github.com/redhat-developer/rhdh-operator) instance, you can follow [step 9.2 for the ai-rhdh-installer](./INSTALLER-PROVISIONED.md#step-92-argocd-config-and-secret) instead.

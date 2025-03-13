@@ -1,7 +1,7 @@
 {{ define "rhdh.developer-hub.configure" }}
 {{ if (index .Values "developer-hub") }}
 - name: configure-developer-hub
-  image: "registry.redhat.io/openshift4/ose-tools-rhel8:latest"
+  image: "registry.redhat.io/openshift4/ose-tools-rhel9:v4.18.0-202502260503.p0.geb9bc9b.assembly.stream.el9"
   workingDir: /tmp
   command:
     - /bin/sh
@@ -18,8 +18,7 @@
       CRD="backstages"
       echo -n "* Waiting for '$CRD' CRD: "
       while [ $(kubectl api-resources | grep -c "^$CRD ") = "0" ] ; do
-        echo -n "_"
-        sleep 3
+        echo -n "." && sleep 3
       done
       echo "OK"
 
@@ -29,21 +28,15 @@
       NAMESPACE="{{.Release.Namespace}}"
       APPCONFIG_CONFIGMAP="developer-hub-base-app-config"
 
-      echo -n "* Creating RHDH Extra Variables Secret: "
+      echo -n "* Creating RHDH Base Variables Secret: "
       cat <<EOF | kubectl apply -f - >/dev/null
-      {{ include "rhdh.include.extra-env" . | indent 6 }}
+      {{ include "rhdh.include.env" . | indent 6 }}
       EOF
       echo "OK"
 
       echo -n "* Creating RHDH Base App Config: "
       cat <<EOF | kubectl apply -f - >/dev/null
       {{ include "rhdh.include.appconfig" . | indent 6 }}
-      EOF
-      echo "OK"
-
-      echo -n "* Creating RHDH Dynamic Plugins Config: "
-      cat <<EOF | kubectl apply -f - >/dev/null
-      {{ include "rhdh.include.plugins" . | indent 6 }}
       EOF
       echo "OK"
 
@@ -58,8 +51,7 @@
       echo -n "* Waiting for RHDH route: "
       BACKSTAGE_CR_NAME="$(yq '.metadata.name' $BACKSTAGE_CR_DATA)"
       until kubectl get route -n "$NAMESPACE" "backstage-${BACKSTAGE_CR_NAME}" >/dev/null 2>&1; do
-        echo -n "_"
-        sleep 2
+        echo -n "." && sleep 3
       done
       echo "OK"
 

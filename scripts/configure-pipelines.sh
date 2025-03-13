@@ -2,15 +2,12 @@
 
 # Constants
 DEFAULT_RHDH_DEPLOYMENT="backstage-ai-rh-developer-hub" # deployment created by rhdh operator by default
-PLUGIN_CONFIGMAP="backstage-dynamic-plugins-ai-rh-developer-hub" # configmap created by rhdh operator for plugins by default
-EXTRA_ENV_SECRET="ai-rh-developer-hub-env" # secret created by rhdh installer to store private env vars
 CRD="tektonconfigs"
 
 # Variables
 BASE_DIR="$(realpath $(dirname ${BASH_SOURCE[0]}))/.."
+INCLUDES_DIR="$(realpath $(dirname ${BASH_SOURCE[0]}))/includes"
 RHDH_DEPLOYMENT="${DEFAULT_RHDH_DEPLOYMENT}"
-RHDH_PLUGINS_CONFIGMAP="${PLUGIN_CONFIGMAP}"
-RHDH_EXTRA_ENV_SECRET="${EXTRA_ENV_SECRET}"
 NAMESPACE=${NAMESPACE:-"ai-rhdh"}
 PIPELINES_NAMESPACE=${PIPELINES_NAMESPACE:-"openshift-pipelines"}
 PIPELINES_SECRET_NAME=${PIPELINES_SECRET_NAME:-'rhdh-pipelines-secret'}
@@ -31,16 +28,16 @@ GITOPS__GIT_TOKEN=${GITOPS__GIT_TOKEN:-''}
 GITLAB__TOKEN=${GITLAB__TOKEN:-''}
 QUAY__DOCKERCONFIGJSON=${QUAY__DOCKERCONFIGJSON:-''}
 
+# Includes
+. ${INCLUDES_DIR}/webhooks # Include fetch function for getting webhook url
+
 # Use existing variables if RHDH instance is provided
 if [[ $RHDH_INSTANCE_PROVIDED != "true" ]] && [[ $RHDH_INSTANCE_PROVIDED != "false" ]]; then
-    echo -n "RHDH_INSTANCE_PROVIDED needs to be set to either 'true' or 'false'"
-    echo "FAIL"
+    echo "[FAIL] RHDH_INSTANCE_PROVIDED needs to be set to either 'true' or 'false'"
     exit 1
 elif [[ $RHDH_INSTANCE_PROVIDED == "true" ]]; then
     NAMESPACE="${EXISTING_NAMESPACE}"
     RHDH_DEPLOYMENT="${EXISTING_DEPLOYMENT}"
-    RHDH_EXTRA_ENV_SECRET="${EXISTING_EXTRA_ENV_SECRET}"
-    RHDH_PLUGINS_CONFIGMAP="${RHDH_PLUGINS}"
 fi
 
 # Reading secrets
@@ -137,33 +134,10 @@ echo "OK"
 if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
     echo -n "* Fetching Webhook URL: "
     if [ -z "${GITHUB__APP__WEBHOOK__URL}" ]; then
-        if [ -z "${RHDH_EXTRA_ENV_SECRET}" ]; then
-            GITHUB__APP__WEBHOOK__URL="$(kubectl get routes -n "${PIPELINES_NAMESPACE}" pipelines-as-code-controller -o jsonpath="https://{.spec.host}")"
-            kubectl -n ${NAMESPACE} create secret generic ${EXTRA_ENV_SECRET} \
-                --from-literal="GITHUB__APP__WEBHOOK__URL=${GITHUB__APP__WEBHOOK__URL}" >/dev/null
-        elif [ -z "$(kubectl -n ${NAMESPACE} get secret ${RHDH_EXTRA_ENV_SECRET} --ignore-not-found -o name)" ]; then
-            if [ $? -ne 0 ]; then
-                echo "FAIL"
-                exit 1
-            fi
-            echo -n "Extra environment variable secret '${RHDH_EXTRA_ENV_SECRET}' not found!"
-            echo "FAIL"
-            exit 1
-        elif [[ "$(kubectl -n ${NAMESPACE} get secret ${RHDH_EXTRA_ENV_SECRET} -o yaml | yq '.data.GITHUB__APP__WEBHOOK__URL')" == "null" ]]; then
-            if [ $? -ne 0 ]; then
-                echo "FAIL"
-                exit 1
-            fi
-            GITHUB__APP__WEBHOOK__URL="$(kubectl get routes -n "${PIPELINES_NAMESPACE}" pipelines-as-code-controller -o jsonpath="https://{.spec.host}")"
-            SECRET_PATCH=$(yq -n ".data.GITHUB__APP__WEBHOOK__URL = \"$(echo ${GITHUB__APP__WEBHOOK__URL} | base64)\"" -M -I=0 -o=json)
-            kubectl patch secret ${RHDH_EXTRA_ENV_SECRET} -n $NAMESPACE --type 'merge' -p "${SECRET_PATCH}" >/dev/null
-        else
-            GITHUB__APP__WEBHOOK__URL="$(kubectl -n ${NAMESPACE} get secret ${RHDH_EXTRA_ENV_SECRET} -o yaml | yq '.data.GITHUB__APP__WEBHOOK__URL' | base64 -d)"
-        fi
-
+        GITHUB__APP__WEBHOOK__URL="$(fetch_gh_webhook "${PIPELINES_NAMESPACE}" "${NAMESPACE}")"
         if [ $? -ne 0 ]; then
             echo "FAIL"
-            exit 1
+            return 1
         fi
     fi
     echo "OK"

@@ -1,6 +1,6 @@
 {{ define "rhdh.pipelines.configure" }}
 - name: configure-pipelines
-  image: "registry.redhat.io/openshift4/ose-tools-rhel8:latest"
+  image: "registry.redhat.io/openshift4/ose-tools-rhel9:v4.18.0-202502260503.p0.geb9bc9b.assembly.stream.el9"
   workingDir: /tmp
   command:
     - /bin/bash
@@ -21,13 +21,17 @@
       PIPELINES_NAMESPACE="openshift-pipelines"
 
       echo -n "* Waiting for pipelines operator deployment: "
-      until kubectl get namespace "$PIPELINES_NAMESPACE" >/dev/null 2>&1; do
-        echo -n "."
-        sleep 3
+      while true; do
+        kubectl wait --for=jsonpath='{.status.phase}'=Active namespace "$PIPELINES_NAMESPACE" > /dev/null 2>&1
+        if [ $? -ne 0 ]; then
+          echo -n "." && sleep 3
+        else
+          echo "OK"
+          break
+        fi
       done
       until kubectl get route -n "$PIPELINES_NAMESPACE" pipelines-as-code-controller >/dev/null 2>&1; do
-        echo -n "."
-        sleep 3
+        echo -n "." && sleep 3
       done
       echo "OK"
 

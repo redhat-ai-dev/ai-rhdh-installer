@@ -1,0 +1,112 @@
+#!/bin/bash
+
+# Returns true if the dynamic plugins configmap should be patched and false if it should be created
+is_plugins_patch() {
+    local existing_plugins_configmap=$1
+    local deployment_name=$2
+    local namespace=$3
+    local plugins_configmap_exists="$(attached_plugins_exists "${deployment_name}" "${namespace}")"
+    
+    if [[ "${plugins_configmap_exists}" == "true" ]] && [[ $RHDH_INSTANCE_PROVIDED != "true" ]]; then
+        echo "true"
+    elif [[ $RHDH_INSTANCE_PROVIDED == "true" ]] && [ ! -z "${existing_plugins_configmap}" ]; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}
+
+# Creates dynamic plugins configmap
+create_plugins() {
+    local plugins_configmap=$1
+    local deployment_name=$2
+    local namespace=$3
+
+    if [[ $RHDH_INSTANCE_PROVIDED == "true" ]]; then
+        yq ".metadata.name = \"${plugins_configmap}\" |
+            .metadata.annotations.\"rhdhpai.redhat.com/rhdh-installer-instance\" = \"${deployment_name}\"" \
+            $BASE_DIR/resources/developer-hub-dynamic-plugins.yaml | kubectl -n $namespace apply -f -
+    else
+        yq ".metadata.name = \"${plugins_configmap}\" |
+            .metadata.annotations.\"rhdhpai.redhat.com/rhdh-installer-instance\" = \"${deployment_name}\" |
+            .metadata.annotations.\"rhdh.redhat.com/backstage-name\" = \"${BACKSTAGE_CR_NAME}\"" \
+            $BASE_DIR/resources/developer-hub-dynamic-plugins.yaml | kubectl -n $namespace apply -f -
+    fi
+
+    return $?
+}
+
+# Patches plugin list from a given YAML file into a given plugins configmap under a given namespace
+patch_plugins() {
+    local plugins=$1
+    local plugins_configmap=$2
+    local namespace=$3
+
+    # Grab configmap and parse out the defined yaml file inside of its data to a temp file
+    kubectl get configmap $plugins_configmap -n $namespace -o yaml | yq '.data["dynamic-plugins.yaml"]' > temp-dynamic-plugins.yaml
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
+
+    # Edit the temp file to include the plugins
+    yq -i ".plugins += $(yq '.plugins' $plugins -M -o json) | .plugins |= unique_by(.package)" temp-dynamic-plugins.yaml
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
+
+    # Patch the configmap that is deployed to update the defined yaml inside of it
+    kubectl patch configmap $plugins_configmap -n $namespace \
+        --type='merge' \
+        -p="{\"data\":{\"dynamic-plugins.yaml\":\"$(echo "$(cat temp-dynamic-plugins.yaml)" | sed 's/"/\\"/g' | sed 's/$/\\n/g' | tr -d '\n')\"}}"
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
+
+    # Cleanup temp files
+    rm temp-dynamic-plugins.yaml
+
+    return $?
+}
+
+# Returns true if the dynamic plugins configmap is attached to given deployment under given namespace else returns false
+is_plugins_attached() {
+    local plugins_configmap=$1
+    local deployment_name=$2
+    local namespace=$3
+    local plugins_volumes="$(kubectl get deployment $deployment_name -n $namespace -o=jsonpath='{.spec.template.spec}' --ignore-not-found |
+        yq ".volumes[] | select(.configMap.name == \"${plugins_configmap}\") | .configMap.name" -M)"
+    local plugins_configmap_exists="$(attached_plugins_exists "${deployment_name}" "${namespace}")"
+    
+    if [ -z "${plugins_volumes}" ]; then
+        echo "false"
+    elif [[ "${RHDH_INSTANCE_PROVIDED}" == "false" ]] && [[ "${plugins_configmap_exists}" == "false" ]]; then
+        echo "false"
+    else
+        echo "true"
+    fi
+}
+
+attach_plugins_to_deployment() {
+    local plugins_configmap=$1
+    local deployment=$2
+    local namespace=$3
+
+    kubectl get deploy $deployment -n $namespace -o yaml | \
+        yq ".spec.template.spec.volumes += {\"name\": \"${plugins_configmap}\", \"configMap\": {\"name\": \"${plugins_configmap}\", \"defaultMode\": 420, \"optional\": false}} | 
+            .spec.template.spec.initContainers[0].volumeMounts += {\"name\": \"${plugins_configmap}\", \"readOnly\": true, \"mountPath\": \"/opt/app-root/src/dynamic-plugins.yaml\", \"subPath\": \"dynamic-plugins.yaml\"}" | \
+        kubectl apply -f - >/dev/null
+    
+    return $?
+}
+
+attach_plugins_to_cr() {
+    local plugins_configmap=$1
+    local cr_name=$2
+    local namespace=$3
+
+    kubectl -n $namespace get backstage $cr_name -o yaml | \
+        yq ".spec.application.dynamicPluginsConfigMapName = \"${plugins_configmap}\"" -M | \
+        kubectl apply -n $namespace -f - >/dev/null
+    
+    return $?
+}
