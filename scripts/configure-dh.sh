@@ -63,6 +63,14 @@ signin_provider=''
 . ${INCLUDES_DIR}/configure-appconfig # AppConfig configmap functions
 . ${INCLUDES_DIR}/configure-plugins # Dynamic plugins configmap functions
 
+check_status() {
+    if [ $? -ne 0 ]; then
+        echo "FAIL"
+        return 1
+    fi
+    echo "OK"
+}
+
 configure_dh() {
     # Use existing variables if RHDH instance is provided
     if [[ $RHDH_INSTANCE_PROVIDED != "true" ]] && [[ $RHDH_INSTANCE_PROVIDED != "false" ]]; then
@@ -269,23 +277,15 @@ configure_dh() {
         echo -n "."
         sleep 3
     done
-    if [ $? -ne 0 ]; then
-        echo "FAIL"
-        return 1
-    fi
-    echo "OK"
+    check_status || return 1
 
     # Fetching Webhook URL
     if [[ $RHDH_GITHUB_INTEGRATION == "true" ]]; then
         echo -n "* Fetching Webhook URL: "
         if [ -z "${GITHUB__APP__WEBHOOK__URL}" ]; then
             GITHUB__APP__WEBHOOK__URL="$(fetch_gh_webhook "${PIPELINES_NAMESPACE}" "${NAMESPACE}" "${RHDH_EXTRA_ENV_SECRET}")"
-            if [ $? -ne 0 ]; then
-                echo "FAIL"
-                return 1
-            fi
+            check_status || return 1
         fi
-        echo "OK"
     fi
 
     # Patching extra env secret
@@ -319,11 +319,8 @@ configure_dh() {
         RHDH_EXTRA_ENV_SECRET="${RHDH_EXTRA_ENV_SECRET}-$(openssl rand -hex 6)"
         create_extra_env_secret "${RHDH_EXTRA_ENV_SECRET}" "${RHDH_DEPLOYMENT}" "${NAMESPACE}" "${EXTRA_ENV_SECRET_PATCH}" >/dev/null
     fi
-    if [ $? -ne 0 ]; then
-        echo "FAIL"
-        return 1
-    fi
-    echo "OK"
+    check_status || return 1
+    
 
     # Creating up app config
     # Creates and sets up the extra app config to be applied to the developer hub instance
@@ -364,11 +361,7 @@ configure_dh() {
         echo -n "."
     fi
     create_appconfig "${NAMESPACE}" "${EXTRA_APPCONFIG}"
-    if [ $? -ne 0 ]; then
-        echo "FAIL"
-        return 1
-    fi
-    echo "OK"
+    check_status || return 1
 
     # Setting app config to instance
     # Sets up the extra app config to the target developer hub instance
@@ -378,11 +371,7 @@ configure_dh() {
     else
         attach_appconfig_to_cr "developer-hub-app-config" "${BACKSTAGE_CR_NAME}" "${NAMESPACE}"
     fi
-    if [ $? -ne 0 ]; then
-        echo "FAIL"
-        return 1
-    fi
-    echo "OK"
+    check_status || return 1
 
     # Include plugins
     # Creates dynamic plugins ConfigMap if does not exist
@@ -390,11 +379,7 @@ configure_dh() {
         echo -n "* Creating dynamic plugins ConfigMap: "
         RHDH_PLUGINS_CONFIGMAP="${RHDH_PLUGINS_CONFIGMAP}-$(openssl rand -hex 6)"
         create_plugins "${RHDH_PLUGINS_CONFIGMAP}" "${RHDH_DEPLOYMENT}" "${NAMESPACE}"
-        if [ $? -ne 0 ]; then
-            echo "FAIL"
-            return 1
-        fi
-        echo "OK"
+        check_status || return 1
     elif [ -z "${RHDH_PLUGINS}" ]; then
         RHDH_PLUGINS_CONFIGMAP="$(get_plugins_configmap "${RHDH_DEPLOYMENT}" "${NAMESPACE}")"
     fi
@@ -413,11 +398,7 @@ configure_dh() {
     for f in $plugins; do
         echo -n "* Patching in $(basename $f .yaml) plugins: "
         patch_plugins "${f}" "${RHDH_PLUGINS_CONFIGMAP}" "${NAMESPACE}"
-        if [ $? -ne 0 ]; then
-            echo "FAIL"
-            return 1
-        fi
-        echo "OK"
+        check_status || return 1
     done
 
     # Adds dynamic plugins ConfigMap to RHDH deployment if not added
@@ -428,11 +409,7 @@ configure_dh() {
         else
             attach_plugins_to_cr "${RHDH_PLUGINS_CONFIGMAP}" "${BACKSTAGE_CR_NAME}" "${NAMESPACE}"
         fi
-        if [ $? -ne 0 ]; then
-            echo "FAIL"
-            return 1
-        fi
-        echo "OK"
+        check_status || return 1
     fi
 
     # Adds extra env secret to RHDH deployment
@@ -447,20 +424,13 @@ configure_dh() {
         else
             attach_extra_envs_to_cr "${RHDH_EXTRA_ENV_SECRET}" "${BACKSTAGE_CR_NAME}" "${NAMESPACE}"
         fi
-        if [ $? -ne 0 ]; then
-            echo "FAIL"
-            return 1
-        fi
-        echo "OK"
+        check_status || return 1
     fi
 
     # Add Tekton information and plugin to backstage deployment data
     echo -n "* Adding Tekton information and plugin to backstage deployment data: "
     K8S_SA_SECRET=$(kubectl get secrets -n "$NAMESPACE" -o name | grep "$KUBERNETES_SA_TOKEN_SECRET" | cut -d/ -f2 | head -1)
-    if [ $? -ne 0 ]; then
-        echo "FAIL"
-        exit 1
-    fi
+    check_status || return 1
     if [[ $RHDH_INSTANCE_PROVIDED == "true" ]]; then
         kubectl get deploy $RHDH_DEPLOYMENT -n $NAMESPACE -o yaml | \
             yq ".spec.template.spec.containers[0].env += {\"name\": \"K8S_SA_TOKEN\", \"valueFrom\": {\"secretKeyRef\": {\"name\": \"${K8S_SA_SECRET}\", \"key\": \"token\"}}} | 
@@ -473,11 +443,7 @@ configure_dh() {
         kubectl -n $NAMESPACE get secret $RHDH_EXTRA_ENV_SECRET -o yaml | yq ".data.K8S_SA = \"${KUBERNETES_SA_ENCODED}\" | .data.K8S_SA_TOKEN = \"${K8S_SA_TOKEN}\"" -M -I=0 | \
             kubectl apply -n $NAMESPACE -f - >/dev/null
     fi
-    if [ $? -ne 0 ]; then
-        echo "FAIL"
-        exit 1
-    fi
-    echo "OK"
+    check_status || return 1
 
     # Add ArgoCD information to backstage deployment data
     echo -n "* Adding ArgoCD information to backstage deployment data: "
@@ -505,11 +471,7 @@ configure_dh() {
                 .spec.application.extraEnvs.secrets |= unique_by(.name)' -M -I=0 -o=json | \
             kubectl apply -n $NAMESPACE -f - >/dev/null
     fi
-    if [ $? -ne 0 ]; then
-        echo "FAIL"
-        return 1
-    fi
-    echo "OK"
+    check_status || return 1
 
     return 0
 }
