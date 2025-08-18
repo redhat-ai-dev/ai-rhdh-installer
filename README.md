@@ -74,3 +74,13 @@ bash ./configure.sh
 **Note**: If you changed the installation namespace used by the installer you will first need to run `export NAMESPACE=<namespace used>` as the default value is `ai-rhdh`.
 
 For information related to extra configuration options, see [`docs/EXTRA-CONFIG.md`](./docs/EXTRA-CONFIG.md).
+
+## Remote Cluster Configuration
+
+- Refer to [cluster configuration docmentation](./docs/REMOTE-CLUSTER-CONFIG.md) for information about how to configure remote cluster.
+
+The installer supports connecting to multiple Kubernetes clusters for multi-cluster visibility of resources, pipelines, and applications. During configuration, you can add remote clusters that RHDH will connect to for:
+
+- Viewing Kubernetes resources across clusters
+- Tracking ArgoCD applications deployed to remote clusters
+- Using software templates that deploy to various target clusters
