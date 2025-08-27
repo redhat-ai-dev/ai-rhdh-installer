@@ -25,6 +25,7 @@ VARS=(
     "LIGHTSPEED_MODEL_URL"
     "LIGHTSPEED_API_TOKEN"
     "RHDH_SIGNIN_PROVIDER"
+    "REMOTE_CLUSTER_COUNT"
 )
 
 # Store a backup of the private.env file if it exists
@@ -38,3 +39,18 @@ touch $BASE_DIR/private.env
 for ENV_VAR in "${VARS[@]}"; do
     echo "export ${ENV_VAR}='${!ENV_VAR}'" >> $BASE_DIR/private.env
 done
+
+# Store remote cluster variables dynamically
+if [ ! -z "${REMOTE_CLUSTER_COUNT}" ] && [ "${REMOTE_CLUSTER_COUNT}" -gt 0 ]; then
+    for ((i=1; i<=REMOTE_CLUSTER_COUNT; i++)); do
+        sa_var="REMOTE_K8S_SA_${i}"
+        url_var="REMOTE_K8S_URL_${i}"
+        token_var="REMOTE_K8S_SA_TOKEN_${i}"
+        auth_var="REMOTE_K8S_AUTH_PROVIDER_${i}"
+        
+        echo "export ${sa_var}='${!sa_var}'" >> $BASE_DIR/private.env
+        echo "export ${url_var}='${!url_var}'" >> $BASE_DIR/private.env
+        echo "export ${token_var}='${!token_var}'" >> $BASE_DIR/private.env
+        echo "export ${auth_var}='${!auth_var}'" >> $BASE_DIR/private.env
+    done
+fi

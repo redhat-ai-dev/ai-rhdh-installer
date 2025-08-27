@@ -445,6 +445,67 @@ configure_dh() {
     fi
     check_status || return 1
 
+    # Configure remote clusters in tekton-plugins.yaml if any are defined
+    if [ ! -z "${REMOTE_CLUSTER_COUNT}" ] && [ "${REMOTE_CLUSTER_COUNT}" -gt 0 ]; then
+        echo -n "* Configuring remote clusters in tekton-plugins configuration: "
+        
+        # Store remote cluster variables in the extra env secret
+        for ((i=1; i<=REMOTE_CLUSTER_COUNT; i++)); do
+            sa_var="REMOTE_K8S_SA_${i}"
+            url_var="REMOTE_K8S_URL_${i}"
+            token_var="REMOTE_K8S_SA_TOKEN_${i}"
+            auth_var="REMOTE_K8S_AUTH_PROVIDER_${i}"
+            
+            sa_encoded=$(echo -n "${!sa_var}" | base64 -w 0)
+            url_encoded=$(echo -n "${!url_var}" | base64 -w 0)
+            # Token should already be base64 encoded
+            token_encoded="${!token_var}"
+            auth_encoded=$(echo -n "${!auth_var}" | base64 -w 0)
+            
+            kubectl -n $NAMESPACE get secret $RHDH_EXTRA_ENV_SECRET -o yaml | \
+                yq ".data.${sa_var} = \"${sa_encoded}\" | 
+                    .data.${url_var} = \"${url_encoded}\" | 
+                    .data.${token_var} = \"${token_encoded}\" | 
+                    .data.${auth_var} = \"${auth_encoded}\"" -M -I=0 | \
+                kubectl apply -n $NAMESPACE -f - >/dev/null
+        done
+        
+        # Update tekton-plugins.yaml to include remote clusters
+        temp_tekton_plugins=$(mktemp)
+        cp "$BASE_DIR/dynamic-plugins/tekton-plugins.yaml" "$temp_tekton_plugins"
+        
+        yq -i ".plugins[2].pluginConfig.kubernetes.clusterLocatorMethods[0].clusters = [{
+            \"authProvider\": \"serviceAccount\",
+            \"name\": \"\${K8S_SA}\",
+            \"serviceAccountToken\": \"\${K8S_SA_TOKEN}\",
+            \"skipTLSVerify\": true,
+            \"url\": \"https://kubernetes.default.svc\"
+        }]" "$temp_tekton_plugins"
+        
+        # Build the additional clusters YAML
+        for ((i=1; i<=REMOTE_CLUSTER_COUNT; i++)); do
+            sa_var="REMOTE_K8S_SA_${i}"
+            url_var="REMOTE_K8S_URL_${i}"
+            token_var="REMOTE_K8S_SA_TOKEN_${i}"
+            auth_var="REMOTE_K8S_AUTH_PROVIDER_${i}"
+            
+            # Add remote cluster to the clusters array
+            yq -i ".plugins[2].pluginConfig.kubernetes.clusterLocatorMethods[0].clusters += {
+                \"authProvider\": \"\${${auth_var}}\",
+                \"name\": \"\${${sa_var}}\",
+                \"serviceAccountToken\": \"\${${token_var}}\",
+                \"skipTLSVerify\": true,
+                \"url\": \"\${${url_var}}\"
+            }" "$temp_tekton_plugins"
+        done
+        
+        # Apply the updated tekton-plugins configuration
+        cp "$temp_tekton_plugins" "$BASE_DIR/dynamic-plugins/tekton-plugins.yaml"
+        rm "$temp_tekton_plugins"
+        echo "OK"
+        check_status || return 1
+    fi
+
     # Add ArgoCD information to backstage deployment data
     echo -n "* Adding ArgoCD information to backstage deployment data: "
     if [ -z "$(kubectl -n $NAMESPACE get configmap "argocd-config" -o name --ignore-not-found)" ]; then

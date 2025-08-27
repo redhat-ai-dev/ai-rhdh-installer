@@ -30,6 +30,7 @@ plugins:
                 serviceAccountToken: ${K8S_SA_TOKEN}
                 skipTLSVerify: true
                 url: https://kubernetes.default.svc
+                # Remote clusters will be dynamically added here during configuration
             type: config
         customResources:
           - apiVersion: v1

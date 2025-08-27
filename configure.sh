@@ -37,6 +37,10 @@ export QUAY__DOCKERCONFIGJSON=${QUAY__DOCKERCONFIGJSON:-''}
 export QUAY__API_TOKEN=${QUAY__API_TOKEN:-''}
 export LIGHTSPEED_MODEL_URL=${LIGHTSPEED_MODEL_URL:-''}
 export LIGHTSPEED_API_TOKEN=${LIGHTSPEED_API_TOKEN:-''}
+export REMOTE_K8S_SA=${REMOTE_K8S_SA:-''}
+export REMOTE_K8S_SA_TOKEN=${REMOTE_K8S_SA_TOKEN:-''}
+export REMOTE_K8S_URL=${REMOTE_K8S_URL:-''}
+export REMOTE_K8S_AUTH_PROVIDER=${REMOTE_K8S_AUTH_PROVIDER:-'serviceAccount'}
 
 # Skipped optional variables
 export BYPASS_OPTIONAL_INPUT=''
@@ -212,6 +216,78 @@ if [ -z "${QUAY__DOCKERCONFIGJSON}" ]; then
     read -p "Enter your Quay DockerConfig JSON (Optional|Use CTRL-D when finished): " -d $'\04' QUAY__DOCKERCONFIGJSON
     echo ""
     BYPASS_OPTIONAL_INPUT+=",QUAY__DOCKERCONFIGJSON"
+fi
+
+# Configure remote clusters
+# Ask whether to enable remote cluster setup
+read -p "Would you like to enable remote cluster setup? (y/n): " enable_remote_clusters
+case "${enable_remote_clusters}" in
+	y|Y) setup_remote_clusters="true";;
+	*) setup_remote_clusters="false";;
+ esac
+
+if [[ "${setup_remote_clusters}" == "true" ]]; then
+	echo ""
+	echo "**Remote Cluster Configuration**"
+	echo "You can configure additional clusters for multi-cluster support."
+	echo "Use CTRL-D when finished adding clusters."
+
+	cluster_index=1
+	while true; do
+		echo ""
+		echo "=== Remote Cluster ${cluster_index} ==="
+		
+		# Ask for cluster name (use CTRL-D to exit)
+		read -p "Enter remote cluster service account name (CTRL-D to finish): " cluster_sa || break
+		if [ -z "${cluster_sa}" ]; then
+			read -p "Empty input. Press CTRL-D to finish or enter a name: " cluster_sa || break
+		fi
+		
+		# Ask for cluster URL
+		while [ -z "${cluster_url}" ]; do
+			read -p "Enter remote cluster URL (e.g., https://api.cluster.example.com:6443): " cluster_url
+			if [ -z "${cluster_url}" ]; then
+				echo "Cluster URL is required, try again."
+			fi
+		done
+		
+		# Ask for service account token
+		while [ -z "${cluster_token}" ]; do
+			read -p "Enter remote cluster service account token: " cluster_token
+			if [ -z "${cluster_token}" ]; then
+				echo "Service account token is required, try again."
+			fi
+		done
+		
+		# Optional auth provider
+		echo -n "Auth provider (defaulting to serviceAccount): "
+        cluster_auth_provider="serviceAccount"
+		
+		# Store in numbered variables
+		export "REMOTE_K8S_SA_${cluster_index}=${cluster_sa}"
+		export "REMOTE_K8S_URL_${cluster_index}=${cluster_url}"
+		export "REMOTE_K8S_SA_TOKEN_${cluster_index}=${cluster_token}"
+		export "REMOTE_K8S_AUTH_PROVIDER_${cluster_index}=${cluster_auth_provider}"
+
+		echo "Remote cluster ${cluster_index} configured: ${cluster_sa} (${cluster_url})"
+		
+		# Reset variables for next iteration
+		unset cluster_sa cluster_url cluster_token cluster_auth_provider
+		cluster_index=$((cluster_index + 1))
+	done
+
+	export REMOTE_CLUSTER_COUNT=$((cluster_index - 1))
+	if [ ${REMOTE_CLUSTER_COUNT} -gt 0 ]; then
+		echo ""
+		echo "Configured ${REMOTE_CLUSTER_COUNT} remote cluster(s)"
+	else
+		echo ""
+		echo "No remote clusters configured"
+	fi
+else
+	echo ""
+	echo "Skipping remote cluster configuration"
+	export REMOTE_CLUSTER_COUNT=0
 fi
 
 echo ''
