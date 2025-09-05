@@ -49,7 +49,7 @@ patch_plugins() {
     fi
 
     # Edit the temp file to include the plugins
-    yq -i ".plugins += $(yq '.plugins' $plugins -M -o json) | .plugins |= unique_by(.package)" temp-dynamic-plugins.yaml
+    yq -i ".plugins += $(yq '.plugins' $plugins -M -o json) | .plugins = ((.plugins | reverse | unique_by(.package)) | reverse)" temp-dynamic-plugins.yaml
     if [ $? -ne 0 ]; then
         return 1
     fi
