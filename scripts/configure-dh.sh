@@ -438,8 +438,8 @@ configure_dh() {
             
             sa_encoded=$(echo -n "${!sa_var}" | base64 -w 0)
             url_encoded=$(echo -n "${!url_var}" | base64 -w 0)
-            # Token should already be base64 encoded
-            token_encoded="${!token_var}"
+
+            token_encoded=$(echo -n "${!token_var}" | base64 -w 0)
             auth_encoded=$(echo -n "${!auth_var}" | base64 -w 0)
             
             kubectl -n $NAMESPACE get secret $RHDH_EXTRA_ENV_SECRET -o yaml | \
