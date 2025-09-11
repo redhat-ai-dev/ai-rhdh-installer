@@ -390,28 +390,6 @@ configure_dh() {
         return 1
     fi
 
-    # Patches dynamic plugins ConfigMap with lists from each plugins file
-    plugins=$BASE_DIR/dynamic-plugins/*.yaml
-    if [[ $LIGHTSPEED_INTEGRATION == "true" ]]; then
-        plugins="$plugins $BASE_DIR/optional-plugins/lightspeed-plugins.yaml"
-    fi
-    for f in $plugins; do
-        echo -n "* Patching in $(basename $f .yaml) plugins: "
-        patch_plugins "${f}" "${RHDH_PLUGINS_CONFIGMAP}" "${NAMESPACE}"
-        check_status || return 1
-    done
-
-    # Adds dynamic plugins ConfigMap to RHDH deployment if not added
-    if [[ "$(is_plugins_attached "${RHDH_PLUGINS_CONFIGMAP}" "${RHDH_DEPLOYMENT}" "${NAMESPACE}")" == "false" ]]; then
-        echo -n "* Adding dynamic plugins ConfigMap to RHDH deployment: "
-        if [[ $RHDH_INSTANCE_PROVIDED == "true" ]]; then
-            attach_plugins_to_deployment "${RHDH_PLUGINS_CONFIGMAP}" "${RHDH_DEPLOYMENT}" "${NAMESPACE}"
-        else
-            attach_plugins_to_cr "${RHDH_PLUGINS_CONFIGMAP}" "${BACKSTAGE_CR_NAME}" "${NAMESPACE}"
-        fi
-        check_status || return 1
-    fi
-
     # Adds extra env secret to RHDH deployment
     if [ -z "$(kubectl -n $NAMESPACE get secret $RHDH_EXTRA_ENV_SECRET -o name --ignore-not-found)" ]; then
         echo "[FAIL] Extra env secret '${RHDH_EXTRA_ENV_SECRET}' not found!"
@@ -445,9 +423,11 @@ configure_dh() {
     fi
     check_status || return 1
 
-    # Configure remote clusters in tekton-plugins.yaml if any are defined
+    # Prepare Tekton plugins file (use temp copy if remote clusters are defined)
+    TEKTON_PLUGINS_FOR_PATCH="$BASE_DIR/dynamic-plugins/tekton-plugins.yaml"
+    temp_dir=""
     if [ ! -z "${REMOTE_CLUSTER_COUNT}" ] && [ "${REMOTE_CLUSTER_COUNT}" -gt 0 ]; then
-        echo -n "* Configuring remote clusters in tekton-plugins configuration: "
+        echo -n "* Preparing Tekton plugins with remote clusters: "
         
         # Store remote cluster variables in the extra env secret
         for ((i=1; i<=REMOTE_CLUSTER_COUNT; i++)); do
@@ -458,8 +438,8 @@ configure_dh() {
             
             sa_encoded=$(echo -n "${!sa_var}" | base64 -w 0)
             url_encoded=$(echo -n "${!url_var}" | base64 -w 0)
-            # Token should already be base64 encoded
-            token_encoded="${!token_var}"
+
+            token_encoded=$(echo -n "${!token_var}" | base64 -w 0)
             auth_encoded=$(echo -n "${!auth_var}" | base64 -w 0)
             
             kubectl -n $NAMESPACE get secret $RHDH_EXTRA_ENV_SECRET -o yaml | \
@@ -470,8 +450,8 @@ configure_dh() {
                 kubectl apply -n $NAMESPACE -f - >/dev/null
         done
         
-        # Update tekton-plugins.yaml to include remote clusters
-        temp_tekton_plugins=$(mktemp)
+        temp_dir="$(mktemp -d)"
+        temp_tekton_plugins="$temp_dir/tekton-plugins.yaml"
         cp "$BASE_DIR/dynamic-plugins/tekton-plugins.yaml" "$temp_tekton_plugins"
         
         yq -i ".plugins[2].pluginConfig.kubernetes.clusterLocatorMethods[0].clusters = [{
@@ -499,10 +479,41 @@ configure_dh() {
             }" "$temp_tekton_plugins"
         done
         
-        # Apply the updated tekton-plugins configuration
-        cp "$temp_tekton_plugins" "$BASE_DIR/dynamic-plugins/tekton-plugins.yaml"
-        rm "$temp_tekton_plugins"
+        TEKTON_PLUGINS_FOR_PATCH="$temp_tekton_plugins"
         echo "OK"
+    fi
+
+    # Patches dynamic plugins ConfigMap with lists from each plugins file
+    plugins=""
+    for f in $BASE_DIR/dynamic-plugins/*.yaml; do
+        if [ "$(basename "$f")" = "tekton-plugins.yaml" ]; then
+            plugins="$plugins $TEKTON_PLUGINS_FOR_PATCH"
+        else
+            plugins="$plugins $f"
+        fi
+    done
+    if [[ $LIGHTSPEED_INTEGRATION == "true" ]]; then
+        plugins="$plugins $BASE_DIR/optional-plugins/lightspeed-plugins.yaml"
+    fi
+    for f in $plugins; do
+        echo -n "* Patching in $(basename $f .yaml) plugins: "
+        patch_plugins "${f}" "${RHDH_PLUGINS_CONFIGMAP}" "${NAMESPACE}"
+        check_status || { [ -n "$temp_dir" ] && rm -rf "$temp_dir"; return 1; }
+    done
+
+    # Cleanup temp Tekton plugins if used
+    if [ -n "$temp_dir" ]; then
+        rm -rf "$temp_dir"
+    fi
+
+    # Adds dynamic plugins ConfigMap to RHDH deployment
+    if [[ "$(is_plugins_attached "${RHDH_PLUGINS_CONFIGMAP}" "${RHDH_DEPLOYMENT}" "${NAMESPACE}")" == "false" ]]; then
+        echo -n "* Adding dynamic plugins ConfigMap to RHDH deployment: "
+        if [[ $RHDH_INSTANCE_PROVIDED == "true" ]]; then
+            attach_plugins_to_deployment "${RHDH_PLUGINS_CONFIGMAP}" "${RHDH_DEPLOYMENT}" "${NAMESPACE}"
+        else
+            attach_plugins_to_cr "${RHDH_PLUGINS_CONFIGMAP}" "${BACKSTAGE_CR_NAME}" "${NAMESPACE}"
+        fi
         check_status || return 1
     fi
 

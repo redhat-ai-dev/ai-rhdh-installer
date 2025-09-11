@@ -131,3 +131,34 @@ export REMOTE_K8S_URL_2='https://api.staging.example.com:6443'
 export REMOTE_K8S_SA_TOKEN_2='eyJhbGciOiJSUzI1NiIsImtpZCI6...'
 export REMOTE_K8S_AUTH_PROVIDER_2='serviceAccount'
 ```
+
+## Argo CD Cluster Registration
+
+When you run `bash ./configure.sh` and add remote clusters, the installer will automatically create Argo CD cluster secrets for each remote cluster in the Argo CD namespace.
+
+- Installer-provisioned Argo CD: secrets are created in the `ai-rhdh` namespace
+- Pre-existing Argo CD: secrets are created in the namespace you provide when prompted
+
+Each secret is labeled with `argocd.argoproj.io/secret-type: cluster` and contains the server URL and bearer token you supplied.
+
+### Manual override (optional)
+If needed, you can create or update a cluster secret manually:
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: remote-cluster
+  namespace: ai-rhdh
+  labels:
+    argocd.argoproj.io/secret-type: cluster
+    app.kubernetes.io/managed-by: ai-rhdh-installer
+type: Opaque
+stringData:
+  name: api-<remote-cluster>:443
+  server: https://api.<remote-cluster>:443
+  config: |
+    {"bearerToken": "<remote-bearer-token>", "tlsClientConfig": {"insecure": true}}
+```
+
+> Note: Replace `namespace` if your Argo CD runs in a different namespace.
