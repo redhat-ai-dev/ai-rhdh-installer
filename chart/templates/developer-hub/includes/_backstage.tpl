@@ -1,6 +1,6 @@
 {{ define "rhdh.include.backstage" }}
 ---
-apiVersion: rhdh.redhat.com/v1alpha2
+apiVersion: rhdh.redhat.com/v1alpha3
 kind: Backstage
 metadata:
   name: ai-rh-developer-hub

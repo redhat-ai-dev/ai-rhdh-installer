@@ -24,4 +24,4 @@ openshift-pipelines:
   channel: pipelines-1.14
 developer-hub:
   enabled: true
-  channel: fast-1.6
+  channel: fast-1.9
