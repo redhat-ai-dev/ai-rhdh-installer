@@ -132,6 +132,16 @@ export REMOTE_K8S_SA_TOKEN_2='eyJhbGciOiJSUzI1NiIsImtpZCI6...'
 export REMOTE_K8S_AUTH_PROVIDER_2='serviceAccount'
 ```
 
+## Security: TLS Verification
+
+**Default: TLS certificate verification is ENABLED** (secure connections).
+
+For dev/test environments with self-signed certs:
+```bash
+export SKIP_TLS_VERIFY=true
+bash ./configure.sh
+```
+
 ## Argo CD Cluster Registration
 
 When you run `bash ./configure.sh` and add remote clusters, the installer will automatically create Argo CD cluster secrets for each remote cluster in the Argo CD namespace.
@@ -158,7 +168,9 @@ stringData:
   name: api-<remote-cluster>:443
   server: https://api.<remote-cluster>:443
   config: |
-    {"bearerToken": "<remote-bearer-token>", "tlsClientConfig": {"insecure": true}}
+    # Secure (default): {"bearerToken": "<token>"}
+    # Insecure (dev/test only): {"bearerToken": "<token>", "tlsClientConfig": {"insecure": true}}
+    {"bearerToken": "<remote-bearer-token>"}
 ```
 
 > Note: Replace `namespace` if your Argo CD runs in a different namespace.

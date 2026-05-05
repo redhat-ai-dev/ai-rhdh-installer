@@ -42,6 +42,9 @@ export REMOTE_K8S_SA_TOKEN=${REMOTE_K8S_SA_TOKEN:-''}
 export REMOTE_K8S_URL=${REMOTE_K8S_URL:-''}
 export REMOTE_K8S_AUTH_PROVIDER=${REMOTE_K8S_AUTH_PROVIDER:-'serviceAccount'}
 
+# Security options - secure by default
+export SKIP_TLS_VERIFY=${SKIP_TLS_VERIFY:-false}
+
 # Skipped optional variables
 export BYPASS_OPTIONAL_INPUT=''
 

@@ -470,18 +470,20 @@ configure_dh() {
         }]" "$temp_tekton_plugins"
         
         # Build the additional clusters YAML
+        # Use environment variable for TLS verification (secure by default)
+        skip_tls_verify="${SKIP_TLS_VERIFY:-false}"
         for ((i=1; i<=REMOTE_CLUSTER_COUNT; i++)); do
             sa_var="REMOTE_K8S_SA_${i}"
             url_var="REMOTE_K8S_URL_${i}"
             token_var="REMOTE_K8S_SA_TOKEN_${i}"
             auth_var="REMOTE_K8S_AUTH_PROVIDER_${i}"
-            
+
             # Add remote cluster to the clusters array
             yq -i ".plugins[2].pluginConfig.kubernetes.clusterLocatorMethods[0].clusters += {
                 \"authProvider\": \"\${${auth_var}}\",
                 \"name\": \"\${${sa_var}}\",
                 \"serviceAccountToken\": \"\${${token_var}}\",
-                \"skipTLSVerify\": true,
+                \"skipTLSVerify\": ${skip_tls_verify},
                 \"url\": \"\${${url_var}}\"
             }" "$temp_tekton_plugins"
         done
