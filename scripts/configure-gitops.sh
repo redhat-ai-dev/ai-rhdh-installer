@@ -119,22 +119,14 @@ if [ ! -z "${REMOTE_CLUSTER_COUNT}" ] && [ "${REMOTE_CLUSTER_COUNT}" -gt 0 ]; th
 
     secret_name="argocd-remote-cluster-${i}"
 
-    kubectl -n "$ARGO_NAMESPACE" apply -f - >/dev/null <<EOF
-apiVersion: v1
-kind: Secret
-metadata:
-  name: ${secret_name}
-  namespace: ${ARGO_NAMESPACE}
-  labels:
-    argocd.argoproj.io/secret-type: cluster
-    app.kubernetes.io/managed-by: ai-rhdh-installer
-type: Opaque
-stringData:
-  name: ${cluster_name}
-  server: ${server}
-  config: |
-    {"bearerToken": "${token}", "tlsClientConfig": {"insecure": true}}
-EOF
+kubectl create secret generic "${secret_name}" \
+  --namespace="$ARGO_NAMESPACE" \
+  --type=Opaque \
+  --from-literal=name="${cluster_name}" \
+  --from-literal=server="${server}" \
+  --from-literal=config='{"bearerToken": "'"${token}"'", "tlsClientConfig": {"insecure": true}}' \
+  --label="argocd.argoproj.io/secret-type=cluster" \
+  --label="app.kubernetes.io/managed-by=ai-rhdh-installer"
 
     echo "  - Registered ${cluster_name:-$server} in namespace ${ARGO_NAMESPACE} (secret ${secret_name})"
   done
