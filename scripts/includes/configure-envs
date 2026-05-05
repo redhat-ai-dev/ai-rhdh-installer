@@ -5,8 +5,9 @@ is_extra_envs_patch() {
     local existing_extra_env_secret=$1
     local deployment_name=$2
     local namespace=$3
-    local extra_env_secret_exists="$(attached_extra_envs_exists "${deployment_name}" "${namespace}")"
-    
+    local backstage_cr_name=$4
+    local extra_env_secret_exists="$(attached_extra_envs_exists "${deployment_name}" "${namespace}" "${backstage_cr_name}")"
+
     if [[ "${extra_env_secret_exists}" == "true" ]] && [[ $RHDH_INSTANCE_PROVIDED != "true" ]]; then
         echo "true"
     elif [[ $RHDH_INSTANCE_PROVIDED == "true" ]] && [ ! -z "${existing_extra_env_secret}" ]; then
@@ -86,10 +87,11 @@ is_extra_envs_attached() {
     local extra_envs_secret=$1
     local deployment_name=$2
     local namespace=$3
+    local backstage_cr_name=$4
     local extra_envs="$(kubectl get deployment $deployment_name -n $namespace -o=jsonpath='{.spec.template.spec}' --ignore-not-found |
         yq ".containers[].envFrom[] | select(.secretRef.name == \"${extra_envs_secret}\") | .secretRef.name" -M)"
-    local extra_env_secret_exists="$(attached_extra_envs_exists "${deployment_name}" "${namespace}")"
-    
+    local extra_env_secret_exists="$(attached_extra_envs_exists "${deployment_name}" "${namespace}" "${backstage_cr_name}")"
+
     if [ -z "${extra_envs}" ]; then
         echo "false"
     elif [[ "${RHDH_INSTANCE_PROVIDED}" == "false" ]] && [[ "${extra_env_secret_exists}" == "false" ]]; then
