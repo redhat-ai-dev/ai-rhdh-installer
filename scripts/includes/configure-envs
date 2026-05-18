@@ -22,14 +22,15 @@ build_gh_envs_secret_data() {
     local env_secret_data="${1:-"$(yq -n -M -I=0 -o=json)"}"
 
     echo "$env_secret_data" | yq \
-        ".data.GITHUB__APP__ID = \"$(echo "${GITHUB__APP__ID}" | base64)\" | 
+        ".data.GITHUB__APP__ID = \"$(echo "${GITHUB__APP__ID}" | base64)\" |
         .data.GITHUB__APP__CLIENT__ID = \"$(echo "${GITHUB__APP__CLIENT__ID}" | base64)\" |
         .data.GITHUB__APP__CLIENT__SECRET = \"$(echo "${GITHUB__APP__CLIENT__SECRET}" | base64)\" |
         .data.GITHUB__APP__WEBHOOK__URL = \"$(echo "${GITHUB__APP__WEBHOOK__URL}" | base64)\" |
         .data.GITHUB__APP__WEBHOOK__SECRET = \"$(echo "${GITHUB__APP__WEBHOOK__SECRET}" | base64)\" |
         .data.GITHUB__APP__PRIVATE_KEY = \"$(echo "${GITHUB__APP__PRIVATE_KEY}" | base64)\" |
         .data.GITHUB__HOST = \"$(echo "${GITHUB__HOST}" | base64)\" |
-        .data.GITHUB__ORG__NAME = \"$(echo "${GITHUB__ORG__NAME}" | base64)\""  -M -I=0 -o=json
+        .data.GITHUB__ORG__NAME = \"$(echo "${GITHUB__ORG__NAME}" | base64)\" |
+        .data.GITOPS__GIT_TOKEN = \"$(echo "${GITOPS__GIT_TOKEN}" | base64)\""  -M -I=0 -o=json
 }
 
 # Builds extra envs secret data for GitLab integration
@@ -42,7 +43,8 @@ build_gl_envs_secret_data() {
         .data.GITLAB__TOKEN = \"$(echo "${GITLAB__TOKEN}" | base64)\" |
         .data.GITLAB__HOST = \"$(echo "${GITLAB__HOST}" | base64)\" |
         .data.GITLAB__GROUP__NAME = \"$(echo "${GITLAB__GROUP__NAME}" | base64)\" |
-        .data.GITLAB__ORG__ENABLED = \"$(echo "${GITLAB__ORG__ENABLED}" | base64)\""  -M -I=0 -o=json
+        .data.GITLAB__ORG__ENABLED = \"$(echo "${GITLAB__ORG__ENABLED}" | base64)\" |
+        .data.GITOPS__GIT_TOKEN = \"$(echo "${GITOPS__GIT_TOKEN}" | base64)\""  -M -I=0 -o=json
 }
 
 # Builds extra envs secret data for Quay integration

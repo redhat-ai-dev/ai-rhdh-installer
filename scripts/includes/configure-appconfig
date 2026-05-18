@@ -25,6 +25,7 @@ build_gh_appconfig() {
         .catalog.providers.githubOrg.schedule.initialDelay.seconds = ${CATALOG_GITHUB_SCHEDULE_INITIALDELAY_SECONDS} |
         .catalog.providers.githubOrg.schedule.timeout.minutes = ${CATALOG_GITHUB_SCHEDULE_TIMEOUT_MINUTES} |
         .integrations.github[0].host = \"\${GITHUB__HOST}\" |
+        .integrations.github[0].token = \"\${GITOPS__GIT_TOKEN}\" |
         .integrations.github[0].apps[0].appId = \"\${GITHUB__APP__ID}\" |
         .integrations.github[0].apps[0].clientId = \"\${GITHUB__APP__CLIENT__ID}\" |
         .integrations.github[0].apps[0].clientSecret = \"\${GITHUB__APP__CLIENT__SECRET}\" |
