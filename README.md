@@ -31,7 +31,7 @@ This Helm chart installs and configures the following operators:
 ### Install
 
 >[!WARNING]
-> This installer is incompatible with the `default` namespace. Install and uninstall commands *must* include `--namespace <target-namespace>`, or the context namespace should e updated. E.g. `oc project <target-namespace>`.
+> This installer is incompatible with the `default` namespace. Install and uninstall commands *must* include `--namespace <target-namespace>`, or the context namespace should be updated. E.g. `oc project <target-namespace>`.
 
 To deploy default installations of the above Operators, run:
 ```
@@ -77,7 +77,7 @@ For information related to extra configuration options, see [`docs/EXTRA-CONFIG.
 
 ## Remote Cluster Configuration
 
-- Refer to [cluster configuration docmentation](./docs/REMOTE-CLUSTER-CONFIG.md) for information about how to configure remote cluster.
+- Refer to [cluster configuration documentation](./docs/REMOTE-CLUSTER-CONFIG.md) for information about how to configure remote cluster.
 
 The installer supports connecting to multiple Kubernetes clusters for multi-cluster visibility of resources, pipelines, and applications. During configuration, you can add remote clusters that RHDH will connect to for:
 
