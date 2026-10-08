@@ -21,7 +21,7 @@ openshift-gitops:
   skip-test-tls: false
 openshift-pipelines:
   enabled: true
-  channel: pipelines-1.14
+  channel: pipelines-1.24
 developer-hub:
   enabled: true
-  channel: fast-1.9
+  channel: fast-1.10
