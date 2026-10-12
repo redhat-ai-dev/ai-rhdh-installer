@@ -492,11 +492,28 @@ configure_dh() {
         echo "OK"
     fi
 
+    # Prepare DH plugins file: disable the GitLab catalog discovery modules when GitLab
+    # integration is off. As of RHDH 1.10 these modules ship a required 'default' catalog
+    # provider; without GitLab integration the installer never supplies that provider config,
+    # so leaving the modules enabled makes the backend fail to start.
+    DH_PLUGINS_FOR_PATCH="$BASE_DIR/dynamic-plugins/dh-plugins.yaml"
+    dh_temp_dir=""
+    if [[ $RHDH_GITLAB_INTEGRATION != "true" ]]; then
+        echo -n "* Disabling GitLab catalog plugins (GitLab integration off): "
+        dh_temp_dir="$(mktemp -d)"
+        DH_PLUGINS_FOR_PATCH="$dh_temp_dir/dh-plugins.yaml"
+        cp "$BASE_DIR/dynamic-plugins/dh-plugins.yaml" "$DH_PLUGINS_FOR_PATCH"
+        yq -i '(.plugins[] | select(.package | test("catalog-backend-module-gitlab(-org)?-dynamic$")) | .disabled) = true' "$DH_PLUGINS_FOR_PATCH"
+        echo "OK"
+    fi
+
     # Patches dynamic plugins ConfigMap with lists from each plugins file
     plugins=""
     for f in $BASE_DIR/dynamic-plugins/*.yaml; do
         if [ "$(basename "$f")" = "tekton-plugins.yaml" ]; then
             plugins="$plugins $TEKTON_PLUGINS_FOR_PATCH"
+        elif [ "$(basename "$f")" = "dh-plugins.yaml" ]; then
+            plugins="$plugins $DH_PLUGINS_FOR_PATCH"
         else
             plugins="$plugins $f"
         fi
@@ -507,12 +524,17 @@ configure_dh() {
     for f in $plugins; do
         echo -n "* Patching in $(basename $f .yaml) plugins: "
         patch_plugins "${f}" "${RHDH_PLUGINS_CONFIGMAP}" "${NAMESPACE}"
-        check_status || { [ -n "$temp_dir" ] && rm -rf "$temp_dir"; return 1; }
+        check_status || { [ -n "$temp_dir" ] && rm -rf "$temp_dir"; [ -n "$dh_temp_dir" ] && rm -rf "$dh_temp_dir"; return 1; }
     done
 
     # Cleanup temp Tekton plugins if used
     if [ -n "$temp_dir" ]; then
         rm -rf "$temp_dir"
+    fi
+
+    # Cleanup temp DH plugins if used
+    if [ -n "$dh_temp_dir" ]; then
+        rm -rf "$dh_temp_dir"
     fi
 
     # Adds dynamic plugins ConfigMap to RHDH deployment
