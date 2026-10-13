@@ -1,3 +1,4 @@
 # List of Software Template catalogs to setup with RHDH
 catalogs:
   - https://github.com/redhat-developer/rhdh-ai-template/blob/main/all.yaml
+  - https://github.com/redhat-developer/rhdh-llama-stack-agentic-sample/blob/main/all.yaml
