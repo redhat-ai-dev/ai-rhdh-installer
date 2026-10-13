@@ -27,7 +27,8 @@ plugins:
                   if:
                     allOf:
                       - isArgocdConfigured
+  # Migrated from local-dist to OCI for RHDH 1.10: these plugins were removed from the RHDH image's prepackaged dynamic-plugins/dist
   - disabled: false
-    package: ./dynamic-plugins/dist/roadiehq-backstage-plugin-argo-cd-backend-dynamic
+    package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/roadiehq-backstage-plugin-argo-cd-backend:bs_1.49.4__4.8.0!roadiehq-backstage-plugin-argo-cd-backend
   - disabled: false
-    package: ./dynamic-plugins/dist/roadiehq-scaffolder-backend-argocd-dynamic
+    package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/roadiehq-scaffolder-backend-argocd:bs_1.49.4__1.8.1!roadiehq-scaffolder-backend-argocd
